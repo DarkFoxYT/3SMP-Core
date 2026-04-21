@@ -1,59 +1,73 @@
-# Preset duel kits. Keep IDs lowercase and stable; player queues and challenges reference these IDs.
-# Kit item lists use Bukkit Material names. Add amounts later as needed with a parser upgrade.
+# Preset duel kits. Keep IDs lowercase and stable.
 
 kits:
-  warrior:
-    display-name: "<gradient:#f59e0b:#f97316>Warrior</gradient>"
+  sword:
+    display-name: "<gradient:#60a5fa:#c084fc>Sword PvP</gradient>"
     icon: DIAMOND_SWORD
     permission: ""
     slot: 10
     enabled: true
-    lore:
-      - "<gray>Classic sword PvP loadout.</gray>"
-    contents: [DIAMOND_SWORD, BOW, ARROW, GOLDEN_APPLE]
+    lore: ["<gray>Classic sword PvP loadout.</gray>"]
+    contents: [DIAMOND_SWORD, BOW, ARROW, GOLDEN_APPLE, COOKED_BEEF]
     armor: [DIAMOND_BOOTS, DIAMOND_LEGGINGS, DIAMOND_CHESTPLATE, DIAMOND_HELMET]
     offhand: [SHIELD]
-  archer:
-    display-name: "<gradient:#D6E8F7:#60a5fa>Archer</gradient>"
-    icon: BOW
-    permission: ""
-    slot: 11
-    enabled: true
-    lore:
-      - "<gray>Bow-focused spacing kit.</gray>"
-    contents: [BOW, STONE_SWORD, ARROW, ARROW, GOLDEN_APPLE]
-    armor: [IRON_BOOTS, IRON_LEGGINGS, IRON_CHESTPLATE, IRON_HELMET]
-    offhand: []
   axe:
-    display-name: "<gradient:#ef4444:#f59e0b>Axe</gradient>"
+    display-name: "<gradient:#ef4444:#f59e0b>Axe PvP</gradient>"
     icon: DIAMOND_AXE
     permission: ""
     slot: 12
     enabled: true
-    lore:
-      - "<gray>Shield pressure and burst trades.</gray>"
-    contents: [DIAMOND_AXE, CROSSBOW, ARROW, GOLDEN_APPLE]
-    armor: [DIAMOND_BOOTS, IRON_LEGGINGS, DIAMOND_CHESTPLATE, IRON_HELMET]
-    offhand: [SHIELD]
-  crystal:
-    display-name: "<gradient:#a78bfa:#f472b6>Crystal</gradient>"
-    icon: END_CRYSTAL
-    permission: "3smpcore.duel.kit.crystal"
-    slot: 13
-    enabled: true
-    lore:
-      - "<gray>Permission-gated advanced kit.</gray>"
-    contents: [DIAMOND_SWORD, END_CRYSTAL, OBSIDIAN, GOLDEN_APPLE]
+    lore: ["<gray>Axe, shield pressure, and trades.</gray>"]
+    contents: [DIAMOND_AXE, CROSSBOW, ARROW, GOLDEN_APPLE, COOKED_BEEF]
     armor: [DIAMOND_BOOTS, DIAMOND_LEGGINGS, DIAMOND_CHESTPLATE, DIAMOND_HELMET]
-    offhand: [TOTEM_OF_UNDYING]
-  training:
-    display-name: "<gradient:#34d399:#86efac>Training</gradient>"
-    icon: IRON_SWORD
+    offhand: [SHIELD]
+  nethpot:
+    display-name: "<gradient:#a78bfa:#f472b6>NethPot</gradient>"
+    icon: NETHERITE_SWORD
     permission: ""
     slot: 14
     enabled: true
-    lore:
-      - "<gray>Simple low-stakes practice kit.</gray>"
-    contents: [IRON_SWORD, BOW, ARROW, COOKED_BEEF]
+    lore: ["<gray>Netherite potion PvP framework kit.</gray>"]
+    contents: [NETHERITE_SWORD, ENDER_PEARL, SPLASH_POTION, SPLASH_POTION, GOLDEN_CARROT]
+    armor: [NETHERITE_BOOTS, NETHERITE_LEGGINGS, NETHERITE_CHESTPLATE, NETHERITE_HELMET]
+    offhand: [TOTEM_OF_UNDYING]
+  bow:
+    display-name: "<gradient:#D6E8F7:#60a5fa>Bow PvP</gradient>"
+    icon: BOW
+    permission: ""
+    slot: 16
+    enabled: true
+    lore: ["<gray>Ranged spacing and aim kit.</gray>"]
+    contents: [BOW, CROSSBOW, STONE_SWORD, ARROW, ARROW, GOLDEN_APPLE]
     armor: [IRON_BOOTS, IRON_LEGGINGS, IRON_CHESTPLATE, IRON_HELMET]
+    offhand: []
+  crystal:
+    display-name: "<gradient:#f59e0b:#f97316>Crystal PvP</gradient>"
+    icon: END_CRYSTAL
+    permission: "3smpcore.duel.kit.crystal"
+    slot: 28
+    enabled: true
+    lore: ["<gray>Advanced crystal PvP kit.</gray>"]
+    contents: [NETHERITE_SWORD, END_CRYSTAL, OBSIDIAN, RESPAWN_ANCHOR, GLOWSTONE, GOLDEN_APPLE]
+    armor: [NETHERITE_BOOTS, NETHERITE_LEGGINGS, NETHERITE_CHESTPLATE, NETHERITE_HELMET]
+    offhand: [TOTEM_OF_UNDYING]
+  smp:
+    display-name: "<gradient:#34d399:#22c55e>SMP</gradient>"
+    icon: GRASS_BLOCK
+    permission: ""
+    slot: 30
+    enabled: true
+    lore: ["<gray>Survival-style duel mode.</gray>"]
+    contents: [DIAMOND_SWORD, DIAMOND_AXE, BOW, ARROW, GOLDEN_APPLE, WATER_BUCKET, LAVA_BUCKET, COOKED_BEEF]
+    armor: [DIAMOND_BOOTS, DIAMOND_LEGGINGS, DIAMOND_CHESTPLATE, DIAMOND_HELMET]
+    offhand: [SHIELD]
+  uhc:
+    display-name: "<gradient:#fb7185:#f59e0b>UHC</gradient>"
+    icon: GOLDEN_APPLE
+    permission: ""
+    slot: 32
+    enabled: true
+    lore: ["<gray>Golden apple UHC-style kit.</gray>"]
+    contents: [DIAMOND_SWORD, BOW, ARROW, GOLDEN_APPLE, GOLDEN_APPLE, WATER_BUCKET, LAVA_BUCKET, COOKED_BEEF]
+    armor: [DIAMOND_BOOTS, DIAMOND_LEGGINGS, DIAMOND_CHESTPLATE, DIAMOND_HELMET]
     offhand: []

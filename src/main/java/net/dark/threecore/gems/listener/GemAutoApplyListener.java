@@ -1,6 +1,7 @@
 package net.dark.threecore.gems.listener;
 
 import net.dark.threecore.duels.DuelService;
+import net.dark.threecore.config.ConfigFiles;
 import net.dark.threecore.gems.SeasonalGemRegistry;
 import org.bukkit.Bukkit;
 import org.bukkit.GameMode;
@@ -28,12 +29,14 @@ public final class GemAutoApplyListener implements Listener {
     private final JavaPlugin plugin;
     private final SeasonalGemRegistry registry;
     private final DuelService duelService;
+    private final ConfigFiles configs;
     private final NamespacedKey autoKey;
 
-    public GemAutoApplyListener(JavaPlugin plugin, SeasonalGemRegistry registry, DuelService duelService) {
+    public GemAutoApplyListener(JavaPlugin plugin, SeasonalGemRegistry registry, DuelService duelService, ConfigFiles configs) {
         this.plugin = plugin;
         this.registry = registry;
         this.duelService = duelService;
+        this.configs = configs;
         this.autoKey = new NamespacedKey(plugin, AUTO_KEY);
     }
 
@@ -75,6 +78,7 @@ public final class GemAutoApplyListener implements Listener {
         if (player == null || !player.isOnline()) return;
         if (player.getGameMode() == GameMode.SPECTATOR) return;
         if (duelService != null && duelService.isPlayerInDuel(player.getUniqueId())) return;
+        if (configs.get("gems.yml").getStringList("gems.disabled-worlds").stream().anyMatch(w -> w.equalsIgnoreCase(player.getWorld().getName()))) return;
         applyIfNeeded(player.getInventory().getItemInMainHand());
         applyIfNeeded(player.getInventory().getItemInOffHand());
         for (ItemStack armor : player.getInventory().getArmorContents()) applyIfNeeded(armor);

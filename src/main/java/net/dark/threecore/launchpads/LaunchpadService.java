@@ -433,7 +433,7 @@ public final class LaunchpadService implements Listener {
         player.setMetadata("launchpad_cooldown", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
         String particleId = perkService == null ? "" : perkService.data(player.getUniqueId()).activeParticle();
         playLaunchParticles(player, particleId);
-        Vector velocity = solveLaunchVelocity(player.getLocation(), launchpad.target(), launchpad.definition().velocity(), launchpad.definition().strength());
+        Vector velocity = solveLaunchVelocity(launchpad.location().clone().add(0.5, 1.0, 0.5), player.getLocation(), launchpad.target(), launchpad.definition().velocity(), launchpad.definition().strength());
         player.setVelocity(velocity);
         player.setFallDistance(0.0f);
         player.setSneaking(false);
@@ -693,26 +693,45 @@ public final class LaunchpadService implements Listener {
         saveConfigFile(yaml, "launchpads.yml");
     }
 
-    private Vector solveLaunchVelocity(Location from, Location target, Vector fallback, double strength) {
-        if (target == null || target.getWorld() == null || from == null || from.getWorld() == null) {
-            return fallback == null ? new Vector(0.0, 0.75, 1.8).multiply(strength) : fallback.clone().multiply(strength);
+    private Vector solveLaunchVelocity(Location padLocation, Location playerLocation, Location target, Vector fallback, double strength) {
+        Vector fallbackVelocity = fallback == null ? new Vector(0.0, 0.95, 1.8) : fallback.clone();
+        double multiplier = Math.max(0.1, strength);
+        if (target == null || target.getWorld() == null || padLocation == null || padLocation.getWorld() == null || !padLocation.getWorld().equals(target.getWorld())) {
+            return fallbackVelocity.multiply(multiplier);
         }
-        if (!from.getWorld().equals(target.getWorld())) {
-            return fallback == null ? new Vector(0.0, 0.75, 1.8).multiply(strength) : fallback.clone().multiply(strength);
-        }
-        double dx = target.getX() - from.getX();
-        double dy = target.getY() - from.getY();
-        double dz = target.getZ() - from.getZ();
-        double distance = Math.max(0.0001, Math.sqrt(dx * dx + dz * dz + dy * dy));
-        Vector direction = new Vector(dx, dy, dz).normalize();
-        Vector result = direction.multiply(Math.max(0.35, (distance * 0.20 + 0.45) * Math.max(0.1, strength)) + velocityMagnitude(fallback) * 0.35);
-        double baseVertical = Math.max(0.75, Math.abs(dy) * 0.18 + 0.85);
-        if (dy > 0.0) {
-            result.setY(Math.max(result.getY(), baseVertical));
-        } else {
-            result.setY(Math.max(result.getY(), 0.55));
-        }
-        return result;
+
+        Location start = playerLocation == null ? padLocation : playerLocation.clone();
+        start.setX(padLocation.getX());
+        start.setY(Math.max(start.getY(), padLocation.getY()));
+        start.setZ(padLocation.getZ());
+
+        double dx = target.getX() + 0.5 - start.getX();
+        double dz = target.getZ() + 0.5 - start.getZ();
+        double dy = target.getY() - start.getY();
+        double horizontal = Math.sqrt(dx * dx + dz * dz);
+        if (horizontal < 0.01 && Math.abs(dy) < 0.01) return new Vector(0.0, 0.6, 0.0);
+
+        double minTicks = configs.get("launchpads.yml").getDouble("physics.min-flight-ticks", 12.0);
+        double maxTicks = configs.get("launchpads.yml").getDouble("physics.max-flight-ticks", 52.0);
+        double horizontalBlocksPerTick = configs.get("launchpads.yml").getDouble("physics.horizontal-blocks-per-tick", 1.15) * multiplier;
+        double gravity = configs.get("launchpads.yml").getDouble("physics.gravity-per-tick", 0.08);
+        double maxHorizontal = configs.get("launchpads.yml").getDouble("physics.max-horizontal-velocity", 4.2) * multiplier;
+        double maxVertical = configs.get("launchpads.yml").getDouble("physics.max-vertical-velocity", 5.0) * multiplier;
+
+        double ticks = clamp(horizontal / Math.max(0.05, horizontalBlocksPerTick), minTicks, maxTicks);
+        double vx = dx / ticks;
+        double vz = dz / ticks;
+        double vy = (dy + 0.5 * gravity * ticks * ticks) / ticks;
+
+        Vector horizontalVector = new Vector(vx, 0.0, vz);
+        if (horizontalVector.length() > maxHorizontal) horizontalVector.normalize().multiply(maxHorizontal);
+        vy = clamp(vy, 0.35, maxVertical);
+
+        return new Vector(horizontalVector.getX(), vy, horizontalVector.getZ());
+    }
+
+    private double clamp(double value, double min, double max) {
+        return Math.max(min, Math.min(max, value));
     }
 
     private String formatDelta(double value) {

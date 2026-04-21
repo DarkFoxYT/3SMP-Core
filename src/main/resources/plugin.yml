@@ -14,11 +14,23 @@ commands:
     description: Central command hub
   duel:
     description: Duel command
+  zonepvp:
+    description: ZonePvP admin commands
+  dungeon:
+    description: Dungeon commands
+    aliases: [ dungeons, d ]
+  dungeons:
+    description: Dungeon commands
+  d:
+    description: Dungeon commands
+  leave:
+    description: Leave the current duel or duel queue
   party:
     description: Party command
     aliases: [ p ]
   perks:
-    description: Open the perks menu
+    description: Open the cosmetics menu
+    aliases: [ cosmetics ]
   sapphire:
     description: Sapphire commands
   sap:
@@ -117,3 +129,18 @@ permissions:
 
 
 
+
+  3smpcore.chat.color.vip:
+    default: false
+  3smpcore.chat.color.mvp:
+    default: false
+  3smpcore.chat.color.elite:
+    default: false
+
+  3smpcore.dungeons.use:
+    default: true
+  3smpcore.dungeons.admin:
+    default: op
+
+  3smpcore.zonepvp.admin:
+    default: op

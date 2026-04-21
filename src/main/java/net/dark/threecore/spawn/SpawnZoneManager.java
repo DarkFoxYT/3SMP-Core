@@ -16,10 +16,12 @@ import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 
 import java.util.Locale;
+import net.dark.threecore.zonepvp.ZonePvpService;
 
 public final class SpawnZoneManager implements Listener {
     private final JavaPlugin plugin;
     private final ConfigFiles configs;
+    private ZonePvpService zonePvpService;
 
     public SpawnZoneManager(JavaPlugin plugin, ConfigFiles configs) {
         this.plugin = plugin;
@@ -27,6 +29,7 @@ public final class SpawnZoneManager implements Listener {
     }
 
     public void reload() { }
+    public void zonePvpService(ZonePvpService service) { this.zonePvpService = service; }
 
     public boolean inSpawnZone(Player player) { return inZone(player.getLocation()); }
 
@@ -46,12 +49,20 @@ public final class SpawnZoneManager implements Listener {
     }
 
     public void refresh(Player player) {
+        if (zonePvpService != null && zonePvpService.isActive(player)) {
+            player.removePotionEffect(PotionEffectType.SPEED);
+            player.removePotionEffect(PotionEffectType.SATURATION);
+            return;
+        }
         if (inSpawnZone(player) && configs.get("config.yml").getBoolean("spawn.effects.speed.enabled", true)) {
             int amplifier = Math.max(0, configs.get("config.yml").getInt("spawn.effects.speed.level", configs.get("config.yml").getInt("spawn.speed-level", 2)) - 1);
-            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 20 * 60 * 60, amplifier, true, false, false));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, amplifier, true, false, false));
+            player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, PotionEffect.INFINITE_DURATION, 0, true, false, false));
+            player.setFoodLevel(20); player.setSaturation(20.0f);
         } else if (configs.get("config.yml").getBoolean("spawn.effects.speed.remove-on-exit", true)) {
             PotionEffect effect = player.getPotionEffect(PotionEffectType.SPEED);
             if (effect != null && effect.getDuration() > 20 * 30) player.removePotionEffect(PotionEffectType.SPEED);
+            player.removePotionEffect(PotionEffectType.SATURATION);
         }
     }
 
@@ -64,6 +75,7 @@ public final class SpawnZoneManager implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
+        if (zonePvpService != null && zonePvpService.isActive(player)) return;
         if (inSpawnZone(player) && configs.get("config.yml").getBoolean("spawn.zone.disable-damage", true)) event.setCancelled(true);
     }
 
@@ -72,6 +84,7 @@ public final class SpawnZoneManager implements Listener {
         Player victim = event.getEntity() instanceof Player p ? p : null;
         Player attacker = event.getDamager() instanceof Player p ? p : null;
         if (victim == null || attacker == null) return;
+        if (zonePvpService != null && (zonePvpService.isActive(victim) || zonePvpService.isActive(attacker))) return;
         if (!configs.get("config.yml").getBoolean("spawn.zone.pvp.enabled", false) && (inSpawnZone(victim) || inSpawnZone(attacker))) {
             event.setCancelled(true);
             Text.send(attacker, configs.get("config.yml").getString("spawn.zone.pvp-deny-message", "<red>PvP is disabled in spawn.</red>"));

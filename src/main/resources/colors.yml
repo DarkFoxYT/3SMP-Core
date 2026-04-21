@@ -133,3 +133,14 @@ colors:
     permission: "3smpcore.chat.gradient"
     default-unlocked: false
     preview: "<gradient:#334155:#d6e8f7>Storm</gradient>"
+
+rank-colors:
+  vip:
+    permission: "3smpcore.chat.color.vip"
+    color: "gold"
+  mvp:
+    permission: "3smpcore.chat.color.mvp"
+    color: "aqua_gold"
+  elite:
+    permission: "3smpcore.chat.color.elite"
+    color: "navy_blue"

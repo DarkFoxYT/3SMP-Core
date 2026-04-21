@@ -1,3 +1,8 @@
+hotbar:
+  enabled: true
+  slot: 4
+  name: "<gradient:#7c4a03:#f59e0b>Cosmetics</gradient>"
+
 cosmetics:
   none:
     display-name: "<white>No Cosmetic</white>"
@@ -27,3 +32,28 @@ cosmetics:
     default-unlocked: false
     lore:
       - "<gray>Used by integrated cosmetic hooks.</gray>"
+
+weapon_cosmetics:
+  default:
+    display-name: "<white>No Weapon Cosmetic</white>"
+    permission: ""
+    default-unlocked: true
+    icon: BARRIER
+    lore:
+      - "<gray>No weapon cosmetic selected.</gray>"
+  sapphire_blade:
+    display-name: "<gradient:#1A2A4A:#D6E8F7>Sapphire Blade</gradient>"
+    permission: "3smpcore.cosmetic.weapon.sapphire"
+    default-unlocked: false
+    icon: DIAMOND_SWORD
+    lore:
+      - "<gray>Framework entry for future ItemsAdder weapon models.</gray>"
+
+dungeon_cosmetics:
+  default:
+    display-name: "<white>No Dungeon Cosmetic</white>"
+    permission: ""
+    default-unlocked: true
+    icon: BARRIER
+    lore:
+      - "<gray>No dungeon cosmetic selected.</gray>"

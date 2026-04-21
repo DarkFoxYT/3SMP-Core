@@ -18,6 +18,8 @@ public final class PlayerProgressionData {
     private int duelRating = 1000;
     private int duelWins;
     private int duelLosses;
+    private int duelWinStreak;
+    private int duelBestWinStreak;
 
     public PlayerProgressionData(UUID uuid) {
         this.uuid = uuid;
@@ -47,5 +49,9 @@ public final class PlayerProgressionData {
     public void duelWins(int value) { this.duelWins = Math.max(0, value); }
     public int duelLosses() { return duelLosses; }
     public void duelLosses(int value) { this.duelLosses = Math.max(0, value); }
-    public void recordDuel(boolean win) { if (win) duelWins++; else duelLosses++; }
+    public int duelWinStreak() { return duelWinStreak; }
+    public void duelWinStreak(int value) { this.duelWinStreak = Math.max(0, value); }
+    public int duelBestWinStreak() { return duelBestWinStreak; }
+    public void duelBestWinStreak(int value) { this.duelBestWinStreak = Math.max(0, value); }
+    public void recordDuel(boolean win) { if (win) { duelWins++; duelWinStreak++; duelBestWinStreak = Math.max(duelBestWinStreak, duelWinStreak); } else { duelLosses++; duelWinStreak = 0; } }
 }

@@ -1,5 +1,7 @@
 sapphire:
   currency-name: Sapphires
+  tradeable: false
+  exchangeable: false
   shop-url: "https://example.com"
   command-aliases: [ sap, sapphires ]
   commands:

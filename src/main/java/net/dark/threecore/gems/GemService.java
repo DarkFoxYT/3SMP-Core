@@ -82,6 +82,7 @@ public final class GemService implements Listener {
     }
 
     public void handleCommand(CommandSender sender, String[] args) {
+        if (sender instanceof Player commandPlayer && !enabledInWorld(commandPlayer)) { Text.send(commandPlayer, "<red>Gems are disabled in this world.</red>"); return; }
         if (args.length == 0) {
             if (sender instanceof Player player) openMenu(player);
             else Text.send(sender, "<red>Players only.</red>");
@@ -171,6 +172,7 @@ public final class GemService implements Listener {
 
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
+        if (!enabledInWorld(event.getPlayer())) return;
         if (event.getItem() == null) return;
         if (event.getAction() != Action.RIGHT_CLICK_AIR && event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         if (!isExtractor(event.getItem())) return;
@@ -183,6 +185,7 @@ public final class GemService implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onDamage(EntityDamageByEntityEvent event) {
         if (!(event.getDamager() instanceof Player player)) return;
+        if (!enabledInWorld(player)) return;
         List<String> sockets = socketIds(player.getInventory().getItemInMainHand());
         if (sockets.isEmpty()) return;
         double bonus = 0.0;
@@ -210,8 +213,14 @@ public final class GemService implements Listener {
 
     @EventHandler(priority = EventPriority.HIGHEST)
     public void onArmorMove(PlayerInteractEvent event) {
-        if (event.getPlayer() == null) return;
+        if (event.getPlayer() == null || !enabledInWorld(event.getPlayer())) return;
         applyPassiveEffects(event.getPlayer());
+    }
+
+    private boolean enabledInWorld(Player player) {
+        String world = player.getWorld().getName();
+        java.util.List<String> disabled = configs.get("gems.yml").getStringList("gems.disabled-worlds");
+        return disabled.stream().noneMatch(w -> w.equalsIgnoreCase(world));
     }
 
     public boolean tryExtract(Player player, ItemStack targetItem, boolean useExtractor) {

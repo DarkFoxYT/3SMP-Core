@@ -23,27 +23,27 @@ public final class DuelMenu {
     public Inventory buildMain(Player player) {
         Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_MAIN, "main"), 27, "3SMP Duels");
         fill(inv, Material.GRAY_STAINED_GLASS_PANE);
-        inv.setItem(7, button(Material.BOOK, "<gradient:#1A2A4A:#D6E8F7>Summary</gradient>", List.of("<gray>Open duel status summary.</gray>")));
-        inv.setItem(10, button(Material.DIAMOND_SWORD, "<gradient:#60a5fa:#c084fc>1v1 Duels</gradient>", List.of("<gray>Pick a kit and queue solo.</gray>")));
-        inv.setItem(16, button(Material.PLAYER_HEAD, "<gradient:#34d399:#22c55e>2v2 Party Duels</gradient>", List.of("<gray>Queue your party as one team.</gray>")));
-        inv.setItem(13, button(Material.NETHER_STAR, "<gradient:#38bdf8:#8b5cf6>Queue Info</gradient>", List.of("<gray>Click the mode or kit buttons to queue.</gray>", "<gray>Queue HUD shows above the hotbar.</gray>")));
+        inv.setItem(11, button(Material.DIAMOND_SWORD, "<gradient:#60a5fa:#c084fc>1v1 Duels</gradient>", List.of("<gray>Pick a kit and queue solo.</gray>", "<gray>Queued players:</gray> <white>" + service.soloQueueCount() + "</white>")));
+        inv.setItem(15, button(Material.PLAYER_HEAD, "<gradient:#34d399:#22c55e>2v2 Duels</gradient>", List.of("<gray>Queue with a party or as a solo fill.</gray>", "<gray>Queued units:</gray> <white>" + service.partyQueueCount() + "</white>")));
         return inv;
     }
 
     public Inventory buildKitMenu(Player player) {
         Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_KITS, "kits"), 54, "3SMP Duel Kits");
         fill(inv, Material.BLACK_STAINED_GLASS_PANE);
-        int slot = 10;
+        int[] slots = {10,12,14,16,28,30,32,34};
+        int pos = 0;
         for (DuelKit kit : service.kits()) {
             if (!kit.enabled()) continue;
             boolean queued = service.isQueuedForKit(player.getUniqueId(), kit.id());
             List<String> lore = new java.util.ArrayList<>(kit.lore());
             lore.add(queued ? "<green>Click to leave queue.</green>" : "<aqua>Click to queue this kit.</aqua>");
-            inv.setItem(slot++, button(queued ? Material.LIME_DYE : kit.icon(), queued ? "<green>Queued: " + kit.displayName() + "</green>" : kit.displayName(), lore));
-            if (slot == 17 || slot == 26 || slot == 35 || slot == 44) slot++;
+            if (pos >= slots.length) break;
+            int slot = slots[pos++];
+            inv.setItem(slot, button(queued ? Material.LIME_DYE : kit.icon(), queued ? "<green>Queued: " + kit.displayName() + "</green>" : kit.displayName(), lore));
         }
         inv.setItem(45, button(Material.ARROW, "<gray>Back</gray>", List.of("<gray>Return to duel menu.</gray>")));
-        inv.setItem(49, button(Material.PAPER, "<gradient:#60a5fa:#c084fc>Queue Status</gradient>", List.of("<gray>Queued kits toggle when clicked.</gray>", "<gray>This menu updates live.</gray>")));
+        
         return inv;
     }
 

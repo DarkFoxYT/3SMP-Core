@@ -7,6 +7,10 @@
 duels:
   enabled: true
 
+  worlds:
+    enabled: [spawn]
+    disabled: [world]
+
   challenges:
     enabled: true
     timeout-seconds: 60
@@ -34,6 +38,12 @@ duels:
     seconds: 5
     freeze-during-countdown: true
 
+  world-instances:
+    enabled: false
+    # When enabled, each match copies the configured arena world into a temporary world.
+    # Keep this false until your arena template worlds are clean and small.
+    prefix: arena_
+
   leaderboard:
     period: monthly
     reset-manual: true
@@ -48,3 +58,17 @@ duels:
       3:
         display: "500 Sapphires"
         note: "Use /sapphire give <player> 500."
+
+
+  streak-holograms:
+    enabled: false
+    refresh-seconds: 60
+    displays:
+      spawn_top_streaks:
+        world: spawn
+        x: 0.5
+        y: 102.0
+        z: 0.5
+        lines:
+          - "<gradient:#1A2A4A:#f59e0b>Top Duel Streaks</gradient>"
+          - "<gray>Use PlaceholderAPI:</gray> <white>%smpcore_duel_winstreak%</white>"

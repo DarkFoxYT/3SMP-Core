@@ -26,11 +26,11 @@ import java.util.UUID;
 
 public final class SpawnProtectionService implements Listener {
     private final JavaPlugin plugin;
+    private net.dark.threecore.config.ConfigFiles configs;
     private final Set<UUID> protectedPlayers = new HashSet<>();
 
-    public SpawnProtectionService(JavaPlugin plugin) {
-        this.plugin = plugin;
-    }
+    public SpawnProtectionService(JavaPlugin plugin) { this.plugin = plugin; }
+    public SpawnProtectionService(JavaPlugin plugin, net.dark.threecore.config.ConfigFiles configs) { this.plugin = plugin; this.configs = configs; }
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
@@ -51,13 +51,13 @@ public final class SpawnProtectionService implements Listener {
     public void onMove(PlayerMoveEvent event) {
         if (event.getTo() == null) return;
         if (event.getFrom().getBlockX() == event.getTo().getBlockX() && event.getFrom().getBlockY() == event.getTo().getBlockY() && event.getFrom().getBlockZ() == event.getTo().getBlockZ()) return;
-        if (!isSpawnWorld(event.getTo().getWorld().getName())) return;
+        if (!isProtected(event.getTo())) return;
         event.getPlayer().addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 120, 1, true, false, false));
     }
 
     @EventHandler
     public void onPlace(BlockPlaceEvent event) {
-        if (isSpawnWorld(event.getPlayer().getWorld().getName()) && !event.getPlayer().hasPermission("3smpcore.spawn.build")) {
+        if (isProtected(event.getBlockPlaced().getLocation()) && !event.getPlayer().hasPermission("3smpcore.spawn.build")) {
             event.setCancelled(true);
             event.getPlayer().getWorld().spawnParticle(Particle.END_ROD, event.getBlockPlaced().getLocation().add(0.5, 0.5, 0.5), 12, 0.25, 0.25, 0.25, 0.02);
             Text.send(event.getPlayer(), "<red>Building is disabled in spawn.</red>");
@@ -66,7 +66,7 @@ public final class SpawnProtectionService implements Listener {
 
     @EventHandler
     public void onBreak(BlockBreakEvent event) {
-        if (isSpawnWorld(event.getPlayer().getWorld().getName()) && !event.getPlayer().hasPermission("3smpcore.spawn.build")) {
+        if (isProtected(event.getBlock().getLocation()) && !event.getPlayer().hasPermission("3smpcore.spawn.build")) {
             event.setCancelled(true);
             event.getPlayer().getWorld().spawnParticle(Particle.END_ROD, event.getBlock().getLocation().add(0.5, 0.5, 0.5), 12, 0.25, 0.25, 0.25, 0.02);
             Text.send(event.getPlayer(), "<red>Building is disabled in spawn.</red>");
@@ -74,8 +74,19 @@ public final class SpawnProtectionService implements Listener {
     }
 
     public void applySpawnState(Player player) {
-        if (!isSpawnWorld(player.getWorld().getName())) return;
-        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 20 * 60 * 60, 1, true, false, false));
+        if (!isProtected(player.getLocation())) return;
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, 1, true, false, false));
+        player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, PotionEffect.INFINITE_DURATION, 0, true, false, false));
+    }
+
+    private boolean isProtected(org.bukkit.Location loc) {
+        if (loc == null || loc.getWorld() == null) return false;
+        if (configs == null) return isSpawnWorld(loc.getWorld().getName());
+        String world = configs.get("config.yml").getString("spawn.world", "spawn");
+        if (!loc.getWorld().getName().equalsIgnoreCase(world)) return false;
+        double radius = configs.get("config.yml").getDouble("spawn.radius", 100.0);
+        org.bukkit.Location center = new org.bukkit.Location(loc.getWorld(), configs.get("config.yml").getDouble("spawn.location.x", 0.5), configs.get("config.yml").getDouble("spawn.location.y", loc.getY()), configs.get("config.yml").getDouble("spawn.location.z", 0.5));
+        return loc.distanceSquared(center) <= radius * radius;
     }
 
     public boolean isSpawnWorld(String worldName) {

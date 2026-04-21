@@ -1,0 +1,28 @@
+enabled: true
+zone:
+  pos1:
+    world: spawn
+    x: -25
+    y: 0
+    z: -25
+  pos2:
+    world: spawn
+    x: 25
+    y: 255
+    z: 25
+respawn:
+  world: spawn
+  x: 0.5
+  y: 100.0
+  z: 0.5
+  yaw: 0.0
+  pitch: 0.0
+upgrade:
+  final-streak: 25
+kits:
+  iron:
+    armor: [IRON_BOOTS, IRON_LEGGINGS, IRON_CHESTPLATE, IRON_HELMET]
+    items: [IRON_SWORD, BOW, ARROW, GOLDEN_APPLE, COOKED_BEEF]
+  diamond:
+    armor: [DIAMOND_BOOTS, DIAMOND_LEGGINGS, DIAMOND_CHESTPLATE, DIAMOND_HELMET]
+    items: [DIAMOND_SWORD, BOW, ARROW, GOLDEN_APPLE, COOKED_BEEF]

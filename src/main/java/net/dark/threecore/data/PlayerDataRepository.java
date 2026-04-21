@@ -103,6 +103,8 @@ public final class PlayerDataRepository {
         data.duelRating(parseInt(values.getOrDefault("duelRating", "1000")));
         data.duelWins(parseInt(values.getOrDefault("duelWins", "0")));
         data.duelLosses(parseInt(values.getOrDefault("duelLosses", "0")));
+        data.duelWinStreak(parseInt(values.getOrDefault("duelWinStreak", "0")));
+        data.duelBestWinStreak(parseInt(values.getOrDefault("duelBestWinStreak", "0")));
     }
 
     private String serialize(PlayerProgressionData data) {
@@ -117,7 +119,9 @@ public final class PlayerDataRepository {
                 + ";activeEffect=" + clean(data.activeEffect())
                 + ";duelRating=" + data.duelRating()
                 + ";duelWins=" + data.duelWins()
-                + ";duelLosses=" + data.duelLosses();
+                + ";duelLosses=" + data.duelLosses()
+                + ";duelWinStreak=" + data.duelWinStreak()
+                + ";duelBestWinStreak=" + data.duelBestWinStreak();
     }
 
     private int parseInt(String input) { try { return Integer.parseInt(input); } catch (NumberFormatException ex) { return 0; } }

@@ -48,7 +48,7 @@ public final class DuelLeaderboardService {
         for (UUID uuid : top) {
             PlayerProgressionData data = repository.load(uuid);
             String name = Bukkit.getOfflinePlayer(uuid).getName();
-            inv.setItem(slot++, button(Material.PLAYER_HEAD, "<gradient:#60a5fa:#c084fc>#" + place + " " + (name == null ? uuid.toString().substring(0, 8) : name) + "</gradient>", List.of("<gray>Rating: " + data.duelRating() + "</gray>", "<gray>Wins: " + data.duelWins() + " | Losses: " + data.duelLosses() + "</gray>", "<gray>Prize: " + prize(place) + "</gray>")));
+            inv.setItem(slot++, button(Material.PLAYER_HEAD, "<gradient:#60a5fa:#c084fc>#" + place + " " + (name == null ? uuid.toString().substring(0, 8) : name) + "</gradient>", List.of("<gray>Rating: " + data.duelRating() + "</gray>", "<gray>Wins: " + data.duelWins() + " | Losses: " + data.duelLosses() + "</gray>", "<gray>Streak: " + data.duelWinStreak() + " | Best: " + data.duelBestWinStreak() + "</gray>", "<gray>Prize: " + prize(place) + "</gray>")));
             place++;
         }
         inv.setItem(22, button(Material.SUNFLOWER, "<gradient:#f59e0b:#fbbf24>Monthly Prizes</gradient>", List.of(

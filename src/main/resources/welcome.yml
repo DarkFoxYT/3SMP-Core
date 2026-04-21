@@ -1,0 +1,15 @@
+welcome:
+  enabled: true
+  delay-ticks: 20
+  # ItemsAdder custom font/image glyphs can be used directly in these MiniMessage lines.
+  # Example: "<white>:server_logo:</white>" if your IA font image uses that glyph text.
+  lines:
+    - ""
+    - "<gradient:#1A2A4A:#f59e0b><bold>Welcome to 3SMP, {player}</bold></gradient>"
+    - "<gray>Use <white>/help</white>, <white>/spawn</white>, <white>/duel</white>, and <white>/dungeon</white>.</gray>"
+    - ""
+  title: "<gradient:#1A2A4A:#f59e0b>3SMP</gradient>"
+  subtitle: "<gray>Welcome, <white>{player}</white></gray>"
+  sound:
+    enabled: true
+    name: ENTITY_PLAYER_LEVELUP

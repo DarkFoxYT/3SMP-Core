@@ -23,6 +23,7 @@ systems:
 
 spawn:
   world: spawn
+  radius: 100.0
   effects:
     speed:
       enabled: true

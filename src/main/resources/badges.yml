@@ -16,7 +16,7 @@ badges:
     lore:
       - "<gray>ItemsAdder glyph/image ready badge.</gray>"
       - "<gray>Replace preview with your IA custom font glyph.</gray>"
-    preview: "<gradient:#1A2A4A:#D6E8F7>?</gradient>"
+    preview: "<gradient:#1A2A4A:#D6E8F7>[?]</gradient>"
   mythic:
     display-name: "<gradient:#f59e0b:#f97316>Mythic Badge</gradient>"
     permission: "3smpcore.perk.badge.mythic"
@@ -25,7 +25,7 @@ badges:
     icon: NETHER_STAR
     lore:
       - "<gray>Gold rank badge before prefix.</gray>"
-    preview: "<gradient:#f59e0b:#f97316>?</gradient>"
+    preview: "<gradient:#f59e0b:#f97316>[?]</gradient>"
   ia_example:
     display-name: "<gradient:#D6E8F7:#FFFFFF>ItemsAdder Example</gradient>"
     permission: "3smpcore.perk.badge.ia"
@@ -33,4 +33,4 @@ badges:
     icon: PAPER
     lore:
       - "<gray>Use an ItemsAdder font image/glyph here.</gray>"
-    preview: "<white>:example_badge:</white>"
+    preview: ""

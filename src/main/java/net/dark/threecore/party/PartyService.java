@@ -16,6 +16,9 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
+import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -26,6 +29,8 @@ import java.util.*;
 public final class PartyService implements Listener {
     private static final String ITEM_ID_KEY = "3smpcore_party_item";
     private static final String HUB_ITEM_ID = "party_lectern";
+    private static final String CREATE_ITEM_ID = "party_goat_horn";
+    private static final String DISBAND_ITEM_ID = "party_disband";
 
     private final JavaPlugin plugin;
     private final ConfigFiles configs;
@@ -58,12 +63,13 @@ public final class PartyService implements Listener {
             case "kick" -> kick(player, context.arg(1));
             case "transfer" -> transfer(player, context.arg(1));
             case "disband" -> disband(player);
+            case "duel" -> openPartyDuelMenu(player);
             default -> Text.send(player, "<red>Unknown party subcommand.</red>");
         }
     }
 
     public List<String> complete(CommandContext context) {
-        if (context.args().length <= 1) return List.of("create", "invite", "accept", "deny", "leave", "kick", "transfer", "disband", "menu");
+        if (context.args().length <= 1) return List.of("create", "invite", "accept", "deny", "leave", "kick", "transfer", "disband", "duel", "menu");
         return List.of();
     }
 
@@ -73,16 +79,11 @@ public final class PartyService implements Listener {
     public void handleMenuClick(Player player, int slot) {
         UUID leader = partyLeader(player.getUniqueId());
         switch (slot) {
-            case 7 -> openSummary(player);
-            case 9 -> openMenu(player);
-            case 11 -> { if (isInParty(player.getUniqueId())) leave(player); else create(player); }
-            case 13 -> showInviteHelp(player);
-            case 15 -> { if (isInParty(player.getUniqueId())) queueParty(player); else accept(player); }
-            case 17 -> { if (leader != null && leader.equals(player.getUniqueId())) disband(player); else deny(player); }
-            case 19 -> showMembers(player);
-            case 21 -> showStatus(player);
-            case 23 -> showQueueInfo(player);
-            case 25 -> showManagementHelp(player);
+            case 10 -> { if (isInParty(player.getUniqueId())) showStatus(player); else create(player); }
+            case 12 -> showInviteHelp(player);
+            case 14 -> showMembers(player);
+            case 16 -> leave(player);
+            case 22 -> openPartyDuelMenu(player);
             default -> { }
         }
     }
@@ -166,9 +167,10 @@ public final class PartyService implements Listener {
             for (UUID member : party.members()) {
                 leaderByMember.remove(member);
                 Player target = Bukkit.getPlayer(member);
-                if (target != null) removePartyItems(target);
+                if (target != null) givePartyItems(target);
             }
         }
+        givePartyItems(player);
         Text.send(player, "<red>Party disbanded.</red>");
     }
 
@@ -200,18 +202,23 @@ public final class PartyService implements Listener {
         String id = itemId(event.getItem());
         if (id == null) return;
         event.setCancelled(true);
-        if (HUB_ITEM_ID.equals(id)) {
-            openMenu(event.getPlayer());
-        }
+        if (HUB_ITEM_ID.equals(id)) openMenu(event.getPlayer());
+        else if (CREATE_ITEM_ID.equals(id)) create(event.getPlayer());
+        else if (DISBAND_ITEM_ID.equals(id)) disband(event.getPlayer());
     }
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (event.getClickedInventory() == null) return;
         String id = itemId(event.getCurrentItem());
-        if (HUB_ITEM_ID.equals(id)) {
+        if (HUB_ITEM_ID.equals(id) || CREATE_ITEM_ID.equals(id) || DISBAND_ITEM_ID.equals(id)) {
             event.setCancelled(true);
-            if (event.getWhoClicked() instanceof Player clicker && event.getClickedInventory() == clicker.getInventory()) openMenu(clicker);
+            event.setCurrentItem(event.getCurrentItem());
+            if (event.getWhoClicked() instanceof Player clicker && event.getClickedInventory() == clicker.getInventory()) {
+                if (HUB_ITEM_ID.equals(id)) openMenu(clicker);
+                else if (CREATE_ITEM_ID.equals(id)) create(clicker);
+                else if (DISBAND_ITEM_ID.equals(id)) disband(clicker);
+            }
         }
         if (!(event.getWhoClicked() instanceof Player player)) return;
         if (event.getView().getTopInventory().getHolder() instanceof net.dark.threecore.gui.menu.CoreMenuHolder holder && holder.type().name().equals("PARTY_MAIN")) {
@@ -229,16 +236,27 @@ public final class PartyService implements Listener {
     @EventHandler
     public void onDrop(PlayerDropItemEvent event) {
         String id = itemId(event.getItemDrop().getItemStack());
-        if (HUB_ITEM_ID.equals(id)) event.setCancelled(true);
+        if (HUB_ITEM_ID.equals(id) || CREATE_ITEM_ID.equals(id) || DISBAND_ITEM_ID.equals(id)) event.setCancelled(true);
     }
+
+    @EventHandler public void onJoin(PlayerJoinEvent event) { givePartyItems(event.getPlayer()); }
+    @EventHandler public void onRespawn(PlayerRespawnEvent event) { Bukkit.getScheduler().runTask(plugin, () -> givePartyItems(event.getPlayer())); }
+    @EventHandler public void onWorldChange(PlayerChangedWorldEvent event) { givePartyItems(event.getPlayer()); }
 
     public void givePartyItem(Player player) { givePartyItems(player); }
 
     public void givePartyItems(Player player) {
         if (!configs.get("party.yml").getBoolean("party.item.enabled", true)) return;
         int hubSlot = Math.max(0, Math.min(8, configs.get("party.yml").getInt("party.item.slot", 8)));
-        player.getInventory().setItem(hubSlot, createTagged(Material.LECTERN, configs.get("party.yml").getString("party.item.name", "<gradient:#34d399:#22c55e>Party Manager</gradient>"), HUB_ITEM_ID));
-        clearTaggedItem(player, "party_barrier");
+        clearTaggedItem(player, HUB_ITEM_ID);
+        clearTaggedItem(player, CREATE_ITEM_ID);
+        clearTaggedItem(player, DISBAND_ITEM_ID);
+        if (isInParty(player.getUniqueId())) {
+            player.getInventory().setItem(hubSlot, createTagged(Material.LECTERN, configs.get("party.yml").getString("party.item.name", "<gradient:#34d399:#22c55e>Party Manager</gradient>"), HUB_ITEM_ID));
+            if (isLeader(player.getUniqueId()) && hubSlot > 0) player.getInventory().setItem(hubSlot - 1, createTagged(Material.BARRIER, "<red>Disband Party</red>", DISBAND_ITEM_ID));
+        } else {
+            player.getInventory().setItem(hubSlot, createTagged(Material.GOAT_HORN, "<gradient:#34d399:#22c55e>Create Party</gradient>", CREATE_ITEM_ID));
+        }
     }
 
     private void clearTaggedItem(Player player, String id) {
@@ -250,6 +268,25 @@ public final class PartyService implements Listener {
 
     private void removePartyItems(Player player) {
         clearTaggedItem(player, HUB_ITEM_ID);
+        clearTaggedItem(player, CREATE_ITEM_ID);
+        clearTaggedItem(player, DISBAND_ITEM_ID);
+    }
+
+    public void openPartyDuelMenu(Player player) {
+        if (!isInParty(player.getUniqueId())) { Text.send(player, "<red>Create a party first.</red>"); return; }
+        org.bukkit.inventory.Inventory inv = Bukkit.createInventory(new net.dark.threecore.gui.menu.CoreMenuHolder(net.dark.threecore.gui.menu.CoreMenuType.PARTY_MAIN, "party-duel"), 45, "Party Duel Setup");
+        for (int i=0;i<inv.getSize();i++) inv.setItem(i, createPlain(Material.BLUE_STAINED_GLASS_PANE, " "));
+        inv.setItem(10, createPlain(Material.RED_WOOL, "<red>Red Team</red>"));
+        inv.setItem(16, createPlain(Material.BLUE_WOOL, "<blue>Blue Team</blue>"));
+        inv.setItem(20, createPlain(Material.DIAMOND_SWORD, "<gradient:#60a5fa:#c084fc>Select Kit</gradient>"));
+        inv.setItem(22, createPlain(Material.CLOCK, "<gradient:#f59e0b:#f97316>Rounds</gradient><gray>: 3</gray>"));
+        inv.setItem(24, createPlain(Material.MAP, "<gradient:#34d399:#22c55e>Mode</gradient><gray>: Party Duel</gray>"));
+        inv.setItem(40, createPlain(Material.LIME_DYE, "<green>Start Party Duel</green>"));
+        player.openInventory(inv);
+    }
+
+    private ItemStack createPlain(Material material, String name) {
+        ItemStack stack = new ItemStack(material); ItemMeta meta = stack.getItemMeta(); meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(name)); stack.setItemMeta(meta); return stack;
     }
 
     private void queueParty(Player player) {

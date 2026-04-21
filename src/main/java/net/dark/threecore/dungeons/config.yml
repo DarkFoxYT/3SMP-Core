@@ -1,0 +1,46 @@
+worlds:
+  template: "dungeon_templates"
+template-path: "templates"
+dungeon:
+  max-level: 5
+  room-spacing: 48
+  origin-min-distance: 200
+  origin-spread: 2000
+  starter-wait-seconds: 5
+  starter-radius: 8
+  spawn-offset-x: 0.5
+  spawn-offset-y: 1.0
+  spawn-offset-z: 0.5
+  protect-blocks: true
+  replace-markers-with-air: false
+  use-scoreboard: true
+  dev-mode: false
+  difficulty-room-count:
+    EASY: 5
+    NORMAL: 8
+    HARD: 12
+    INSANE: 16
+    NIGHTMARE: 20
+markers:
+  spawn: LIME_SHULKER_BOX
+  link: YELLOW_SHULKER_BOX
+  exit: RED_SHULKER_BOX
+  trigger: PURPLE_SHULKER_BOX
+  enemy: LIGHT_BLUE_SHULKER_BOX
+  bounds: WHITE_SHULKER_BOX
+mobs:
+  normal:
+    JUNGLE: ["ZOMBIE", "SPIDER", "SKELETON"]
+    DESERT: ["HUSK", "STRAY", "SPIDER"]
+    VOLCANIC: ["BLAZE", "MAGMA_CUBE", "WITHER_SKELETON"]
+    FROZEN: ["STRAY", "POLAR_BEAR", "SPIDER"]
+    ANCIENT: ["WITHER_SKELETON", "ENDERMAN", "ZOMBIE"]
+  boss:
+    JUNGLE: ["IRON_GOLEM"]
+    DESERT: ["RAVAGER"]
+    VOLCANIC: ["BLAZE"]
+    FROZEN: ["IRON_GOLEM"]
+    ANCIENT: ["WITHER_SKELETON"]
+triggers:
+  enter: ""
+  exit: ""

@@ -1,4 +1,5 @@
 gems:
+  disabled-worlds: [world]
   current-season: default
   tiers: [ ROUGH, POLISHED, CUT, FLAWLESS, PRISMATIC ]
   slots-per-item: 3

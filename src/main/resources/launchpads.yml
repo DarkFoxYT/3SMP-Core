@@ -1,1 +1,9 @@
+physics:
+  min-flight-ticks: 12.0
+  max-flight-ticks: 52.0
+  horizontal-blocks-per-tick: 1.15
+  gravity-per-tick: 0.08
+  max-horizontal-velocity: 4.2
+  max-vertical-velocity: 5.0
+
 placements: {}

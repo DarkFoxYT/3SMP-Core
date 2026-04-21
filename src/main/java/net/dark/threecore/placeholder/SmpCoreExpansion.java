@@ -4,24 +4,27 @@ import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import net.dark.threecore.perks.PerkService;
 import net.dark.threecore.spawn.SpawnService;
 import net.dark.threecore.money.MoneyService;
+import net.dark.threecore.sapphires.SapphireService;
 import net.dark.threecore.warp.WarpManager;
 import org.bukkit.OfflinePlayer;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class SmpCoreExpansion extends PlaceholderExpansion {
+public class SmpCoreExpansion extends PlaceholderExpansion {
     private final JavaPlugin plugin;
     private final PerkService perkService;
     private final WarpManager warpManager;
     private final SpawnService spawnService;
     private final MoneyService moneyService;
+    private final SapphireService sapphireService;
 
-    public SmpCoreExpansion(JavaPlugin plugin, PerkService perkService, WarpManager warpManager, SpawnService spawnService, MoneyService moneyService) {
+    public SmpCoreExpansion(JavaPlugin plugin, PerkService perkService, WarpManager warpManager, SpawnService spawnService, MoneyService moneyService, SapphireService sapphireService) {
         this.plugin = plugin;
         this.perkService = perkService;
         this.warpManager = warpManager;
         this.spawnService = spawnService;
         this.moneyService = moneyService;
+        this.sapphireService = sapphireService;
     }
 
     @Override public String getIdentifier() { return "smpcore"; }
@@ -49,6 +52,9 @@ public final class SmpCoreExpansion extends PlaceholderExpansion {
             case "jobs_count" -> String.valueOf(0);
             case "money", "balance" -> String.valueOf(moneyService.balance(player.getUniqueId()));
             case "money_formatted", "balance_formatted" -> moneyService.format(moneyService.balance(player.getUniqueId()));
+            case "sapphires", "sapphire_balance" -> String.valueOf(sapphireService.balance(player.getUniqueId()));
+            case "duel_winstreak" -> String.valueOf(data.duelWinStreak());
+            case "duel_best_winstreak" -> String.valueOf(data.duelBestWinStreak());
             case "cosmetic" -> data.activeCosmetic();
             case "cosmetic_id" -> data.activeCosmetic();
             case "has_cosmetic" -> String.valueOf(!data.activeCosmetic().isBlank());
