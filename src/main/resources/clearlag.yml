@@ -1,0 +1,8 @@
+enabled: true
+interval-seconds: 300
+entity-types:
+  - DROPPED_ITEM
+  - EXPERIENCE_ORB
+  - ARROW
+  - SPECTRAL_ARROW
+  - TRIDENT

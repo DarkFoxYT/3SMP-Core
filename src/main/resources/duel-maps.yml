@@ -1,0 +1,32 @@
+# Duel arenas. Three arenas are included as examples.
+# Staff can edit in-game with /duel map setspawna <id>, /duel map setspawnb <id>, etc.
+# Coordinates may be either section format below or legacy list format.
+
+maps:
+  colosseum:
+    display-name: "<gradient:#f59e0b:#f97316>Colosseum</gradient>"
+    enabled: true
+    icon: SANDSTONE
+    world: world
+    lobby: { world: world, x: 0.5, y: 100.0, z: 0.5, yaw: 0.0, pitch: 0.0 }
+    spawn-a: { world: world, x: 12.5, y: 100.0, z: 0.5, yaw: 90.0, pitch: 0.0 }
+    spawn-b: { world: world, x: -12.5, y: 100.0, z: 0.5, yaw: -90.0, pitch: 0.0 }
+    spectator: { world: world, x: 0.5, y: 106.0, z: 14.5, yaw: 180.0, pitch: 20.0 }
+  frostbite:
+    display-name: "<gradient:#D6E8F7:#60a5fa>Frostbite</gradient>"
+    enabled: true
+    icon: PACKED_ICE
+    world: world
+    lobby: { world: world, x: 80.5, y: 100.0, z: 0.5, yaw: 0.0, pitch: 0.0 }
+    spawn-a: { world: world, x: 92.5, y: 100.0, z: 0.5, yaw: 90.0, pitch: 0.0 }
+    spawn-b: { world: world, x: 68.5, y: 100.0, z: 0.5, yaw: -90.0, pitch: 0.0 }
+    spectator: { world: world, x: 80.5, y: 106.0, z: 14.5, yaw: 180.0, pitch: 20.0 }
+  basalt:
+    display-name: "<gradient:#334155:#ef4444>Basalt Rift</gradient>"
+    enabled: true
+    icon: BASALT
+    world: world
+    lobby: { world: world, x: -80.5, y: 100.0, z: 0.5, yaw: 0.0, pitch: 0.0 }
+    spawn-a: { world: world, x: -68.5, y: 100.0, z: 0.5, yaw: 90.0, pitch: 0.0 }
+    spawn-b: { world: world, x: -92.5, y: 100.0, z: 0.5, yaw: -90.0, pitch: 0.0 }
+    spectator: { world: world, x: -80.5, y: 106.0, z: 14.5, yaw: 180.0, pitch: 20.0 }

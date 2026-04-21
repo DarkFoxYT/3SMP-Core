@@ -1,0 +1,6 @@
+menu:
+  title: "3SMP Auction House"
+settings:
+  max-listings-per-player: 20
+  listing-duration-hours: 72
+listings: {}

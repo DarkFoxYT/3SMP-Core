@@ -1,0 +1,17 @@
+menu:
+  title: "3SMP Sell Bin"
+  size: 54
+prices:
+  cobblestone: 0.10
+  stone: 0.12
+  dirt: 0.03
+  oak_log: 0.35
+  spruce_log: 0.35
+  birch_log: 0.35
+  iron_ingot: 2.0
+  gold_ingot: 3.0
+  diamond: 35.0
+  emerald: 20.0
+  wheat: 0.25
+  carrot: 0.20
+  potato: 0.20

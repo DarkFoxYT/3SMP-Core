@@ -1,0 +1,5 @@
+duels:
+  queue-item:
+    icon: "DIAMOND_SWORD"
+  party-item:
+    icon: "GOAT_HORN"

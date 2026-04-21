@@ -1,0 +1,41 @@
+tags:
+  default:
+    display-name: "<white>Default</white>"
+    permission: ""
+    default-unlocked: true
+    icon: PAPER
+    lore:
+      - "<gray>No tag selected.</gray>"
+    preview: ""
+  grinder:
+    display-name: "<gradient:#34d399:#22c55e>Grinder</gradient>"
+    permission: "3smpcore.perk.tag.grinder"
+    default-unlocked: false
+    icon: IRON_PICKAXE
+    lore:
+      - "<gray>For the always-on players.</gray>"
+    preview: "<gradient:#34d399:#22c55e><Grinder></gradient>"
+  rich:
+    display-name: "<gradient:#f59e0b:#fbbf24>Rich</gradient>"
+    permission: "3smpcore.perk.tag.rich"
+    default-unlocked: false
+    icon: GOLD_INGOT
+    lore:
+      - "<gray>A flexy economy tag.</gray>"
+    preview: "<gradient:#f59e0b:#fbbf24><Rich></gradient>"
+  menace:
+    display-name: "<gradient:#ef4444:#7f1d1d>Menace</gradient>"
+    permission: "3smpcore.perk.tag.menace"
+    default-unlocked: false
+    icon: NETHERITE_SWORD
+    lore:
+      - "<gray>PvP energy, respectfully.</gray>"
+    preview: "<gradient:#ef4444:#7f1d1d><Menace></gradient>"
+  cozy:
+    display-name: "<gradient:#D6E8F7:#FFFFFF>Cozy</gradient>"
+    permission: "3smpcore.perk.tag.cozy"
+    default-unlocked: false
+    icon: CAMPFIRE
+    lore:
+      - "<gray>Soft vibes tag.</gray>"
+    preview: "<gradient:#D6E8F7:#FFFFFF><Cozy></gradient>"

@@ -1,0 +1,10 @@
+world: world
+spawn:
+  use-world-spawn: true
+  x: 0.5
+  y: 80.0
+  z: 0.5
+  yaw: 0.0
+  pitch: 0.0
+messages:
+  teleported: "<green>Sent to the survival world.</green>"

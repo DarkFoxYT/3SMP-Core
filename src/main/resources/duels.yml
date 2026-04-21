@@ -1,0 +1,50 @@
+# 3SMPCore Duel System
+# Modes supported by the module:
+# - 1v1 queue and direct challenge
+# - 2v2 / 3v3 party queue and party-leader challenge
+# - Monthly leaderboard tracking, with prizes listed below for staff payout
+
+duels:
+  enabled: true
+
+  challenges:
+    enabled: true
+    timeout-seconds: 60
+    allow-party-challenges: true
+    require-party-leader: true
+
+  queue-item:
+    enabled: true
+    slot: 0
+    name: "<gradient:#60a5fa:#c084fc>Duel Queue</gradient>"
+    prevent-drop: true
+    restore-on-join: true
+    restore-on-respawn: true
+    restore-on-world-change: true
+
+  matchmaking:
+    solo-pair-size: 2
+    party-min-size: 2
+    party-max-size: 3
+    queue-timeout-seconds: 120
+    skill-window-rating: 150
+    expand-after-seconds: 60
+
+  countdown:
+    seconds: 5
+    freeze-during-countdown: true
+
+  leaderboard:
+    period: monthly
+    reset-manual: true
+    tracked-stat: rating
+    prizes:
+      1:
+        display: "$50 store credit"
+        note: "Paid manually by staff at monthly reset."
+      2:
+        display: "$25 store credit"
+        note: "Paid manually by staff at monthly reset."
+      3:
+        display: "500 Sapphires"
+        note: "Use /sapphire give <player> 500."

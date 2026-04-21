@@ -1,0 +1,57 @@
+particles:
+  default:
+    display-name: "<white>No Particles</white>"
+    type: NONE
+    icon: BARRIER
+    permission: ""
+    default-unlocked: true
+    lore:
+      - "<gray>No particle cosmetic selected.</gray>"
+  sparkle:
+    display-name: "<gradient:#1A2A4A:#D6E8F7>Sparkle Aura</gradient>"
+    type: END_ROD
+    icon: FIREWORK_ROCKET
+    permission: "3smpcore.perk.particle.sparkle"
+    default-unlocked: false
+    lore:
+      - "<gray>Light sparkles around you.</gray>"
+  ember:
+    display-name: "<gradient:#f59e0b:#f97316>Ember Trail</gradient>"
+    type: FLAME
+    icon: BLAZE_POWDER
+    permission: "3smpcore.perk.particle.ember"
+    default-unlocked: false
+    lore:
+      - "<gray>Warm ember particles.</gray>"
+  frost:
+    display-name: "<gradient:#D6E8F7:#FFFFFF>Frost Mist</gradient>"
+    type: SNOWFLAKE
+    icon: PACKED_ICE
+    permission: "3smpcore.perk.particle.frost"
+    default-unlocked: false
+    lore:
+      - "<gray>Soft winter particles.</gray>"
+  smoke:
+    display-name: "<gradient:#1A2A4A:#D6E8F7>Smoke Drift</gradient>"
+    type: CAMPFIRE_COSY_SMOKE
+    icon: CAMPFIRE
+    permission: "3smpcore.perk.particle.smoke"
+    default-unlocked: false
+    lore:
+      - "<gray>Cosmetic smoke, never active by default.</gray>"
+  hearts:
+    display-name: "<gradient:#fb7185:#f472b6>Heart Pop</gradient>"
+    type: HEART
+    icon: POPPY
+    permission: "3smpcore.perk.particle.hearts"
+    default-unlocked: false
+    lore:
+      - "<gray>Small heart particles.</gray>"
+  notes:
+    display-name: "<gradient:#a78bfa:#60a5fa>Note Burst</gradient>"
+    type: NOTE
+    icon: NOTE_BLOCK
+    permission: "3smpcore.perk.particle.notes"
+    default-unlocked: false
+    lore:
+      - "<gray>Musical cosmetic particles.</gray>"

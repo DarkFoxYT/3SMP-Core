@@ -1,0 +1,41 @@
+prefixes:
+  default:
+    display-name: "<white>Default</white>"
+    permission: ""
+    default-unlocked: true
+    icon: NAME_TAG
+    lore:
+      - "<gray>No prefix selected.</gray>"
+    preview: ""
+  sapphire:
+    display-name: "<gradient:#1A2A4A:#D6E8F7>Sapphire</gradient>"
+    permission: "3smpcore.perk.prefix.sapphire"
+    default-unlocked: false
+    icon: DIAMOND
+    lore:
+      - "<gray>Clean premium sapphire prefix.</gray>"
+    preview: "<gradient:#1A2A4A:#D6E8F7>[SAPPHIRE]</gradient>"
+  mythic:
+    display-name: "<gradient:#f59e0b:#f97316>Mythic</gradient>"
+    permission: "3smpcore.perk.prefix.mythic"
+    default-unlocked: false
+    icon: NETHER_STAR
+    lore:
+      - "<gray>Bright gold mythic prefix.</gray>"
+    preview: "<gradient:#f59e0b:#f97316>[MYTHIC]</gradient>"
+  eclipse:
+    display-name: "<gradient:#334155:#c084fc>Eclipse</gradient>"
+    permission: "3smpcore.perk.prefix.eclipse"
+    default-unlocked: false
+    icon: ECHO_SHARD
+    lore:
+      - "<gray>Deep cosmic prefix.</gray>"
+    preview: "<gradient:#334155:#c084fc>[ECLIPSE]</gradient>"
+  blossom:
+    display-name: "<gradient:#fb7185:#f472b6>Blossom</gradient>"
+    permission: "3smpcore.perk.prefix.blossom"
+    default-unlocked: false
+    icon: CHERRY_SAPLING
+    lore:
+      - "<gray>Soft pink seasonal prefix.</gray>"
+    preview: "<gradient:#fb7185:#f472b6>[BLOSSOM]</gradient>"

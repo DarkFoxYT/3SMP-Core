@@ -1,0 +1,31 @@
+colors:
+  white:
+    display-name: "<white>White</white>"
+    permission: ""
+    default-unlocked: true
+    hex: "#FFFFFF"
+    preview: "<white>White</white>"
+  aqua:
+    display-name: "<aqua>Aqua</aqua>"
+    permission: "3smpcore.chat.hex"
+    default-unlocked: false
+    hex: "#67E8F9"
+    preview: "<gradient:#67e8f9:#22d3ee>Aqua</gradient>"
+  sky:
+    display-name: "<aqua>Sky</aqua>"
+    permission: "3smpcore.chat.hex"
+    default-unlocked: false
+    hex: "#D6E8F7"
+    preview: "<gradient:#D6E8F7:#FFFFFF>Sky</gradient>"
+  red:
+    display-name: "<red>Red</red>"
+    permission: "3smpcore.chat.hex"
+    default-unlocked: false
+    hex: "#FF5555"
+    preview: "<gradient:#FF5555:#FF7777>Red</gradient>"
+  gold:
+    display-name: "<gold>Gold</gold>"
+    permission: "3smpcore.chat.hex"
+    default-unlocked: false
+    hex: "#f59e0b"
+    preview: "<gradient:#f59e0b:#fbbf24>Gold</gradient>"

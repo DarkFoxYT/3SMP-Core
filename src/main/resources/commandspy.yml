@@ -1,0 +1,11 @@
+spy:
+  enabled-by-default: false
+ignored-commands:
+  - login
+  - register
+  - changepassword
+discord:
+  enabled: false
+  webhook-url: "YOUR_WEBHOOK_URL_HERE"
+  ops-only: false
+  format: "**{player}** used `{command}` in `{world}`"

@@ -1,0 +1,15 @@
+trims:
+  royal:
+    display-name: "<gradient:#f59e0b:#f97316>Royal Trim</gradient>"
+    icon: AMETHYST_SHARD
+    required-rank: "royal"
+    required-permission: "3smpcore.perk.trim.royal"
+    lore:
+      - "<gray>Rank-locked armor trim.</gray>"
+  elite:
+    display-name: "<gradient:#60a5fa:#c084fc>Elite Trim</gradient>"
+    icon: AMETHYST_SHARD
+    required-rank: "elite"
+    required-permission: "3smpcore.perk.trim.elite"
+    lore:
+      - "<gray>Higher-tier trim for elite ranks.</gray>"

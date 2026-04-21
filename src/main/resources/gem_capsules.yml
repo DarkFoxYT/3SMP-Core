@@ -1,0 +1,4 @@
+capsules:
+  sapphire-gem-capsule:
+    display-name: "<gradient:#06b6d4:#8b5cf6>Sapphire Gem Capsule</gradient>"
+    reward-table: default

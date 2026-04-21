@@ -1,0 +1,115 @@
+gems:
+  current-season: default
+  tiers: [ ROUGH, POLISHED, CUT, FLAWLESS, PRISMATIC ]
+  slots-per-item: 3
+  supported-materials:
+    - DIAMOND_SWORD
+    - NETHERITE_SWORD
+    - DIAMOND_AXE
+    - NETHERITE_AXE
+    - BOW
+    - CROSSBOW
+    - DIAMOND_HELMET
+    - DIAMOND_CHESTPLATE
+    - DIAMOND_LEGGINGS
+    - DIAMOND_BOOTS
+    - NETHERITE_HELMET
+    - NETHERITE_CHESTPLATE
+    - NETHERITE_LEGGINGS
+    - NETHERITE_BOOTS
+    - DIAMOND_PICKAXE
+    - DIAMOND_SHOVEL
+    - DIAMOND_HOE
+    - FISHING_ROD
+  definitions:
+    power:
+      display-name: "<gradient:#1A2A4A:#D6E8F7>Power Gem</gradient>"
+      icon: AMETHYST_SHARD
+      effect: "increase_damage"
+      particle: "CRIT"
+      value: 1
+      proc-chance: 0.30
+      cooldown-ticks: 40
+      tier: "CUT"
+      lore:
+        - "<gray>Boosts weapon damage on proc.</gray>"
+    vitality:
+      display-name: "<gradient:#1A2A4A:#D6E8F7>Vitality Gem</gradient>"
+      icon: EMERALD
+      effect: "increase_health"
+      particle: "HEART"
+      value: 1
+      proc-chance: 0.0
+      cooldown-ticks: 0
+      tier: "POLISHED"
+      lore:
+        - "<gray>Boosts max health while worn.</gray>"
+    speed:
+      display-name: "<gradient:#1A2A4A:#D6E8F7>Speed Gem</gradient>"
+      icon: SUGAR
+      effect: "increase_speed"
+      particle: "CLOUD"
+      value: 1
+      proc-chance: 0.0
+      cooldown-ticks: 0
+      tier: "POLISHED"
+      lore:
+        - "<gray>Improves movement speed while worn.</gray>"
+    bowmaster:
+      display-name: "<gradient:#1A2A4A:#D6E8F7>Bowmaster Gem</gradient>"
+      icon: ARROW
+      effect: "increase_bow_power"
+      particle: "CRIT"
+      value: 1
+      proc-chance: 0.20
+      cooldown-ticks: 60
+      tier: "FLAWLESS"
+      lore:
+        - "<gray>Improves ranged combat on proc.</gray>"
+    miner:
+      display-name: "<gradient:#1A2A4A:#D6E8F7>Miner Gem</gradient>"
+      icon: IRON_PICKAXE
+      effect: "increase_mining_speed"
+      particle: "BLOCK_CRACK"
+      value: 1
+      proc-chance: 0.0
+      cooldown-ticks: 0
+      tier: "CUT"
+      lore:
+        - "<gray>Improves mining speed while worn.</gray>"
+    leech:
+      display-name: "<gradient:#1A2A4A:#D6E8F7>Leech Gem</gradient>"
+      icon: GHAST_TEAR
+      effect: "lifesteal"
+      particle: "ELECTRIC_SPARK"
+      value: 1
+      proc-chance: 0.25
+      cooldown-ticks: 50
+      tier: "PRISMATIC"
+      lore:
+        - "<gray>Restores health on a successful proc.</gray>"
+  seasons:
+    winter:
+      definitions:
+        power:
+          display-name: "<gradient:#D6E8F7:#FFFFFF>Winter Power Gem</gradient>"
+          icon: PRISMARINE_CRYSTALS
+          effect: "increase_damage"
+          particle: "SNOWFLAKE"
+          value: 2
+          proc-chance: 0.35
+          cooldown-ticks: 30
+          tier: "FLAWLESS"
+          lore:
+            - "<gray>Seasonal power with icy particles.</gray>"
+        speed:
+          display-name: "<gradient:#D6E8F7:#FFFFFF>Frost Speed Gem</gradient>"
+          icon: PACKED_ICE
+          effect: "increase_speed"
+          particle: "SNOWFLAKE"
+          value: 2
+          proc-chance: 0.0
+          cooldown-ticks: 0
+          tier: "FLAWLESS"
+          lore:
+            - "<gray>Seasonal speed with winter visuals.</gray>"

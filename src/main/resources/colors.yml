@@ -1,0 +1,135 @@
+colors:
+  default:
+    type: none
+    display-name: "<white>Default Chat</white>"
+    permission: ""
+    default-unlocked: true
+    preview: "<white>Default</white>"
+  white:
+    type: hex
+    hex: "#FFFFFF"
+    display-name: "<white>White</white>"
+    permission: ""
+    default-unlocked: true
+    preview: "<white>White</white>"
+  aqua:
+    type: hex
+    hex: "#67e8f9"
+    display-name: "<aqua>Aqua</aqua>"
+    permission: "3smpcore.chat.hex"
+    default-unlocked: false
+    preview: "<gradient:#67e8f9:#22d3ee>Aqua</gradient>"
+
+  gold:
+    type: gradient
+    from: "#f59e0b"
+    to: "#fbbf24"
+    display-name: "<gradient:#f59e0b:#fbbf24>Gold</gradient>"
+    permission: "3smpcore.chat.hex"
+    default-unlocked: false
+    preview: "<gradient:#f59e0b:#fbbf24>Gold</gradient>"
+  aqua_gold:
+    type: gradient
+    from: "#22d3ee"
+    to: "#f59e0b"
+    display-name: "<gradient:#22d3ee:#f59e0b>Aqua Gold</gradient>"
+    permission: "3smpcore.chat.gradient"
+    default-unlocked: false
+    preview: "<gradient:#22d3ee:#f59e0b>Aqua Gold</gradient>"
+  navy_blue:
+    type: gradient
+    from: "#1A2A4A"
+    to: "#60a5fa"
+    display-name: "<gradient:#1A2A4A:#60a5fa>Navy Blue</gradient>"
+    permission: "3smpcore.chat.gradient"
+    default-unlocked: false
+    preview: "<gradient:#1A2A4A:#60a5fa>Navy Blue</gradient>"
+  rose:
+    type: gradient
+    from: "#fb7185"
+    to: "#f472b6"
+    display-name: "<gradient:#fb7185:#f472b6>Rose</gradient>"
+    permission: "3smpcore.chat.gradient"
+    default-unlocked: false
+    preview: "<gradient:#fb7185:#f472b6>Rose</gradient>"
+  emerald:
+    type: gradient
+    from: "#34d399"
+    to: "#22c55e"
+    display-name: "<gradient:#34d399:#22c55e>Emerald</gradient>"
+    permission: "3smpcore.chat.gradient"
+    default-unlocked: false
+    preview: "<gradient:#34d399:#22c55e>Emerald</gradient>"
+  violet:
+    type: gradient
+    from: "#a78bfa"
+    to: "#c084fc"
+    display-name: "<gradient:#a78bfa:#c084fc>Violet</gradient>"
+    permission: "3smpcore.chat.gradient"
+    default-unlocked: false
+    preview: "<gradient:#a78bfa:#c084fc>Violet</gradient>"
+  sunset:
+    type: gradient
+    from: "#f97316"
+    to: "#fb7185"
+    display-name: "<gradient:#f97316:#fb7185>Sunset</gradient>"
+    permission: "3smpcore.chat.gradient"
+    default-unlocked: false
+    preview: "<gradient:#f97316:#fb7185>Sunset</gradient>"
+  ocean:
+    type: gradient
+    from: "#0ea5e9"
+    to: "#22d3ee"
+    display-name: "<gradient:#0ea5e9:#22d3ee>Ocean</gradient>"
+    permission: "3smpcore.chat.gradient"
+    default-unlocked: false
+    preview: "<gradient:#0ea5e9:#22d3ee>Ocean</gradient>"
+  mint:
+    type: gradient
+    from: "#86efac"
+    to: "#34d399"
+    display-name: "<gradient:#86efac:#34d399>Mint</gradient>"
+    permission: "3smpcore.chat.gradient"
+    default-unlocked: false
+    preview: "<gradient:#86efac:#34d399>Mint</gradient>"
+  ember:
+    type: gradient
+    from: "#f59e0b"
+    to: "#ef4444"
+    display-name: "<gradient:#f59e0b:#ef4444>Ember</gradient>"
+    permission: "3smpcore.chat.gradient"
+    default-unlocked: false
+    preview: "<gradient:#f59e0b:#ef4444>Ember</gradient>"
+
+  amethyst:
+    type: gradient
+    from: "#7c3aed"
+    to: "#c084fc"
+    display-name: "<gradient:#7c3aed:#c084fc>Amethyst</gradient>"
+    permission: "3smpcore.chat.gradient"
+    default-unlocked: false
+    preview: "<gradient:#7c3aed:#c084fc>Amethyst</gradient>"
+  ice:
+    type: gradient
+    from: "#d6e8f7"
+    to: "#67e8f9"
+    display-name: "<gradient:#d6e8f7:#67e8f9>Ice</gradient>"
+    permission: "3smpcore.chat.gradient"
+    default-unlocked: false
+    preview: "<gradient:#d6e8f7:#67e8f9>Ice</gradient>"
+  lava:
+    type: gradient
+    from: "#ef4444"
+    to: "#f59e0b"
+    display-name: "<gradient:#ef4444:#f59e0b>Lava</gradient>"
+    permission: "3smpcore.chat.gradient"
+    default-unlocked: false
+    preview: "<gradient:#ef4444:#f59e0b>Lava</gradient>"
+  storm:
+    type: gradient
+    from: "#334155"
+    to: "#d6e8f7"
+    display-name: "<gradient:#334155:#d6e8f7>Storm</gradient>"
+    permission: "3smpcore.chat.gradient"
+    default-unlocked: false
+    preview: "<gradient:#334155:#d6e8f7>Storm</gradient>"

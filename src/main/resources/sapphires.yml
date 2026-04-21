@@ -1,0 +1,14 @@
+sapphire:
+  currency-name: Sapphires
+  shop-url: "https://example.com"
+  command-aliases: [ sap, sapphires ]
+  commands:
+    store_bonus:
+      action: give
+      description: "Grant store bonus sapphires"
+    store_penalty:
+      action: take
+      description: "Remove store compensation sapphires"
+    admin_reset:
+      action: reset
+      description: "Reset a player's sapphires"

@@ -1,0 +1,119 @@
+name: 3SMPCore
+description: $description
+version: '${version}'
+main: net.dark.threecore.ThreeSMPCorePlugin
+api-version: '1.21'
+load: POSTWORLD
+authors: [ DarkFox ]
+softdepend: [ ItemsAdder, PlaceholderAPI, PlayerPoints ]
+commands:
+  help:
+    description: Custom 3SMP help command
+    aliases: [ ? ]
+  3smpcore:
+    description: Central command hub
+  duel:
+    description: Duel command
+  party:
+    description: Party command
+    aliases: [ p ]
+  perks:
+    description: Open the perks menu
+  sapphire:
+    description: Sapphire commands
+  sap:
+    description: Sapphire commands
+  sapphires:
+    description: Sapphire commands
+  gem:
+    description: Gem commands
+  gems:
+    description: Gem commands
+  launchpad:
+    description: Launchpad commands
+  warp:
+    description: Warp commands
+  rtp:
+    description: Random teleport commands
+  spawn:
+    description: Spawn command
+  survival:
+    description: Teleport to survival
+  money:
+    description: Money commands
+  balance:
+    description: Money balance
+  bal:
+    description: Money balance
+  pay:
+    description: Pay money to another player
+  sell:
+    description: Sell items for money
+  ah:
+    description: Auction house
+  auction:
+    description: Auction house
+  auctionhouse:
+    description: Auction house
+  spy:
+    description: Toggle command spy
+permissions:
+  3smpcore.admin:
+    default: op
+  3smpcore.reload:
+    default: op
+  3smpcore.dev:
+    default: op
+  3smpcore.debug:
+    default: op
+  3smpcore.perks.use:
+    default: true
+  3smpcore.perks.admin:
+    default: op
+  3smpcore.sapphires.use:
+    default: true
+  3smpcore.sapphires.admin:
+    default: op
+  3smpcore.gems.use:
+    default: true
+  3smpcore.gems.admin:
+    default: op
+  3smpcore.chat.gradient:
+    default: true
+  3smpcore.chat.hex:
+    default: true
+  3smpcore.duel.use:
+    default: true
+  3smpcore.duel.admin:
+    default: op
+  3smpcore.party.use:
+    default: true
+  3smpcore.party.admin:
+    default: op
+  3smpcore.launchpad.admin:
+    default: op
+  3smpcore.spawn.use:
+    default: true
+  3smpcore.spawn.admin:
+    default: op
+  3smpcore.warp.admin:
+    default: op
+  3smpcore.survival.use:
+    default: true
+  3smpcore.money.use:
+    default: true
+  3smpcore.money.admin:
+    default: op
+  3smpcore.sell.use:
+    default: true
+  3smpcore.auction.use:
+    default: true
+  3smpcore.auction.admin:
+    default: op
+  3smpcore.spy:
+    default: op
+  3smpcore.afk.bypass:
+    default: op
+
+
+

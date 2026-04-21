@@ -1,0 +1,29 @@
+cosmetics:
+  none:
+    display-name: "<white>No Cosmetic</white>"
+    icon: BARRIER
+    permission: ""
+    default-unlocked: true
+    lore:
+      - "<gray>No general cosmetic selected.</gray>"
+  sapphire_style:
+    display-name: "<gradient:#1A2A4A:#D6E8F7>Sapphire Style</gradient>"
+    icon: DIAMOND
+    permission: "3smpcore.perk.cosmetic.sapphire"
+    default-unlocked: false
+    lore:
+      - "<gray>Used by integrated cosmetic hooks.</gray>"
+  ember_style:
+    display-name: "<gradient:#f59e0b:#ef4444>Ember Style</gradient>"
+    icon: BLAZE_POWDER
+    permission: "3smpcore.perk.cosmetic.ember"
+    default-unlocked: false
+    lore:
+      - "<gray>Used by integrated cosmetic hooks.</gray>"
+  frost_style:
+    display-name: "<gradient:#D6E8F7:#67e8f9>Frost Style</gradient>"
+    icon: BLUE_ICE
+    permission: "3smpcore.perk.cosmetic.frost"
+    default-unlocked: false
+    lore:
+      - "<gray>Used by integrated cosmetic hooks.</gray>"

@@ -1,0 +1,24 @@
+# 3SMPCore Party System
+# Parties are reusable for duels now and future systems later.
+
+party:
+  enabled: true
+  max-size: 3
+
+  invites:
+    timeout-seconds: 60
+
+  item:
+    enabled: true
+    slot: 8
+    material: LECTERN
+    name: "<gradient:#34d399:#22c55e>Party Manager</gradient>"
+    prevent-drop: true
+    restore-on-join: true
+    restore-on-respawn: true
+    restore-on-world-change: true
+
+  duels:
+    enabled: true
+    min-size: 2
+    max-size: 3

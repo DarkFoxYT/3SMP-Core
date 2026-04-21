@@ -1,0 +1,76 @@
+storage:
+  type: SQLITE
+
+chat:
+  allow-gradient: true
+  allow-hex: true
+  max-message-length: 256
+  format: "<prefix><tag><name-color><player></name-color><message-color>: <message>"
+
+hooks:
+  itemsadder: true
+  placeholderapi: true
+  playerpoints: true
+
+systems:
+  duels: true
+  parties: true
+  perks: true
+  sapphires: true
+  gems: true
+  leaderboards: true
+  displays: true
+
+spawn:
+  world: spawn
+  effects:
+    speed:
+      enabled: true
+      level: 2
+      remove-on-exit: true
+  zone:
+    enabled: true
+    world: spawn
+    min:
+      x: -100
+      y: -64
+      z: -100
+    max:
+      x: 100
+      y: 320
+      z: 100
+    pvp:
+      enabled: false
+    disable-damage: true
+    pvp-deny-message: "<red>PvP is disabled in spawn.</red>"
+  location:
+    world: spawn
+    x: 0.5
+    y: 100.0
+    z: 0.5
+    yaw: 0.0
+    pitch: 0.0
+  speed-level: 2
+  protection:
+    enabled: true
+    build: true
+    place: true
+    break: true
+
+launchpads:
+  default:
+    display-name: "<gradient:#f59e0b:#f97316>Launchpad</gradient>"
+    material: GOLD_BLOCK
+    world: world
+    velocity:
+      x: 0.0
+      y: 1.4
+      z: 0.0
+    target:
+      world: world
+      x: 0.0
+      y: 120.0
+      z: 0.0
+      yaw: 0.0
+      pitch: 0.0
+

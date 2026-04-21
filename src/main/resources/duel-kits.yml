@@ -1,0 +1,59 @@
+# Preset duel kits. Keep IDs lowercase and stable; player queues and challenges reference these IDs.
+# Kit item lists use Bukkit Material names. Add amounts later as needed with a parser upgrade.
+
+kits:
+  warrior:
+    display-name: "<gradient:#f59e0b:#f97316>Warrior</gradient>"
+    icon: DIAMOND_SWORD
+    permission: ""
+    slot: 10
+    enabled: true
+    lore:
+      - "<gray>Classic sword PvP loadout.</gray>"
+    contents: [DIAMOND_SWORD, BOW, ARROW, GOLDEN_APPLE]
+    armor: [DIAMOND_BOOTS, DIAMOND_LEGGINGS, DIAMOND_CHESTPLATE, DIAMOND_HELMET]
+    offhand: [SHIELD]
+  archer:
+    display-name: "<gradient:#D6E8F7:#60a5fa>Archer</gradient>"
+    icon: BOW
+    permission: ""
+    slot: 11
+    enabled: true
+    lore:
+      - "<gray>Bow-focused spacing kit.</gray>"
+    contents: [BOW, STONE_SWORD, ARROW, ARROW, GOLDEN_APPLE]
+    armor: [IRON_BOOTS, IRON_LEGGINGS, IRON_CHESTPLATE, IRON_HELMET]
+    offhand: []
+  axe:
+    display-name: "<gradient:#ef4444:#f59e0b>Axe</gradient>"
+    icon: DIAMOND_AXE
+    permission: ""
+    slot: 12
+    enabled: true
+    lore:
+      - "<gray>Shield pressure and burst trades.</gray>"
+    contents: [DIAMOND_AXE, CROSSBOW, ARROW, GOLDEN_APPLE]
+    armor: [DIAMOND_BOOTS, IRON_LEGGINGS, DIAMOND_CHESTPLATE, IRON_HELMET]
+    offhand: [SHIELD]
+  crystal:
+    display-name: "<gradient:#a78bfa:#f472b6>Crystal</gradient>"
+    icon: END_CRYSTAL
+    permission: "3smpcore.duel.kit.crystal"
+    slot: 13
+    enabled: true
+    lore:
+      - "<gray>Permission-gated advanced kit.</gray>"
+    contents: [DIAMOND_SWORD, END_CRYSTAL, OBSIDIAN, GOLDEN_APPLE]
+    armor: [DIAMOND_BOOTS, DIAMOND_LEGGINGS, DIAMOND_CHESTPLATE, DIAMOND_HELMET]
+    offhand: [TOTEM_OF_UNDYING]
+  training:
+    display-name: "<gradient:#34d399:#86efac>Training</gradient>"
+    icon: IRON_SWORD
+    permission: ""
+    slot: 14
+    enabled: true
+    lore:
+      - "<gray>Simple low-stakes practice kit.</gray>"
+    contents: [IRON_SWORD, BOW, ARROW, COOKED_BEEF]
+    armor: [IRON_BOOTS, IRON_LEGGINGS, IRON_CHESTPLATE, IRON_HELMET]
+    offhand: []

@@ -1,0 +1,18 @@
+title: "<gradient:#1A2A4A:#D6E8F7>Sapphire Vault</gradient>"
+size: 27
+frame:
+  material: "LIGHT_BLUE_STAINED_GLASS_PANE"
+  name: " "
+buttons:
+  balance:
+    slot: 11
+    material: EMERALD
+    name: "<gradient:#1A2A4A:#D6E8F7>Balance</gradient>"
+  shop:
+    slot: 13
+    material: CHEST
+    name: "<gradient:#1A2A4A:#D6E8F7>Shop</gradient>"
+  commands:
+    slot: 15
+    material: PAPER
+    name: "<gradient:#1A2A4A:#D6E8F7>Commands</gradient>"
