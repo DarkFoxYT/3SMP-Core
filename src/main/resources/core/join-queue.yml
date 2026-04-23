@@ -1,0 +1,19 @@
+enabled: true
+bypass-permission: 3smpcore.queue.bypass
+priority-permissions:
+  - "3smpcore.queue.priority.owner:1000"
+  - "3smpcore.queue.priority.staff:500"
+  - "3smpcore.queue.priority.vip:100"
+world:
+  name: queue_void
+  generator: VoidGen
+  spawn:
+    x: 0.5
+    y: 80.0
+    z: 0.5
+release:
+  max-online-before-queue: -1
+  players-per-interval: 1
+  interval-ticks: 40
+messages:
+  actionbar: "<gradient:#1A2A4A:#D6E8F7>Join Queue</gradient> <gray>Position:</gray> <white>{position}</white><gray>/{total}</gray>"

@@ -65,7 +65,7 @@ public final class DuelLeaderboardService {
     }
 
     private String prize(int place) {
-        return configs.get("duels.yml").getString("duels.leaderboard.prizes." + place + ".display", place <= 3 ? "Configured manually" : "None");
+        return configs.get("duels/duels.yml").getString("duels.leaderboard.prizes." + place + ".display", place <= 3 ? "Configured manually" : "None");
     }
 
     private void fill(Inventory inv, Material material) { for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, button(material, " ", List.of())); }

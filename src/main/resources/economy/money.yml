@@ -2,7 +2,8 @@ currency:
   name-singular: money
   name-plural: money
   symbol: "$"
-starting-balance: 0.0
+starting-balance: 1000.0
 placeholders:
   raw: "%smpcore_money%"
   formatted: "%smpcore_money_formatted%"
+

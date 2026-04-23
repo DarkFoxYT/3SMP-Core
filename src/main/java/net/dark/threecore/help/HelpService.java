@@ -20,15 +20,15 @@ public final class HelpService {
     }
 
     public void handle(CommandSender sender, String[] args) {
-        String pageId = args.length == 0 ? configs.get("help.yml").getString("settings.default-page", "main") : args[0].toLowerCase(Locale.ROOT);
-        ConfigurationSection page = configs.get("help.yml").getConfigurationSection("pages." + pageId);
+        String pageId = args.length == 0 ? configs.get("core/help.yml").getString("settings.default-page", "main") : args[0].toLowerCase(Locale.ROOT);
+        ConfigurationSection page = configs.get("core/help.yml").getConfigurationSection("pages." + pageId);
         if (page == null) {
-            Text.send(sender, configs.get("help.yml").getString("messages.unknown-page", "<red>That help page does not exist.</red>"));
+            Text.send(sender, configs.get("core/help.yml").getString("messages.unknown-page", "<red>That help page does not exist.</red>"));
             return;
         }
         String permission = page.getString("permission", "");
         if (permission != null && !permission.isBlank() && !sender.hasPermission(permission)) {
-            Text.send(sender, configs.get("help.yml").getString("messages.no-permission", "<red>You cannot view that help page.</red>"));
+            Text.send(sender, configs.get("core/help.yml").getString("messages.no-permission", "<red>You cannot view that help page.</red>"));
             return;
         }
         for (String line : page.getStringList("lines")) {
@@ -38,7 +38,7 @@ public final class HelpService {
 
     public List<String> complete(String[] args) {
         if (args.length > 1) return List.of();
-        ConfigurationSection pages = configs.get("help.yml").getConfigurationSection("pages");
+        ConfigurationSection pages = configs.get("core/help.yml").getConfigurationSection("pages");
         if (pages == null) return List.of();
         List<String> ids = new ArrayList<>();
         for (String id : pages.getKeys(false)) ids.add(id.toLowerCase(Locale.ROOT));
@@ -48,7 +48,7 @@ public final class HelpService {
     private String replace(String input, CommandSender sender) {
         return input
                 .replace("{player}", sender.getName())
-                .replace("{server}", configs.get("help.yml").getString("settings.server-name", "3SMP"))
+                .replace("{server}", configs.get("core/help.yml").getString("settings.server-name", "3SMP"))
                 .replace("{version}", plugin.getPluginMeta().getVersion());
     }
 }

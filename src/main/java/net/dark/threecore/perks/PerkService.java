@@ -77,37 +77,41 @@ public final class PerkService implements Listener {
 
     public void openMainMenu(Player player) { menuService.open(player, buildMainMenu()); }
     public void giveCosmeticsItem(Player player) {
-        if (!configs.get("cosmetics.yml").getBoolean("hotbar.enabled", true)) return;
-        int slot = Math.max(0, Math.min(8, configs.get("cosmetics.yml").getInt("hotbar.slot", 4)));
-        player.getInventory().setItem(slot, taggedIcon(org.bukkit.Material.NETHER_STAR, configs.get("cosmetics.yml").getString("hotbar.name", "<gradient:#7c4a03:#f59e0b>Cosmetics</gradient>")));
+        if (net.dark.threecore.zonepvp.ZonePvpService.isZonePlayer(player) || net.dark.threecore.duels.DuelService.isDuelPlayer(player)) return;
+        if (!configs.get("cosmetics/cosmetics.yml").getBoolean("hotbar.enabled", true)) return;
+        int slot = Math.max(0, Math.min(8, configs.get("cosmetics/cosmetics.yml").getInt("hotbar.slot", 4)));
+        player.getInventory().setItem(slot, taggedIcon(org.bukkit.Material.NETHER_STAR, configs.get("cosmetics/cosmetics.yml").getString("hotbar.name", "<gradient:#7c4a03:#f59e0b>Cosmetics</gradient>")));
     }
 
     public Inventory buildMainMenu() {
         Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.PERKS_MAIN, "main"), 54, "3SMP Cosmetics");
         for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, pane());
-        inv.setItem(4, icon(org.bukkit.Material.NETHER_STAR, "<gradient:#7c4a03:#f59e0b>Cosmetics Hub</gradient>", List.of("<gray>General, Survival, Duels, and Dungeons cosmetics.</gray>")));
-        inv.setItem(10, icon(org.bukkit.Material.ENDER_EYE, "<gradient:#fbbf24:#fff7ad>General</gradient>", List.of("<gray>Badges, particles, effects, and global style.</gray>")));
-        inv.setItem(12, icon(org.bukkit.Material.GRASS_BLOCK, "<gradient:#b45309:#fbbf24>Survival</gradient>", List.of("<gray>Survival cosmetics and future models.</gray>")));
-        inv.setItem(14, icon(org.bukkit.Material.DIAMOND_SWORD, "<gradient:#92400e:#f59e0b>Duels</gradient>", List.of("<gray>Weapon cosmetics, duel trails, and arena style.</gray>")));
-        inv.setItem(16, icon(org.bukkit.Material.ECHO_SHARD, "<gradient:#7c2d12:#facc15>Dungeons</gradient>", List.of("<gray>Dungeon-ready cosmetic categories.</gray>")));
-        inv.setItem(28, icon(org.bukkit.Material.NETHER_STAR, "<gradient:#f59e0b:#fff7ad>Badges</gradient>", List.of("<gray>Shown before your name in chat.</gray>")));
-        inv.setItem(30, icon(org.bukkit.Material.FIREWORK_ROCKET, "<gradient:#facc15:#7c4a03>Particles</gradient>", List.of("<gray>Cosmetic particles. Default is none.</gray>")));
-        inv.setItem(32, icon(org.bukkit.Material.GLOWSTONE_DUST, "<gradient:#f59e0b:#fbbf24>Effects</gradient>", List.of("<gray>Light cosmetic effects.</gray>")));
-        inv.setItem(34, icon(org.bukkit.Material.TRIDENT, "<gradient:#b45309:#f59e0b>Weapon Cosmetics</gradient>", List.of("<gray>Framework tab for future models and skins.</gray>")));
+        inv.setItem(4, icon(org.bukkit.Material.NETHER_STAR, "<gradient:#7c4a03:#f59e0b>Cosmetics Hub</gradient>", List.of("<gray>Chat, particles, kill effects, weapon cosmetics, and dungeon cosmetics.</gray>")));
+        inv.setItem(19, icon(org.bukkit.Material.NETHER_STAR, "<gradient:#f59e0b:#fff7ad>Badges</gradient>", List.of("<gray>Shown before your name in chat.</gray>")));
+        inv.setItem(21, icon(org.bukkit.Material.FIREWORK_ROCKET, "<gradient:#facc15:#7c4a03>Particles</gradient>", List.of("<gray>Cosmetic particles. Default is none.</gray>")));
+        inv.setItem(23, icon(org.bukkit.Material.ENCHANTED_BOOK, "<gradient:#facc15:#f59e0b>Kill Effects</gradient>", List.of("<gray>Particles and sounds that play when you win a fight.</gray>")));
+        inv.setItem(25, icon(org.bukkit.Material.GLOWSTONE_DUST, "<gradient:#f59e0b:#fbbf24>Effects</gradient>", List.of("<gray>Light cosmetic effects.</gray>")));
+        inv.setItem(30, icon(org.bukkit.Material.TRIDENT, "<gradient:#b45309:#f59e0b>Weapon Cosmetics</gradient>", List.of("<gray>Framework tab for future models and skins.</gray>")));
+        inv.setItem(32, icon(org.bukkit.Material.ECHO_SHARD, "<gradient:#7c2d12:#facc15>Dungeon Cosmetics</gradient>", List.of("<gray>Dungeon-ready cosmetic categories.</gray>")));
         inv.setItem(49, icon(org.bukkit.Material.BOOK, "<gradient:#1A2A4A:#D6E8F7>Summary</gradient>", List.of("<gray>Review active cosmetics.</gray>")));
         return inv;
     }
 
     public void handleMenuClick(Player player, int slot) {
-        if (slot == 49 || slot == 4) menuService.open(player, buildSummaryMenu(player));
-        else if (slot == 10) menuService.open(player, buildCategoryMenu("badges", "General Badges"));
-        else if (slot == 12) menuService.open(player, buildCategoryMenu("cosmetics", "Survival Cosmetics"));
-        else if (slot == 14) menuService.open(player, buildCategoryMenu("weapon_cosmetics", "Duel Weapon Cosmetics"));
-        else if (slot == 16) menuService.open(player, buildCategoryMenu("dungeon_cosmetics", "Dungeon Cosmetics"));
-        else if (slot == 28) menuService.open(player, buildCategoryMenu("badges", "Badges"));
-        else if (slot == 30) menuService.open(player, buildCategoryMenu("particles", "Particles"));
-        else if (slot == 32) menuService.open(player, buildCategoryMenu("effects", "Effects"));
-        else if (slot == 34) menuService.open(player, buildCategoryMenu("weapon_cosmetics", "Weapon Cosmetics"));
+        if (slot == 49) menuService.open(player, buildSummaryMenu(player));
+        else if (slot == 19) menuService.open(player, buildCategoryMenu("badges", "Badges"));
+        else if (slot == 21) menuService.open(player, buildCategoryMenu("particles", "Particles"));
+        else if (slot == 23) menuService.open(player, buildCategoryMenu("kill_effects", "Kill Effects"));
+        else if (slot == 25) menuService.open(player, buildCategoryMenu("effects", "Effects"));
+        else if (slot == 30) menuService.open(player, buildCategoryMenu("weapon_cosmetics", "Weapon Cosmetics"));
+        else if (slot == 32) menuService.open(player, buildCategoryMenu("dungeon_cosmetics", "Dungeon Cosmetics"));
+    }
+
+    public void handleSummaryMenuClick(Player player, int slot) {
+        if (slot == 22) openMainMenu(player);
+        else if (slot == 11) menuService.open(player, buildCategoryMenu("badges", "Badges"));
+        else if (slot == 13) menuService.open(player, buildCategoryMenu("particles", "Particles"));
+        else if (slot == 15) menuService.open(player, buildCategoryMenu("kill_effects", "Kill Effects"));
     }
 
     public Inventory buildSummaryMenu(Player player) {
@@ -169,7 +173,7 @@ public final class PerkService implements Listener {
                 else if (category.equalsIgnoreCase("colors")) setActive(player.getUniqueId(), "messagecolor", def.id);
                 else if (category.equalsIgnoreCase("particles")) setActive(player.getUniqueId(), "particle", def.id);
                 else if (category.equalsIgnoreCase("effects")) setActive(player.getUniqueId(), "effect", def.id);
-                else if (category.equalsIgnoreCase("cosmetics") || category.equalsIgnoreCase("weapon_cosmetics") || category.equalsIgnoreCase("dungeon_cosmetics")) setActive(player.getUniqueId(), "cosmetic", def.id);
+                else if (category.equalsIgnoreCase("cosmetics") || category.equalsIgnoreCase("weapon_cosmetics") || category.equalsIgnoreCase("dungeon_cosmetics") || category.equalsIgnoreCase("kill_effects")) setActive(player.getUniqueId(), "cosmetic", def.id);
                 net.dark.threecore.text.Text.send(player, "<green>Selected " + def.displayName + "</green>");
                 return;
             }
@@ -264,7 +268,16 @@ public final class PerkService implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) return;
         if (isCosmeticsItem(event.getCurrentItem())) {
             event.setCancelled(true);
-            if (event.getClickedInventory() == player.getInventory()) openMainMenu(player);
+            event.setCursor(null);
+            if (event.getClickedInventory() == player.getInventory()) {
+                Bukkit.getScheduler().runTask(plugin, player::updateInventory);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    if (!player.isOnline()) return;
+                    player.setItemOnCursor(null);
+                    player.updateInventory();
+                    openMainMenu(player);
+                }, 20L);
+            }
         }
     }
 
@@ -310,7 +323,7 @@ public final class PerkService implements Listener {
         String id = data(player.getUniqueId()).activeEffect();
         if (id == null || id.isBlank()) return;
         if (!isUnlockedOrDefault(player.getUniqueId(), id)) return;
-        ConfigurationSection section = configs.get("effects.yml").getConfigurationSection("effects." + id.toLowerCase(Locale.ROOT));
+        ConfigurationSection section = configs.get("cosmetics/effects.yml").getConfigurationSection("effects." + id.toLowerCase(Locale.ROOT));
         if (section == null) return;
         try {
             PotionEffectType type = PotionEffectType.getByName(section.getString("effect", ""));
@@ -322,16 +335,17 @@ public final class PerkService implements Listener {
     }
 
     private void loadDefinitions() {
-        loadSection("prefixes.yml", "prefixes", org.bukkit.Material.NAME_TAG);
-        loadSection("tags.yml", "tags", org.bukkit.Material.PAPER);
-        loadSection("badges.yml", "badges", org.bukkit.Material.NETHER_STAR);
-        loadSection("colors.yml", "colors", org.bukkit.Material.BLUE_DYE);
-        loadSection("trims.yml", "trims", org.bukkit.Material.AMETHYST_SHARD);
-        loadSection("particles.yml", "particles", org.bukkit.Material.FIREWORK_ROCKET);
-        loadSection("effects.yml", "effects", org.bukkit.Material.GLOWSTONE_DUST);
-        loadSection("cosmetics.yml", "cosmetics", org.bukkit.Material.ENDER_EYE);
-        loadSection("cosmetics.yml", "weapon_cosmetics", org.bukkit.Material.TRIDENT);
-        loadSection("cosmetics.yml", "dungeon_cosmetics", org.bukkit.Material.ECHO_SHARD);
+        loadSection("cosmetics/prefixes.yml", "prefixes", org.bukkit.Material.NAME_TAG);
+        loadSection("cosmetics/tags.yml", "tags", org.bukkit.Material.PAPER);
+        loadSection("cosmetics/badges.yml", "badges", org.bukkit.Material.NETHER_STAR);
+        loadSection("cosmetics/colors.yml", "colors", org.bukkit.Material.BLUE_DYE);
+        loadSection("cosmetics/trims.yml", "trims", org.bukkit.Material.AMETHYST_SHARD);
+        loadSection("cosmetics/particles.yml", "particles", org.bukkit.Material.FIREWORK_ROCKET);
+        loadSection("cosmetics/effects.yml", "effects", org.bukkit.Material.GLOWSTONE_DUST);
+        loadSection("cosmetics/cosmetics.yml", "cosmetics", org.bukkit.Material.ENDER_EYE);
+        loadSection("cosmetics/cosmetics.yml", "weapon_cosmetics", org.bukkit.Material.TRIDENT);
+        loadSection("cosmetics/cosmetics.yml", "dungeon_cosmetics", org.bukkit.Material.ECHO_SHARD);
+        loadSection("cosmetics/cosmetics.yml", "kill_effects", org.bukkit.Material.ENCHANTED_BOOK);
     }
 
     private void loadSection(String file, String root, org.bukkit.Material fallbackMaterial) {
@@ -386,3 +400,6 @@ public final class PerkService implements Listener {
     private record PerkDefinition(String id, String category, org.bukkit.Material material, String displayName, String permission, boolean defaultUnlocked, List<String> lore) {}
     private record TrimDefinition(String id, String requiredPermission, String requiredRank) {}
 }
+
+
+

@@ -25,7 +25,9 @@ public final class Database {
                 st.executeUpdate("CREATE TABLE IF NOT EXISTS player_perks (uuid TEXT PRIMARY KEY, data TEXT NOT NULL)");
                 st.executeUpdate("CREATE TABLE IF NOT EXISTS player_sapphires (uuid TEXT PRIMARY KEY, balance INTEGER NOT NULL DEFAULT 0)");
                 st.executeUpdate("CREATE TABLE IF NOT EXISTS player_gems (uuid TEXT PRIMARY KEY, data TEXT NOT NULL)");
-                st.executeUpdate("CREATE TABLE IF NOT EXISTS player_money (uuid TEXT PRIMARY KEY, balance REAL NOT NULL DEFAULT 0)");
+                st.executeUpdate("CREATE TABLE IF NOT EXISTS player_money (uuid TEXT PRIMARY KEY, balance REAL NOT NULL DEFAULT 1000)");
+                st.executeUpdate("CREATE TABLE IF NOT EXISTS player_dungeon_completions (uuid TEXT NOT NULL, level TEXT NOT NULL, difficulty TEXT NOT NULL, completed_at INTEGER NOT NULL, PRIMARY KEY(uuid, level, difficulty))");
+                st.executeUpdate("CREATE TABLE IF NOT EXISTS player_friends (owner TEXT NOT NULL, friend TEXT NOT NULL, created_at INTEGER NOT NULL, PRIMARY KEY(owner, friend))");
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Failed to initialize database", e);
@@ -43,3 +45,6 @@ public final class Database {
         }
     }
 }
+
+
+

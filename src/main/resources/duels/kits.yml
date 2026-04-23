@@ -7,6 +7,10 @@ kits:
     permission: ""
     slot: 10
     enabled: true
+    auto-apply-potions: false
+    auto-potions: []
+    rounds: 1
+    health-indicator: false
     lore: ["<gray>Classic sword PvP loadout.</gray>"]
     contents: [DIAMOND_SWORD, BOW, ARROW, GOLDEN_APPLE, COOKED_BEEF]
     armor: [DIAMOND_BOOTS, DIAMOND_LEGGINGS, DIAMOND_CHESTPLATE, DIAMOND_HELMET]
@@ -17,6 +21,10 @@ kits:
     permission: ""
     slot: 12
     enabled: true
+    auto-apply-potions: false
+    auto-potions: []
+    rounds: 1
+    health-indicator: false
     lore: ["<gray>Axe, shield pressure, and trades.</gray>"]
     contents: [DIAMOND_AXE, CROSSBOW, ARROW, GOLDEN_APPLE, COOKED_BEEF]
     armor: [DIAMOND_BOOTS, DIAMOND_LEGGINGS, DIAMOND_CHESTPLATE, DIAMOND_HELMET]
@@ -27,36 +35,24 @@ kits:
     permission: ""
     slot: 14
     enabled: true
-    lore: ["<gray>Netherite potion PvP framework kit.</gray>"]
-    contents: [NETHERITE_SWORD, ENDER_PEARL, SPLASH_POTION, SPLASH_POTION, GOLDEN_CARROT]
-    armor: [NETHERITE_BOOTS, NETHERITE_LEGGINGS, NETHERITE_CHESTPLATE, NETHERITE_HELMET]
-    offhand: [TOTEM_OF_UNDYING]
-  bow:
-    display-name: "<gradient:#D6E8F7:#60a5fa>Bow PvP</gradient>"
-    icon: BOW
-    permission: ""
-    slot: 16
-    enabled: true
-    lore: ["<gray>Ranged spacing and aim kit.</gray>"]
-    contents: [BOW, CROSSBOW, STONE_SWORD, ARROW, ARROW, GOLDEN_APPLE]
-    armor: [IRON_BOOTS, IRON_LEGGINGS, IRON_CHESTPLATE, IRON_HELMET]
-    offhand: []
-  crystal:
-    display-name: "<gradient:#f59e0b:#f97316>Crystal PvP</gradient>"
-    icon: END_CRYSTAL
-    permission: "3smpcore.duel.kit.crystal"
-    slot: 28
-    enabled: true
-    lore: ["<gray>Advanced crystal PvP kit.</gray>"]
-    contents: [NETHERITE_SWORD, END_CRYSTAL, OBSIDIAN, RESPAWN_ANCHOR, GLOWSTONE, GOLDEN_APPLE]
+    auto-apply-potions: true
+    auto-potions: []
+    rounds: 1
+    health-indicator: false
+    lore: ["<gray>Netherite sword, pearls, pots, and totem pressure.</gray>"]
+    contents: [NETHERITE_SWORD, ENDER_PEARL, ENDER_PEARL, SPLASH_POTION, SPLASH_POTION, SPLASH_POTION, GOLDEN_CARROT, GOLDEN_CARROT]
     armor: [NETHERITE_BOOTS, NETHERITE_LEGGINGS, NETHERITE_CHESTPLATE, NETHERITE_HELMET]
     offhand: [TOTEM_OF_UNDYING]
   smp:
     display-name: "<gradient:#34d399:#22c55e>SMP</gradient>"
     icon: GRASS_BLOCK
     permission: ""
-    slot: 30
+    slot: 16
     enabled: true
+    auto-apply-potions: false
+    auto-potions: []
+    rounds: 1
+    health-indicator: false
     lore: ["<gray>Survival-style duel mode.</gray>"]
     contents: [DIAMOND_SWORD, DIAMOND_AXE, BOW, ARROW, GOLDEN_APPLE, WATER_BUCKET, LAVA_BUCKET, COOKED_BEEF]
     armor: [DIAMOND_BOOTS, DIAMOND_LEGGINGS, DIAMOND_CHESTPLATE, DIAMOND_HELMET]
@@ -65,9 +61,16 @@ kits:
     display-name: "<gradient:#fb7185:#f59e0b>UHC</gradient>"
     icon: GOLDEN_APPLE
     permission: ""
-    slot: 32
+    slot: 28
     enabled: true
+    auto-apply-potions: false
+    auto-potions: []
+    rounds: 1
+    health-indicator: false
     lore: ["<gray>Golden apple UHC-style kit.</gray>"]
     contents: [DIAMOND_SWORD, BOW, ARROW, GOLDEN_APPLE, GOLDEN_APPLE, WATER_BUCKET, LAVA_BUCKET, COOKED_BEEF]
     armor: [DIAMOND_BOOTS, DIAMOND_LEGGINGS, DIAMOND_CHESTPLATE, DIAMOND_HELMET]
     offhand: []
+
+
+

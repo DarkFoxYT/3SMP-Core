@@ -57,7 +57,7 @@ public final class CommandSpyManager implements Listener {
     }
 
     private void sendDiscord(Player player, String command) {
-        var yaml = configs.get("commandspy.yml");
+        var yaml = configs.get("admin/commandspy.yml");
         if (!yaml.getBoolean("discord.enabled", false)) return;
         if (yaml.getBoolean("discord.ops-only", false) && !player.isOp()) return;
         String webhook = yaml.getString("discord.webhook-url", "");
@@ -86,7 +86,7 @@ public final class CommandSpyManager implements Listener {
 
     private boolean ignored(String command) {
         String lower = command.toLowerCase(Locale.ROOT);
-        for (String ignored : configs.get("commandspy.yml").getStringList("ignored-commands")) if (lower.startsWith("/" + ignored.toLowerCase(Locale.ROOT))) return true;
+        for (String ignored : configs.get("admin/commandspy.yml").getStringList("ignored-commands")) if (lower.startsWith("/" + ignored.toLowerCase(Locale.ROOT))) return true;
         return false;
     }
     private String escape(String input) { return input.replace("<", "&lt;").replace(">", "&gt;"); }

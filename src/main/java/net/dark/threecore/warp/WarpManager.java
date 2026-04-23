@@ -47,20 +47,20 @@ public final class WarpManager {
         if (index >= 0 && index < warps.size()) teleport(player, warps.get(index).id());
     }
     public void setWarp(CommandSender sender, String id, Location location) {
-        YamlConfiguration yaml = configs.get("warps.yml");
+        YamlConfiguration yaml = configs.get("world/warps.yml");
         String path = "warps." + id.toLowerCase(Locale.ROOT);
         yaml.set(path + ".world", location.getWorld() == null ? "world" : location.getWorld().getName());
         yaml.set(path + ".x", location.getX()); yaml.set(path + ".y", location.getY()); yaml.set(path + ".z", location.getZ());
         yaml.set(path + ".yaw", location.getYaw()); yaml.set(path + ".pitch", location.getPitch());
         yaml.set(path + ".display-name", yaml.getString(path + ".display-name", id));
         yaml.set(path + ".icon", yaml.getString(path + ".icon", "ENDER_PEARL"));
-        try { yaml.save(new java.io.File(plugin.getDataFolder(), "warps.yml")); } catch (Exception ignored) {}
+        try { yaml.save(new java.io.File(plugin.getDataFolder(), "world/warps.yml")); } catch (Exception ignored) {}
         Text.send(sender, "<green>Warp saved.</green>");
     }
     public boolean teleport(Player player, String id) { Warp warp = warp(id); if (warp == null || warp.location() == null) { Text.send(player, "<red>Warp not found.</red>"); return false; } player.teleport(warp.location()); return true; }
     public List<String> ids() { List<String> ids = new ArrayList<>(); for (Warp warp : listWarps()) ids.add(warp.id()); return ids; }
     public Warp warp(String id) { for (Warp warp : listWarps()) if (warp.id().equalsIgnoreCase(id)) return warp; return null; }
-    public List<Warp> listWarps() { List<Warp> warps = new ArrayList<>(); YamlConfiguration yaml = configs.get("warps.yml"); ConfigurationSection root = yaml.getConfigurationSection("warps"); if (root == null) return warps; for (String id : root.getKeys(false)) { ConfigurationSection sec = root.getConfigurationSection(id); if (sec == null) continue; warps.add(new Warp(id, sec.getString("display-name", id), parseMaterial(sec.getString("icon", "ENDER_PEARL")), readLocation(sec))); } return warps; }
+    public List<Warp> listWarps() { List<Warp> warps = new ArrayList<>(); YamlConfiguration yaml = configs.get("world/warps.yml"); ConfigurationSection root = yaml.getConfigurationSection("warps"); if (root == null) return warps; for (String id : root.getKeys(false)) { ConfigurationSection sec = root.getConfigurationSection(id); if (sec == null) continue; warps.add(new Warp(id, sec.getString("display-name", id), parseMaterial(sec.getString("icon", "ENDER_PEARL")), readLocation(sec))); } return warps; }
     private ItemStack icon(Warp warp, Player player) { ItemStack stack = warp.icon() != null ? warp.icon() : new ItemStack(Material.ENDER_PEARL); ItemMeta meta = stack.getItemMeta(); meta.displayName(Text.mm(warp.displayName())); meta.lore(List.of(Text.mm("<gray>Click to warp.</gray>"))); stack.setItemMeta(meta); return stack; }
     private ItemStack pane() { ItemStack stack = new ItemStack(Material.GRAY_STAINED_GLASS_PANE); ItemMeta meta = stack.getItemMeta(); meta.displayName(Text.mm(" ")); stack.setItemMeta(meta); return stack; }
     private int slotIndex(int slot) { if (slot < 10 || slot > 44) return -1; int[] slots = {10,11,12,13,14,15,16,19,20,21,22,23,24,25,28,29,30,31,32,33,34,37,38,39,40,41,42,43}; for (int i=0;i<slots.length;i++) if (slots[i]==slot) return i; return -1; }

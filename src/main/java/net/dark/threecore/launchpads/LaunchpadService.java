@@ -62,7 +62,7 @@ public final class LaunchpadService implements Listener {
         definitions.clear();
         placedPads.clear();
 
-        var config = configs.get("config.yml");
+        var config = configs.get("core/config.yml");
         ConfigurationSection launchpads = config.getConfigurationSection("launchpads");
         if (launchpads != null) {
             for (String id : launchpads.getKeys(false)) {
@@ -93,7 +93,7 @@ public final class LaunchpadService implements Listener {
                 "NORTH"
         ));
 
-        YamlConfiguration placementsConfig = configs.get("launchpads.yml");
+        YamlConfiguration placementsConfig = configs.get("world/launchpads.yml");
         ConfigurationSection placements = placementsConfig.getConfigurationSection("placements");
         if (placements != null) {
             for (String key : placements.getKeys(false)) {
@@ -295,14 +295,14 @@ public final class LaunchpadService implements Listener {
     }
 
     public void setTarget(String id, Location target) {
-        YamlConfiguration yaml = configs.get("config.yml");
+        YamlConfiguration yaml = configs.get("core/config.yml");
         yaml.set("launchpads." + id + ".target.world", target.getWorld() == null ? "world" : target.getWorld().getName());
         yaml.set("launchpads." + id + ".target.x", target.getX());
         yaml.set("launchpads." + id + ".target.y", target.getY());
         yaml.set("launchpads." + id + ".target.z", target.getZ());
         yaml.set("launchpads." + id + ".target.yaw", target.getYaw());
         yaml.set("launchpads." + id + ".target.pitch", target.getPitch());
-        saveConfigFile(yaml, "config.yml");
+        saveConfigFile(yaml, "core/config.yml");
         reload();
     }
 
@@ -450,7 +450,7 @@ public final class LaunchpadService implements Listener {
     }
 
     private void storePlacement(LaunchpadDefinition definition, Location location, Location target) {
-        YamlConfiguration yaml = configs.get("launchpads.yml");
+        YamlConfiguration yaml = configs.get("world/launchpads.yml");
         String path = "placements." + key(location);
         yaml.set(path + ".definition", definition.id());
         yaml.set(path + ".display-name", definition.displayName());
@@ -462,14 +462,14 @@ public final class LaunchpadService implements Listener {
         yaml.set(path + ".velocity.x", definition.velocity().getX());
         yaml.set(path + ".velocity.y", definition.velocity().getY());
         yaml.set(path + ".velocity.z", definition.velocity().getZ());
-        saveConfigFile(yaml, "launchpads.yml");
+        saveConfigFile(yaml, "world/launchpads.yml");
         reload();
     }
 
     private void removePlacement(Location location) {
-        YamlConfiguration yaml = configs.get("launchpads.yml");
+        YamlConfiguration yaml = configs.get("world/launchpads.yml");
         yaml.set("placements." + key(location), null);
-        saveConfigFile(yaml, "launchpads.yml");
+        saveConfigFile(yaml, "world/launchpads.yml");
         reload();
     }
 
@@ -570,10 +570,10 @@ public final class LaunchpadService implements Listener {
     private void toggleEnabled(String placementKey) {
         PlacedLaunchpad pad = placedPads.get(placementKey);
         if (pad == null) return;
-        YamlConfiguration yaml = configs.get("launchpads.yml");
+        YamlConfiguration yaml = configs.get("world/launchpads.yml");
         String path = "placements." + placementKey;
         yaml.set(path + ".enabled", !pad.definition().enabled());
-        saveConfigFile(yaml, "launchpads.yml");
+        saveConfigFile(yaml, "world/launchpads.yml");
         reload();
     }
 
@@ -623,7 +623,7 @@ public final class LaunchpadService implements Listener {
             openDirectionEditor(player, placementKey);
             return;
         }
-        YamlConfiguration yaml = configs.get("launchpads.yml");
+        YamlConfiguration yaml = configs.get("world/launchpads.yml");
         String path = "placements." + placementKey;
         Vector velocity = pad.definition().velocity().clone();
         double step = 0.5;
@@ -639,7 +639,7 @@ public final class LaunchpadService implements Listener {
             yaml.set(path + ".velocity.x", velocity.getX());
             yaml.set(path + ".velocity.y", velocity.getY());
             yaml.set(path + ".velocity.z", velocity.getZ());
-            saveConfigFile(yaml, "launchpads.yml");
+            saveConfigFile(yaml, "world/launchpads.yml");
         } else if (slot == 17) {
             setStrength(placementKey, Math.max(0.10, pad.definition().strength() - 0.25));
         } else if (slot == 19) {
@@ -653,7 +653,7 @@ public final class LaunchpadService implements Listener {
     private void playLaunchParticles(Player player, String particleId) {
         if (particleId == null || particleId.isBlank()) return;
         try {
-            org.bukkit.Particle particle = org.bukkit.Particle.valueOf(configs.get("particles.yml").getString("particles." + particleId + ".type", "ENCHANTMENT_TABLE"));
+            org.bukkit.Particle particle = org.bukkit.Particle.valueOf(configs.get("cosmetics/particles.yml").getString("particles." + particleId + ".type", "ENCHANTMENT_TABLE"));
             player.getWorld().spawnParticle(particle, player.getLocation().add(0, 1, 0), 24, 0.45, 0.45, 0.45, 0.02);
         } catch (Exception ignored) {
             player.getWorld().spawnParticle(org.bukkit.Particle.END_ROD, player.getLocation().add(0, 1, 0), 24, 0.45, 0.45, 0.45, 0.02);
@@ -661,36 +661,36 @@ public final class LaunchpadService implements Listener {
     }
 
     private void setMode(String placementKey, String mode) {
-        YamlConfiguration yaml = configs.get("launchpads.yml");
+        YamlConfiguration yaml = configs.get("world/launchpads.yml");
         String path = "placements." + placementKey;
         yaml.set(path + ".mode", mode);
-        saveConfigFile(yaml, "launchpads.yml");
+        saveConfigFile(yaml, "world/launchpads.yml");
     }
 
     private void setDisplayName(String placementKey, String displayName) {
-        YamlConfiguration yaml = configs.get("launchpads.yml");
+        YamlConfiguration yaml = configs.get("world/launchpads.yml");
         String path = "placements." + placementKey;
         yaml.set(path + ".display-name", displayName);
-        saveConfigFile(yaml, "launchpads.yml");
+        saveConfigFile(yaml, "world/launchpads.yml");
         reload();
     }
 
     private void setStrength(String placementKey, double strength) {
-        YamlConfiguration yaml = configs.get("launchpads.yml");
+        YamlConfiguration yaml = configs.get("world/launchpads.yml");
         String path = "placements." + placementKey;
         yaml.set(path + ".strength", strength);
-        saveConfigFile(yaml, "launchpads.yml");
+        saveConfigFile(yaml, "world/launchpads.yml");
         reload();
     }
 
     private void setVector(String placementKey, double x, double y, double z) {
-        YamlConfiguration yaml = configs.get("launchpads.yml");
+        YamlConfiguration yaml = configs.get("world/launchpads.yml");
         String path = "placements." + placementKey;
         yaml.set(path + ".mode", "DIRECTION");
         yaml.set(path + ".velocity.x", x);
         yaml.set(path + ".velocity.y", y);
         yaml.set(path + ".velocity.z", z);
-        saveConfigFile(yaml, "launchpads.yml");
+        saveConfigFile(yaml, "world/launchpads.yml");
     }
 
     private Vector solveLaunchVelocity(Location padLocation, Location playerLocation, Location target, Vector fallback, double strength) {
@@ -711,12 +711,12 @@ public final class LaunchpadService implements Listener {
         double horizontal = Math.sqrt(dx * dx + dz * dz);
         if (horizontal < 0.01 && Math.abs(dy) < 0.01) return new Vector(0.0, 0.6, 0.0);
 
-        double minTicks = configs.get("launchpads.yml").getDouble("physics.min-flight-ticks", 12.0);
-        double maxTicks = configs.get("launchpads.yml").getDouble("physics.max-flight-ticks", 52.0);
-        double horizontalBlocksPerTick = configs.get("launchpads.yml").getDouble("physics.horizontal-blocks-per-tick", 1.15) * multiplier;
-        double gravity = configs.get("launchpads.yml").getDouble("physics.gravity-per-tick", 0.08);
-        double maxHorizontal = configs.get("launchpads.yml").getDouble("physics.max-horizontal-velocity", 4.2) * multiplier;
-        double maxVertical = configs.get("launchpads.yml").getDouble("physics.max-vertical-velocity", 5.0) * multiplier;
+        double minTicks = configs.get("world/launchpads.yml").getDouble("physics.min-flight-ticks", 12.0);
+        double maxTicks = configs.get("world/launchpads.yml").getDouble("physics.max-flight-ticks", 52.0);
+        double horizontalBlocksPerTick = configs.get("world/launchpads.yml").getDouble("physics.horizontal-blocks-per-tick", 1.15) * multiplier;
+        double gravity = configs.get("world/launchpads.yml").getDouble("physics.gravity-per-tick", 0.08);
+        double maxHorizontal = configs.get("world/launchpads.yml").getDouble("physics.max-horizontal-velocity", 4.2) * multiplier;
+        double maxVertical = configs.get("world/launchpads.yml").getDouble("physics.max-vertical-velocity", 5.0) * multiplier;
 
         double ticks = clamp(horizontal / Math.max(0.05, horizontalBlocksPerTick), minTicks, maxTicks);
         double vx = dx / ticks;
@@ -744,10 +744,10 @@ public final class LaunchpadService implements Listener {
     }
 
     private void setTargetPlacement(String placementKey, Location target) {
-        YamlConfiguration yaml = configs.get("launchpads.yml");
+        YamlConfiguration yaml = configs.get("world/launchpads.yml");
         String path = "placements." + placementKey;
         writeLocation(yaml, path + ".target", target);
-        saveConfigFile(yaml, "launchpads.yml");
+        saveConfigFile(yaml, "world/launchpads.yml");
         reload();
     }
 

@@ -1,3 +1,11 @@
+default-world: world
+
+defaults:
+  cooldown-seconds: 300
+  min-radius: 1000
+  max-radius: 5000
+  max-attempts: 20
+
 worlds:
   world:
     world: world

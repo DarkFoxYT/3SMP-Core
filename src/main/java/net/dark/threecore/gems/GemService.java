@@ -62,7 +62,7 @@ public final class GemService implements Listener {
 
     public void reload() {
         gems.clear();
-        var section = configs.get("gems.yml").getConfigurationSection("gems.definitions");
+        var section = configs.get("gems/gems.yml").getConfigurationSection("gems.definitions");
         if (section != null) {
             for (String id : section.getKeys(false)) {
                 var gem = section.getConfigurationSection(id);
@@ -219,7 +219,7 @@ public final class GemService implements Listener {
 
     private boolean enabledInWorld(Player player) {
         String world = player.getWorld().getName();
-        java.util.List<String> disabled = configs.get("gems.yml").getStringList("gems.disabled-worlds");
+        java.util.List<String> disabled = configs.get("gems/gems.yml").getStringList("gems.disabled-worlds");
         return disabled.stream().noneMatch(w -> w.equalsIgnoreCase(world));
     }
 
@@ -338,7 +338,7 @@ public final class GemService implements Listener {
     private void fill(Inventory inv, ItemStack item) { for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, item); }
     private List<String> parseSockets(String raw) { if (raw == null || raw.isBlank()) return List.of(); return Arrays.stream(raw.split(",")).map(s -> s.trim().toLowerCase(Locale.ROOT)).filter(s -> !s.isBlank()).toList(); }
     private GemDefinition gemBySlot(int slot) { int index = 10; for (GemDefinition def : gems.values()) { if (index == slot) return def; index++; if (index == 17 || index == 26 || index == 35 || index == 44) index++; } return null; }
-    private int slotsPerItem() { return configs.get("gems.yml").getInt("gems.slots-per-item", 3); }
+    private int slotsPerItem() { return configs.get("gems/gems.yml").getInt("gems.slots-per-item", 3); }
     private ItemStack button(Material material, String name, List<String> lore) { ItemStack item = new ItemStack(material); ItemMeta meta = item.getItemMeta(); meta.displayName(Text.mm(name)); meta.lore(lore.stream().map(Text::mm).toList()); meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES); item.setItemMeta(meta); return item; }
     private Material parseMaterial(String value) { try { return Material.valueOf(value.toUpperCase(Locale.ROOT)); } catch (Exception ex) { return Material.AMETHYST_SHARD; } }
     private int parseInt(String value) { try { return Integer.parseInt(value); } catch (Exception ex) { return 1; } }

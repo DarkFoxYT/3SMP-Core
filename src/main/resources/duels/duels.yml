@@ -39,11 +39,26 @@ duels:
     freeze-during-countdown: true
 
   world-instances:
-    enabled: false
+    enabled: true
     # When enabled, each match copies the configured arena world into a temporary world.
-    # Keep this false until your arena template worlds are clean and small.
+    # If Multiverse-Core is installed, 3SMPCore imports/registers editor and match worlds with Multiverse.
+    # Each fight gets a temporary copied world and that folder is deleted after cleanup.
     prefix: arena_
+    disable-mob-spawning: true
+    disable-weather: true
+    multiverse:
+      register-worlds: true
+      hide-worlds: true
+      pvp: true
 
+  editor-worlds:
+    # false creates a clean editable world using the configured generator.
+    # true copies the selected arena world before editing.
+    copy-source: false
+    generator: VoidGen
+    auto-save: true
+    disable-mob-spawning: true
+    disable-weather: true
   leaderboard:
     period: monthly
     reset-manual: true

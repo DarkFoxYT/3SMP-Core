@@ -55,7 +55,7 @@ public final class AuctionHouseService implements Listener {
 
     public void open(Player player, String category) {
         String active = category == null || category.isBlank() ? "all" : category.toLowerCase(Locale.ROOT);
-        Inventory inv = Bukkit.createInventory(new AhHolder(active), 54, configs.get("auction-house.yml").getString("menu.title", "3SMP Auction House"));
+        Inventory inv = Bukkit.createInventory(new AhHolder(active), 54, configs.get("economy/auction-house.yml").getString("menu.title", "3SMP Auction House"));
         for (int i = 0; i < 54; i++) inv.setItem(i, pane());
         inv.setItem(1, categoryIcon(Material.NETHER_STAR, "all", active));
         inv.setItem(2, categoryIcon(Material.DIAMOND_CHESTPLATE, "armor", active));
@@ -113,7 +113,7 @@ public final class AuctionHouseService implements Listener {
 
     private void load() {
         auctions.clear();
-        YamlConfiguration yaml = configs.get("auction-house.yml");
+        YamlConfiguration yaml = configs.get("economy/auction-house.yml");
         ConfigurationSection sec = yaml.getConfigurationSection("listings");
         if (sec == null) return;
         for (String id : sec.getKeys(false)) {
@@ -127,7 +127,7 @@ public final class AuctionHouseService implements Listener {
     }
 
     private void save() {
-        YamlConfiguration yaml = configs.get("auction-house.yml");
+        YamlConfiguration yaml = configs.get("economy/auction-house.yml");
         yaml.set("listings", null);
         for (Auction auction : auctions.values()) {
             String path = "listings." + auction.id;
@@ -135,7 +135,7 @@ public final class AuctionHouseService implements Listener {
             yaml.set(path + ".price", auction.price);
             yaml.set(path + ".item", auction.item);
         }
-        try { yaml.save(new File(plugin.getDataFolder(), "auction-house.yml")); } catch (Exception ex) { plugin.getLogger().warning("Failed to save auction-house.yml: " + ex.getMessage()); }
+        try { yaml.save(new File(plugin.getDataFolder(), "economy/auction-house.yml")); } catch (Exception ex) { plugin.getLogger().warning("Failed to save auction-house.yml: " + ex.getMessage()); }
     }
 
     private ItemStack icon(Auction auction) {

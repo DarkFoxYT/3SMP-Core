@@ -19,5 +19,5 @@ public final class ParticleManager {
     public void shutdown() { if (task != null) task.cancel(); selected.clear(); }
     public void set(UUID uuid, String id) { selected.put(uuid, id); }
     public String get(UUID uuid) { return selected.getOrDefault(uuid, ""); }
-    private void tick() { for (Player player : Bukkit.getOnlinePlayers()) { String id = selected.get(player.getUniqueId()); if (id == null || id.isBlank()) continue; String type = configs.get("particles.yml").getString("particles." + id + ".type", "ENCHANTMENT_TABLE"); if (type == null || type.equalsIgnoreCase("NONE")) continue; Particle particle; try { particle = Particle.valueOf(type); } catch (IllegalArgumentException ex) { continue; } player.getWorld().spawnParticle(particle, player.getLocation().add(0,1,0), 8, 0.4, 0.6, 0.4, 0.01); } }
+    private void tick() { for (Player player : Bukkit.getOnlinePlayers()) { String id = selected.get(player.getUniqueId()); if (id == null || id.isBlank()) continue; String type = configs.get("cosmetics/particles.yml").getString("particles." + id + ".type", "ENCHANTMENT_TABLE"); if (type == null || type.equalsIgnoreCase("NONE")) continue; Particle particle; try { particle = Particle.valueOf(type); } catch (IllegalArgumentException ex) { continue; } player.getWorld().spawnParticle(particle, player.getLocation().add(0,1,0), 8, 0.4, 0.6, 0.4, 0.01); } }
 }

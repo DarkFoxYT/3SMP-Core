@@ -29,7 +29,11 @@ public final class DuelMenu {
     }
 
     public Inventory buildKitMenu(Player player) {
-        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_KITS, "kits"), 54, "3SMP Duel Kits");
+        return buildKitMenu(player, "3SMP Duel Kits");
+    }
+
+    public Inventory buildKitMenu(Player player, String title) {
+        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_KITS, "kits"), 54, title);
         fill(inv, Material.BLACK_STAINED_GLASS_PANE);
         int[] slots = {10,12,14,16,28,30,32,34};
         int pos = 0;
@@ -37,7 +41,9 @@ public final class DuelMenu {
             if (!kit.enabled()) continue;
             boolean queued = service.isQueuedForKit(player.getUniqueId(), kit.id());
             List<String> lore = new java.util.ArrayList<>(kit.lore());
-            lore.add(queued ? "<green>Click to leave queue.</green>" : "<aqua>Click to queue this kit.</aqua>");
+            lore.add("<gray>Rounds:</gray> <white>" + kit.rounds() + "</white>");
+            lore.add(kit.autoApplyPotions() ? "<light_purple>Auto-potion splash enabled.</light_purple>" : "<dark_gray>Auto-potion splash disabled.</dark_gray>");
+            lore.add(queued ? "<green>Click to leave queue.</green>" : "<aqua>Click to select this kit.</aqua>");
             if (pos >= slots.length) break;
             int slot = slots[pos++];
             inv.setItem(slot, button(queued ? Material.LIME_DYE : kit.icon(), queued ? "<green>Queued: " + kit.displayName() + "</green>" : kit.displayName(), lore));
@@ -48,13 +54,21 @@ public final class DuelMenu {
     }
 
     public Inventory buildDev(Player player) {
-        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_DEV, "dev"), 27, "3SMP Duel Dev");
-        fill(inv, Material.ORANGE_STAINED_GLASS_PANE);
-        inv.setItem(7, button(Material.BOOK, "<gradient:#1A2A4A:#D6E8F7>Summary</gradient>", List.of("<gray>Inspect queue, maps, and testing tools.</gray>")));
-        inv.setItem(11, button(Material.DIAMOND_SWORD, "<gradient:#60a5fa:#c084fc>Test Duel</gradient>", List.of("<gray>Simulate the duel flow.</gray>")));
-        inv.setItem(13, button(Material.MAP, "<gradient:#34d399:#22c55e>Map Editor</gradient>", List.of("<gray>Manage spawn points and arena data.</gray>")));
-        inv.setItem(15, button(Material.OAK_SIGN, "<gradient:#f59e0b:#f97316>Leaderboard</gradient>", List.of("<gray>View duel ratings and stats.</gray>")));
-        inv.setItem(17, button(Material.GOLD_BLOCK, "<gradient:#f59e0b:#f97316>Launchpads</gradient>", List.of("<gray>Open the launchpad editor.</gray>")));
+        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_DEV, "dev"), 54, "3SMP Dev Panel");
+        fill(inv, Material.BLUE_STAINED_GLASS_PANE);
+        inv.setItem(4, button(Material.NETHER_STAR, "<gradient:#1A2A4A:#f59e0b>3SMP Developer Panel</gradient>", List.of(
+                "<gray>Clean admin tools for testing and editing.</gray>",
+                "<gray>Duel enabled:</gray> <white>" + service.isEnabled() + "</white>",
+                "<gray>Selected map:</gray> <white>" + service.selectedEditorMap(player.getUniqueId()) + "</white>",
+                "<gray>Editor opens per selected arena and closes on save.</gray>"
+        )));
+        inv.setItem(12, button(Material.MAP, "<gradient:#34d399:#22c55e>Select Arena To Edit</gradient>", List.of("<gray>Pick an arena, teleport to its editor world,</gray>", "<gray>and receive marker tools automatically.</gray>")));
+        inv.setItem(14, button(Material.ARMOR_STAND, "<gradient:#60a5fa:#c084fc>Current Arena Tools</gradient>", List.of("<gray>Open the current arena marker panel.</gray>", "<gray>Save the arena to exit editor mode.</gray>")));
+        inv.setItem(16, button(Material.OAK_SIGN, "<gradient:#f59e0b:#f97316>Leaderboards</gradient>", List.of("<gray>Inspect duel ratings and streaks.</gray>")));
+        inv.setItem(18, button(Material.SMITHING_TABLE, "<gradient:#60a5fa:#f59e0b>Kit Editor</gradient>", List.of("<gray>Edit kit inventory, armor, and offhand in-game.</gray>")));
+        inv.setItem(30, button(service.isEnabled() ? Material.REDSTONE_BLOCK : Material.EMERALD_BLOCK, service.isEnabled() ? "<red>Disable Duels</red>" : "<green>Enable Duels</green>", List.of("<gray>Toggle matchmaking and challenges.</gray>")));
+        inv.setItem(32, button(Material.SLIME_BLOCK, "<gradient:#f59e0b:#f97316>Launchpads</gradient>", List.of("<gray>Open the launchpad editor.</gray>")));
+        inv.setItem(34, button(Material.STRUCTURE_BLOCK, "<gradient:#22d3ee:#8b5cf6>Save Current Arena</gradient>", List.of("<gray>Save markers, restore your inventory,</gray>", "<gray>and return to spawn.</gray>")));
         return inv;
     }
 
@@ -88,3 +102,6 @@ public final class DuelMenu {
         return item;
     }
 }
+
+
+

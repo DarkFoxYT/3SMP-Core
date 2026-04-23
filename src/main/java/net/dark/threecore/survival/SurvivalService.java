@@ -6,6 +6,7 @@ import net.dark.threecore.text.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.GameMode;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -32,14 +33,19 @@ public final class SurvivalService {
     public List<String> complete(String[] args) { return args.length <= 1 ? List.of("rtp") : List.of(); }
 
     public void teleport(Player player) {
-        var yaml = configs.get("survival.yml");
+        var yaml = configs.get("world/survival.yml");
         String worldName = yaml.getString("world", "world");
         World world = Bukkit.getWorld(worldName);
         if (world == null) { Text.send(player, "<red>Survival world is not loaded: " + worldName + ".</red>"); return; }
         Location loc;
         if (yaml.getBoolean("spawn.use-world-spawn", true)) loc = world.getSpawnLocation().add(0.5, 0.0, 0.5);
         else loc = new Location(world, yaml.getDouble("spawn.x"), yaml.getDouble("spawn.y"), yaml.getDouble("spawn.z"), (float) yaml.getDouble("spawn.yaw"), (float) yaml.getDouble("spawn.pitch"));
+        if (player.getGameMode() == GameMode.SPECTATOR) {
+            try { player.setSpectatorTarget(null); } catch (IllegalArgumentException ignored) {}
+        }
+        player.setGameMode(GameMode.SURVIVAL);
         player.teleport(loc);
         Text.send(player, yaml.getString("messages.teleported", "<green>Sent to survival.</green>"));
     }
 }
+

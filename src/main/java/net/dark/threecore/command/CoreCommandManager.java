@@ -53,7 +53,7 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
 
     public void register() {
         root = new CommandTree("3smpcore", "3smpcore.admin", "Main command hub");
-        root.add(new ReloadCommand()); root.add(new InfoCommand()); root.add(new AdminCommand()); root.add(new DevPanelCommand()); root.add(new DebugCommand()); root.add(new SapphireRootCommand()); root.add(new SpawnRootCommand()); root.add(new GiveRootCommand());
+        root.add(new ReloadCommand()); root.add(new InfoCommand()); root.add(new AdminCommand()); root.add(new DevPanelCommand()); root.add(new DebugCommand()); root.add(new SapphireRootCommand()); root.add(new SpawnRootCommand()); root.add(new GiveRootCommand()); root.add(new LicenseCommand());
         PluginCommand command = plugin.getCommand("3smpcore"); if (command != null) { command.setExecutor(this); command.setTabCompleter(this); }
         PluginCommand launchpadCommand = plugin.getCommand("launchpad"); if (launchpadCommand != null) { launchpadCommand.setExecutor(this::handleLaunchpad); launchpadCommand.setTabCompleter((sender, cmd, alias, args) -> args.length == 1 ? List.of("give", "menu", "settarget") : List.of()); }
     }
@@ -115,8 +115,8 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
         private void toggleSpawnPvp(CommandContext context) {
             if (context.args().length < 2) { Text.send(context.sender(), "<yellow>/3smpcore admin pvp <on|off></yellow>"); return; }
             boolean enabled = context.arg(1).equalsIgnoreCase("on") || context.arg(1).equalsIgnoreCase("true");
-            configs.get("config.yml").set("spawn.zone.pvp.enabled", enabled);
-            try { configs.get("config.yml").save(new java.io.File(plugin.getDataFolder(), "config.yml")); } catch (Exception ignored) {}
+            configs.get("core/config.yml").set("spawn.zone.pvp.enabled", enabled);
+            try { configs.get("core/config.yml").save(new java.io.File(plugin.getDataFolder(), "core/config.yml")); } catch (Exception ignored) {}
             Text.send(context.sender(), enabled ? "<green>Spawn PvP enabled.</green>" : "<red>Spawn PvP disabled.</red>");
         }
         private void jobs(CommandContext context) { Text.send(context.sender(), "<yellow>Jobs admin command is reserved here; the jobs module data layer is not active in this build yet.</yellow>"); }
@@ -141,4 +141,29 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
     private final class SapphireRootCommand implements SubCommand { public String name() { return "sapphire"; } public String permission() { return "3smpcore.sapphires.use"; } public String description() { return "Sapphire system"; } public void execute(CommandContext context) { sapphireService.handleCommand(context.sender(), context.args()); } public List<String> tabComplete(CommandContext context) { return List.of("shop", "bal", "ballance", "balance", "give", "remove", "take", "set", "reset", "commands"); } }
     private final class SpawnRootCommand implements SubCommand { public String name() { return "spawn"; } public String permission() { return "3smpcore.spawn.use"; } public String description() { return "Teleport to spawn"; } public void execute(CommandContext context) { if (!(context.sender() instanceof Player player)) { Text.send(context.sender(), "<red>Players only.</red>"); return; } if (context.args().length > 0 && context.arg(0).equalsIgnoreCase("set")) { if (!player.hasPermission("3smpcore.spawn.admin")) { Text.send(player, "<red>No permission.</red>"); return; } spawnService.setSpawnLocation(player, player.getLocation()); return; } spawnService.sendToSpawn(player); } public List<String> tabComplete(CommandContext context) { return context.args().length <= 1 ? List.of("set") : List.of(); } }
     private final class GiveRootCommand implements SubCommand { public String name() { return "give"; } public String permission() { return "3smpcore.admin"; } public String description() { return "Future-proof utility commands"; } public void execute(CommandContext context) { if (context.args().length == 0) { Text.send(context.sender(), "<yellow>Use: /3smpcore give sapphire <give|take|set|reset> <player> [amount]</yellow>"); return; } if (!context.arg(0).equalsIgnoreCase("sapphire")) { Text.send(context.sender(), "<yellow>Use /sapphire shop, /sapphire bal, /sapphire pay, /sapphire give, /sapphire remove, /sapphire take, /sapphire set, /sapphire reset, or /sapphire commands.</yellow>"); return; } if (context.args().length < 3) { Text.send(context.sender(), "<red>Usage: /3smpcore give sapphire <give|take|set|reset> <player> [amount]</red>"); return; } String action = context.arg(1); String playerName = context.arg(2); long amount = context.args().length >= 4 ? Long.parseLong(context.arg(3)) : 0L; sapphireService.executeConfigured(action, context.sender(), playerName, amount); } }
+    private final class LicenseCommand implements SubCommand {
+        public String name() { return "license"; }
+        public String permission() { return "3smpcore.admin"; }
+        public String description() { return "License tools"; }
+        public void execute(CommandContext context) {
+            if (context.args().length == 0) {
+                Text.send(context.sender(), "<gray>Use /3smpcore license status|reload</gray>");
+                return;
+            }
+            String sub = context.arg(0).toLowerCase(Locale.ROOT);
+            switch (sub) {
+                case "status" -> {
+                    boolean valid = plugin.getLicenseManager() != null && plugin.getLicenseManager().validate();
+                    Text.send(context.sender(), valid ? "<green>License is valid.</green>" : "<red>License is invalid.</red>");
+                }
+                case "reload" -> {
+                    boolean valid = plugin.getLicenseManager() != null && plugin.getLicenseManager().validate();
+                    Text.send(context.sender(), valid ? "<green>License revalidated successfully.</green>" : "<red>License is invalid.</red>");
+                    if (!valid) plugin.getServer().getPluginManager().disablePlugin(plugin);
+                }
+                default -> Text.send(context.sender(), "<gray>Use /3smpcore license status|reload</gray>");
+            }
+        }
+        public List<String> tabComplete(CommandContext context) { return context.args().length <= 1 ? List.of("status", "reload") : List.of(); }
+    }
 }

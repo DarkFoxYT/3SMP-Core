@@ -1,0 +1,41 @@
+holograms:
+  duel_top:
+    enabled: false
+    type: duels
+    location:
+      world: spawn
+      x: 0.5
+      y: 82.0
+      z: 0.5
+      yaw: 0.0
+      pitch: 0.0
+    line-spacing: 0.28
+    lines:
+      - "<gradient:#60a5fa:#c084fc>Duel Leaderboard</gradient>"
+  money_top:
+    enabled: false
+    type: money
+    location:
+      world: spawn
+      x: 3.5
+      y: 82.0
+      z: 0.5
+      yaw: 0.0
+      pitch: 0.0
+    line-spacing: 0.28
+    lines:
+      - "<gradient:#f59e0b:#fbbf24>Survival Money</gradient>"
+  dungeon_top:
+    enabled: false
+    type: dungeons
+    location:
+      world: spawn
+      x: -3.5
+      y: 82.0
+      z: 0.5
+      yaw: 0.0
+      pitch: 0.0
+    line-spacing: 0.28
+    lines:
+      - "<gradient:#4c1d95:#a78bfa>Dungeon Leaderboard</gradient>"
+      - "<gray>Completion display ready.</gray>"

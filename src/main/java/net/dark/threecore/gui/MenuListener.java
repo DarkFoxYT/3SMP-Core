@@ -7,6 +7,7 @@ import net.dark.threecore.gui.menu.CoreMenuHolder;
 import net.dark.threecore.gui.menu.CoreMenuType;
 import net.dark.threecore.launchpads.LaunchpadService;
 import net.dark.threecore.warp.WarpManager;
+import net.dark.threecore.shop.ShopService;
 import net.dark.threecore.party.PartyService;
 import net.dark.threecore.perks.PerkService;
 import net.dark.threecore.sapphires.SapphireService;
@@ -24,8 +25,9 @@ public final class MenuListener implements Listener {
     private final DuelLeaderboardService leaderboardService;
     private final LaunchpadService launchpadService;
     private final WarpManager warpManager;
+    private final ShopService shopService;
 
-    public MenuListener(DuelService duelService, PartyService partyService, PerkService perkService, GemService gemService, SapphireService sapphireService, DuelLeaderboardService leaderboardService, LaunchpadService launchpadService, WarpManager warpManager) {
+    public MenuListener(DuelService duelService, PartyService partyService, PerkService perkService, GemService gemService, SapphireService sapphireService, DuelLeaderboardService leaderboardService, LaunchpadService launchpadService, WarpManager warpManager, ShopService shopService) {
         this.duelService = duelService;
         this.partyService = partyService;
         this.perkService = perkService;
@@ -34,11 +36,13 @@ public final class MenuListener implements Listener {
         this.leaderboardService = leaderboardService;
         this.launchpadService = launchpadService;
         this.warpManager = warpManager;
+        this.shopService = shopService;
     }
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
         if (!(event.getView().getTopInventory().getHolder() instanceof CoreMenuHolder holder)) return;
+        if (holder.type() == CoreMenuType.DUEL_DEV && holder.context().toLowerCase(java.util.Locale.ROOT).startsWith("kit-editor:")) { duelService.handleKitEditorClick(event); return; }
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof org.bukkit.entity.Player player)) return;
         if (event.getClickedInventory() == null || event.getClickedInventory() != event.getView().getTopInventory()) return;
@@ -53,18 +57,27 @@ public final class MenuListener implements Listener {
             case DUEL_KITS -> duelService.handleKitMenuClick(player, slot);
             case DUEL_DEV -> {
                 if (holder.context().equalsIgnoreCase("map-editor")) duelService.handleMapEditorClick(player, slot);
+                else if (holder.context().equalsIgnoreCase("kit-selector")) duelService.handleKitEditorSelectorClick(player, slot);
+                else if (holder.context().equalsIgnoreCase("arena-selector")) duelService.handleArenaSelectorClick(player, slot);
                 else if (holder.context().toLowerCase(java.util.Locale.ROOT).startsWith("launchpad-direction:") && launchpadService != null) launchpadService.handleDirectionClick(player, holder.context().substring("launchpad-direction:".length()), slot);
                 else if (holder.context().toLowerCase(java.util.Locale.ROOT).startsWith("launchpad:") && launchpadService != null) launchpadService.handleDetailClick(player, holder.context().substring("launchpad:".length()), slot);
                 else if (holder.context().equalsIgnoreCase("launchpads") && launchpadService != null) launchpadService.handleMenuClick(player, slot);
                 else if (holder.context().equalsIgnoreCase("warps") && warpManager != null) warpManager.handleClick(player, slot);
+                else if (holder.context().toLowerCase(java.util.Locale.ROOT).startsWith("shop:") && shopService != null) shopService.handleClick(player, holder.context(), slot);
                 else duelService.handleDevMenuClick(player, slot);
             }
             case DUEL_LEADERBOARD -> leaderboardService.handleClick(player, slot);
             case PARTY_MAIN -> {
                 if (holder.context().equalsIgnoreCase("summary")) partyService.handleSummaryClick(player, slot);
+                else if (holder.context().equalsIgnoreCase("party-duel")) partyService.handlePartyDuelClick(player, slot);
+                else if (holder.context().equalsIgnoreCase("party-duel-kits")) partyService.handlePartyDuelKitPickerClick(player, slot);
+                else if (holder.context().equalsIgnoreCase("party-duel-maps")) partyService.handlePartyDuelMapPickerClick(player, slot);
+                else if (holder.context().toLowerCase(java.util.Locale.ROOT).startsWith("party-duel-members:")) partyService.handlePartyDuelMemberPickerClick(player, holder.context(), slot);
+                else if (holder.context().toLowerCase(java.util.Locale.ROOT).startsWith("invite:")) partyService.handleInvitePickerClick(player, holder.context(), slot);
+                else if (holder.context().equalsIgnoreCase("members")) partyService.handleMembersClick(player, slot);
                 else partyService.handleMenuClick(player, slot);
             }
-            case PERKS_MAIN -> perkService.handleMenuClick(player, slot);
+            case PERKS_MAIN -> { if (holder.context().equalsIgnoreCase("summary")) perkService.handleSummaryMenuClick(player, slot); else perkService.handleMenuClick(player, slot); }
             case PERKS_CATEGORY -> perkService.handleCategoryClick(player, holder.context(), slot);
             case GEMS_MAIN -> {
                 String ctx = holder.context().toLowerCase(java.util.Locale.ROOT);
@@ -80,3 +93,6 @@ public final class MenuListener implements Listener {
         }
     }
 }
+
+
+

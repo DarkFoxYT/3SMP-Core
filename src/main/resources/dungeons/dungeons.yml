@@ -1,0 +1,112 @@
+world: dungeons
+spawn:
+  world: dungeons
+  x: 0.5
+  y: 80.0
+  z: 0.5
+  yaw: 0.0
+  pitch: 0.0
+default-level: jungle
+generation:
+  columns: 8
+  spacing: 96
+  reset-before-paste: true
+  rooms:
+    easy: 5
+    normal: 8
+    hard: 12
+    nightmare: 18
+  room-pool:
+    entrance-required: true
+    boss-required: true
+    exit-after-boss: true
+    avoid-duplicates-until-pool-exhausted: true
+item:
+  enabled: true
+  slot: 1
+  material: COMPASS
+  name: "<gradient:#4c1d95:#a78bfa>Dungeons</gradient>"
+levels:
+  jungle:
+    level-number: 1
+    display-name: "<gradient:#34d399:#22c55e>Level 1: Jungle</gradient>"
+    coming-soon: false
+    y: 80
+    solo-room-count: 5
+    party-room-count: 8
+    mobs-per-room-solo: 3
+    mobs-per-room-per-player: 2
+  desert:
+    level-number: 2
+    display-name: "<gradient:#f59e0b:#fbbf24>Level 2: Desert</gradient>"
+    coming-soon: true
+    y: 80
+  volcanic:
+    level-number: 3
+    display-name: "<gradient:#ef4444:#f97316>Level 3: Volcanic</gradient>"
+    coming-soon: true
+    y: 80
+  icy:
+    level-number: 4
+    display-name: "<gradient:#D6E8F7:#60a5fa>Level 4: Icy</gradient>"
+    coming-soon: true
+    y: 80
+  ancient:
+    level-number: 5
+    display-name: "<gradient:#a78bfa:#f472b6>Level 5: Ancient</gradient>"
+    coming-soon: true
+    y: 80
+markers:
+  bounds: WHITE_SHULKER_BOX
+  entrances: YELLOW_SHULKER_BOX
+  connectors: ORANGE_SHULKER_BOX
+  enemy-spawns: LIGHT_BLUE_SHULKER_BOX
+  exits: RED_SHULKER_BOX
+  triggers: PURPLE_SHULKER_BOX
+  player-spawn: GREEN_SHULKER_BOX
+  boss: BLACK_SHULKER_BOX
+future-drops:
+  custom-gems: true
+  sapphire-items-very-rare: true
+
+rewards:
+  money-per-kill:
+    easy: 10.0
+    normal: 20.0
+    hard: 30.0
+    nightmare: 75.0
+  boss-clear:
+    sapphires: 25
+    money: 10000.0
+nightmare:
+  required-completions: [easy, normal, hard]
+  on-death:
+    fail-run: true
+    keep-unlock-progress: true
+base-kit:
+  weapon: WOODEN_SWORD
+  armor: [LEATHER_BOOTS, LEATHER_LEGGINGS, LEATHER_CHESTPLATE, LEATHER_HELMET]
+  items: [COOKED_BEEF:8]
+world-generation:
+  void-world: true
+  multiverse: true
+  generator: VoidGen
+  disable-mob-spawning: true
+  disable-weather: true
+
+completion:
+  allow-early-exit: true
+  full-clear-money-multiplier: 1.0
+  early-exit-money-multiplier: 0.45
+  require-boss-for-full-complete: true
+rooms:
+  roles:
+    entrance: "Room with a green/player-spawn marker. Always generated first."
+    normal: "Random pooled rooms. Supports hundreds of saved templates."
+    boss: "Room with a black/boss marker. Generated before the exit room."
+    exit: "Room with a red/exit marker. Intended to unlock after boss defeat."
+  size-categories:
+    small: "Below 24x24x16-ish volume."
+    medium: "Medium-sized room pool."
+    large: "Large 64x64x64-style room pool."
+

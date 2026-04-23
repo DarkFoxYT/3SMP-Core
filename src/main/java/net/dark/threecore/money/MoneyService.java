@@ -35,7 +35,7 @@ public final class MoneyService {
         set(uuid, current - amount);
         return true;
     }
-    public String format(double amount) { return configs.get("money.yml").getString("currency.symbol", "$") + format.format(amount); }
+    public String format(double amount) { return configs.get("economy/money.yml").getString("currency.symbol", "$") + format.format(amount); }
 
     public void handle(CommandSender sender, String label, String[] args) {
         if (label.equalsIgnoreCase("balance") || label.equalsIgnoreCase("bal")) { showBalance(sender, args); return; }
@@ -90,7 +90,7 @@ public final class MoneyService {
             case "give" -> give(target.getUniqueId(), amount);
             case "take", "remove" -> take(target.getUniqueId(), amount);
             case "set" -> set(target.getUniqueId(), amount);
-            case "reset" -> set(target.getUniqueId(), configs.get("money.yml").getDouble("starting-balance", 0.0D));
+            case "reset" -> set(target.getUniqueId(), configs.get("economy/money.yml").getDouble("starting-balance", 0.0D));
         }
         Text.send(sender, "<green>Money updated for " + safeName(target) + ": " + format(balance(target.getUniqueId())) + ".</green>");
     }

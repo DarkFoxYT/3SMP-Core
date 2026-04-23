@@ -58,7 +58,7 @@ public final class DungeonManager {
     public DungeonManager(Dunguons3SMP plugin) {
         this.plugin = plugin;
         this.items = new DungeonItems(plugin);
-        this.progressFile = new File(plugin.getDataFolder(), "progress.yml");
+        this.progressFile = new File(plugin.getDataFolder(), "dungeons/progress.yml");
         this.progress = YamlConfiguration.loadConfiguration(progressFile);
         ensureTemplateFolders();
     }

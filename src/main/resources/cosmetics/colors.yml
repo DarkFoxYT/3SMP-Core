@@ -3,6 +3,7 @@ colors:
     type: none
     display-name: "<white>Default Chat</white>"
     permission: ""
+    required-rank: ""
     default-unlocked: true
     preview: "<white>Default</white>"
   white:
@@ -10,6 +11,7 @@ colors:
     hex: "#FFFFFF"
     display-name: "<white>White</white>"
     permission: ""
+    required-rank: ""
     default-unlocked: true
     preview: "<white>White</white>"
   aqua:
@@ -17,6 +19,7 @@ colors:
     hex: "#67e8f9"
     display-name: "<aqua>Aqua</aqua>"
     permission: "3smpcore.chat.hex"
+    required-rank: "vip"
     default-unlocked: false
     preview: "<gradient:#67e8f9:#22d3ee>Aqua</gradient>"
 
@@ -26,6 +29,7 @@ colors:
     to: "#fbbf24"
     display-name: "<gradient:#f59e0b:#fbbf24>Gold</gradient>"
     permission: "3smpcore.chat.hex"
+    required-rank: "vip"
     default-unlocked: false
     preview: "<gradient:#f59e0b:#fbbf24>Gold</gradient>"
   aqua_gold:
@@ -34,6 +38,7 @@ colors:
     to: "#f59e0b"
     display-name: "<gradient:#22d3ee:#f59e0b>Aqua Gold</gradient>"
     permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
     default-unlocked: false
     preview: "<gradient:#22d3ee:#f59e0b>Aqua Gold</gradient>"
   navy_blue:
@@ -42,6 +47,7 @@ colors:
     to: "#60a5fa"
     display-name: "<gradient:#1A2A4A:#60a5fa>Navy Blue</gradient>"
     permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
     default-unlocked: false
     preview: "<gradient:#1A2A4A:#60a5fa>Navy Blue</gradient>"
   rose:
@@ -50,6 +56,7 @@ colors:
     to: "#f472b6"
     display-name: "<gradient:#fb7185:#f472b6>Rose</gradient>"
     permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
     default-unlocked: false
     preview: "<gradient:#fb7185:#f472b6>Rose</gradient>"
   emerald:
@@ -58,6 +65,7 @@ colors:
     to: "#22c55e"
     display-name: "<gradient:#34d399:#22c55e>Emerald</gradient>"
     permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
     default-unlocked: false
     preview: "<gradient:#34d399:#22c55e>Emerald</gradient>"
   violet:
@@ -66,6 +74,7 @@ colors:
     to: "#c084fc"
     display-name: "<gradient:#a78bfa:#c084fc>Violet</gradient>"
     permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
     default-unlocked: false
     preview: "<gradient:#a78bfa:#c084fc>Violet</gradient>"
   sunset:
@@ -74,6 +83,7 @@ colors:
     to: "#fb7185"
     display-name: "<gradient:#f97316:#fb7185>Sunset</gradient>"
     permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
     default-unlocked: false
     preview: "<gradient:#f97316:#fb7185>Sunset</gradient>"
   ocean:
@@ -82,6 +92,7 @@ colors:
     to: "#22d3ee"
     display-name: "<gradient:#0ea5e9:#22d3ee>Ocean</gradient>"
     permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
     default-unlocked: false
     preview: "<gradient:#0ea5e9:#22d3ee>Ocean</gradient>"
   mint:
@@ -90,6 +101,7 @@ colors:
     to: "#34d399"
     display-name: "<gradient:#86efac:#34d399>Mint</gradient>"
     permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
     default-unlocked: false
     preview: "<gradient:#86efac:#34d399>Mint</gradient>"
   ember:
@@ -98,6 +110,7 @@ colors:
     to: "#ef4444"
     display-name: "<gradient:#f59e0b:#ef4444>Ember</gradient>"
     permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
     default-unlocked: false
     preview: "<gradient:#f59e0b:#ef4444>Ember</gradient>"
 
@@ -107,6 +120,7 @@ colors:
     to: "#c084fc"
     display-name: "<gradient:#7c3aed:#c084fc>Amethyst</gradient>"
     permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
     default-unlocked: false
     preview: "<gradient:#7c3aed:#c084fc>Amethyst</gradient>"
   ice:
@@ -115,6 +129,7 @@ colors:
     to: "#67e8f9"
     display-name: "<gradient:#d6e8f7:#67e8f9>Ice</gradient>"
     permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
     default-unlocked: false
     preview: "<gradient:#d6e8f7:#67e8f9>Ice</gradient>"
   lava:
@@ -123,6 +138,7 @@ colors:
     to: "#f59e0b"
     display-name: "<gradient:#ef4444:#f59e0b>Lava</gradient>"
     permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
     default-unlocked: false
     preview: "<gradient:#ef4444:#f59e0b>Lava</gradient>"
   storm:
@@ -131,16 +147,21 @@ colors:
     to: "#d6e8f7"
     display-name: "<gradient:#334155:#d6e8f7>Storm</gradient>"
     permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
     default-unlocked: false
     preview: "<gradient:#334155:#d6e8f7>Storm</gradient>"
 
 rank-colors:
   vip:
     permission: "3smpcore.chat.color.vip"
+    required-rank: "vip"
     color: "gold"
   mvp:
     permission: "3smpcore.chat.color.mvp"
+    required-rank: "mvp"
     color: "aqua_gold"
   elite:
     permission: "3smpcore.chat.color.elite"
+    required-rank: "elite"
     color: "navy_blue"
+

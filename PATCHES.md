@@ -78,3 +78,236 @@
 - Reworked duel main menu to only show 1v1 and 2v2 modes.
 - Reworked duel kit menu spacing so kits are separated by glass panes.
 - Replaced default duel kits with Sword, Axe, NethPot, Bow, Crystal PvP, SMP, and UHC.
+
+### Fixed
+- Fixed Party Duel setup menu clicks being routed into normal party menu actions.
+- Red/blue wool buttons no longer create, leave, or disband parties.
+- Added dedicated Party Duel setup click handler with button feedback.
+- Added a Back button to the Party Duel setup menu.
+- Reworked Party invite UI into a paged online-player head picker.
+- Party invite picker excludes the inviter and existing party members.
+- Reworked Party members button into a member-head list panel.
+- Removed create-party and disband-party actions from the Party GUI; those stay on the protected hotbar items.
+- Rebuilt the 3SMP dev panel into a 54-slot admin hub with duel testing, duel toggles, map editor, reload, launchpads, and tool refresh actions.
+- Added duel map editor mode with protected marker tools for lobby, spawn A, spawn B, spectator, min bound, and max bound.
+- Duel editor marker tools now place armor stands by right-clicking air or blocks and preserve the player yaw/pitch on the marker.
+- Duel map selection now teleports devs into an editor world and automatically enables/gives editor tools.
+- Added Multiverse-Core softdepend and Multiverse registration/import hooks for duel editor and temporary match worlds.
+- ZonePvP exit no longer teleports players back to their entry location.
+- ZonePvP exit now restores the pre-zone inventory/hotbar loadout in place.
+- ZonePvP exit reapplies spawn Speed/Saturation when the player exits back into the protected spawn radius.
+- Added Party Duel member picker integration for red and blue team setup.
+- Party Duel red/blue wool buttons now open party member head pickers.
+- Party Duel member picker toggles members between teams and updates the setup menu preview.
+- Added `/spectate <player>` and `/spec <player>` for duel spectator mode.
+- `/leave` now exits duel spectator mode before queue/duel leave handling.
+- Duel queue join/leave feedback now uses actionbar instead of chat spam.
+- Queue item/menu refresh now runs after leaving queue so queued icons revert faster.
+- Party Duel rounds now cycle directly from the rounds button and the unused mode button was removed.
+- Cleaned default duel kit config toward Sword, Axe, NethPot, SMP, and UHC themed presets.
+- Reworked dungeon menu into a level/options/start flow with solo/party toggle when in a party.
+- Added dungeon base kit with wooden sword, leather armor, and food on entry.
+- Added dungeon active-run money rewards per mob kill with configurable easy/normal/hard values.
+- Added dungeon void/Multiverse generation config placeholders.
+- Added dungeon room roles for entrance, normal, boss, and exit templates.
+- Dungeon template saving now detects room role from markers and stores a size category.
+- Dungeon generation now builds a room plan with entrance first, randomized pooled rooms, boss room, then exit room.
+- Dungeon room selection avoids duplicates until the room pool is exhausted and respects configured room counts by difficulty.
+- Added dungeon completion/reward config placeholders for early exits and full clears.
+- Added config-driven `/shop` with category and item purchase GUIs using the Money economy.
+- Added `shop.yml` with configurable categories, materials, amounts, prices, and display names.
+- Added AFK void-zone support that sends inactive players to `afk_void` and returns them to spawn on input.
+- Improved ClearLag with disabled worlds, max removals per run, named-item protection, and persistent-entity protection.
+- Added organized config placeholders for shop, AFK zone, and safer ClearLag behavior.
+- Spawn protection now supports protecting the entire configured spawn world instead of only the spawn radius.
+- Spawn protection now blocks bucket use, interactable block modification, explosions, fire, fluid flow, block fade/grow, leaves decay, and entity block changes.
+- Added `spawn.protection.entire-world`, `spawn.protection.bypass-permission`, and `spawn.protection.cancel-physics` config options.
+- Hard-migrated config resources into grouped folders: core, economy, duels, dungeons, world, cosmetics, gems, social, admin, and menus.
+- Updated all Java config lookups and save targets to the new grouped paths.
+- Moved party config into `social/party.yml` and main plugin config into `core/config.yml`.
+- Added `CONFIG_LAYOUT.md` documenting the new config folder layout.
+- Removed reliance on the old flat config resource layout for new installs.
+- Fixed startup crash after config reorg by removing `saveDefaultConfig()` root `config.yml` usage.
+- Grouped config saving now owns `core/config.yml` generation.
+- Added join queue module with void queue world, frozen movement, actionbar queue position, release-to-spawn, and delayed welcome message.
+- Added LuckPerms-compatible queue bypass and priority permission support.
+- Added `core/join-queue.yml` for queue world, release, and priority configuration.
+- Added duel arena selector GUI for choosing an existing arena to edit.
+- Duel editor mode now snapshots/restores the developer hotbar/inventory instead of mixing editor tools with normal items.
+- Added save-arena editor tool and `/savearena` command to save arena marker settings from the temp editor world.
+- Changed the dungeon hotbar item icon from Sculk Shrieker to Compass.
+- Reworked dungeon UI into compact main, level, difficulty, and party selection panels.
+- Fixed protected hotbar item cursor ghosting by clearing the cursor and refreshing inventory after menu-opening clicks.
+- Duel match start now explicitly strips hub/spawn hotbar items, cursor item, armor, and offhand before applying the duel kit.
+- Duel match cleanup now refreshes duel, party, cosmetics, and dungeon hotbar items after restoring the player snapshot.
+- Post-duel hotbar refresh now updates the client inventory to prevent stale or broken spawn items.
+
+
+## 2026-04-22
+
+### Fixed
+- Disabled duel map editor mode automatically when a player changes worlds or quits, restoring the saved inventory instead of leaving editor tools stuck on the player.
+- Reworked duel lethal damage handling so duel losses do not open the vanilla death or respawn flow.
+- Moved eliminated duel players into spectator mode for the post-fight result window, then returns both sides to spawn after 5 seconds.
+- Cleared duel armor, offhand items, fire, spectator target, and temporary duel state during match cleanup.
+- Refreshed spawn/hub items after duel cleanup so protected hotbar tools work again after a match.
+
+### Changed
+- Enabled per-match duel world instances by default so fights run in temporary copied arena worlds.
+- Temporary duel match worlds are unloaded, unregistered from Multiverse when applicable, and deleted after the fight ends.
+- Duel editor worlds can now be created as clean configurable generator worlds instead of requiring an already-loaded source world.
+- Added configurable duel editor world settings for copy-source, generator, and auto-save.
+- Arena saves now force-save the editor world so built arena changes persist for future duel instances.
+
+### Fixed
+- Spawn PvP protection now allows combat inside the configured ZonePvP region while still blocking PvP in protected spawn outside that region.
+- Projectile PvP checks now resolve the player shooter so bows/crossbows follow the same spawn-vs-zone rules.
+
+### Changed
+- ZonePvP now forces PvP enabled on its configured world when the module loads or reloads, while spawn protection continues to deny normal spawn combat through plugin rules.
+- Added `pvp.enabled` to `world/zonepvp.yml` for explicit ZonePvP world PvP control.
+
+### Added
+- Added persistent dungeon completion tracking by player UUID, dungeon level, and difficulty.
+- Added Nightmare difficulty to the active dungeon difficulty menu and generation config.
+- Added Nightmare unlock gating requiring configured lower difficulty clears before entry.
+- Added boss clear rewards for dungeons: 25 sapphires and $10,000 money by default.
+
+### Fixed
+- Dungeon boss kills now mark the cleared difficulty for unlock progression.
+- Nightmare dungeon death now fails the active run and sends a specific failure message.
+- Dungeon world creation now uses the configured generator and registers with Multiverse when available.
+- Duel map editor armor stand markers are removed automatically after saving an arena so they do not remain visible in playable maps.
+
+### Fixed
+- Dungeon room generation now clears the saved template volume before pasting, resetting reused dungeon room space back to its saved state each run.
+- Duel editor and temporary match worlds now disable natural mob, patrol, trader, warden spawning, and weather cycle by default.
+- Dungeon worlds now disable natural mob, patrol, trader, warden spawning, and weather cycle by default.
+- Multiverse registration for dungeon worlds now also disables monster and animal spawning where Multiverse-Core is installed.
+
+### Changed
+- Added config toggles for duel instance/editor world spawning and weather rules.
+- Added `generation.reset-before-paste` and dungeon world spawning/weather toggles.
+
+### Added
+- Added in-game duel kit editor accessible from the dev panel or `/duel kiteditor <kit>`.
+- Kit editor supports editing the 36-slot inventory contents, four armor slots, offhand slot, save, and cancel.
+- Added essential admin commands for speed, fly, gamemode/gm, gms, gmc, gma, gmsp, time, and gamerule.
+
+### Fixed
+- Duel cleanup now clears all inventories after snapshot restore before sending players to spawn, preventing duel kit/armor/offhand transfer.
+- Duel queue sword is no longer given while a player is inside an active duel or ZonePvP kit.
+- Party, dungeon, and cosmetics hotbar items are suppressed while a player is inside ZonePvP.
+- ZonePvP active state is now exposed centrally so hub item refreshers can respect PvP kit boundaries.
+
+### Added
+- Added WorldGuard/WorldEdit soft integration for ZonePvP.
+- ZonePvP now creates or updates a configurable WorldGuard cuboid region from `zone.pos1` and `zone.pos2`.
+- Synced ZonePvP WorldGuard regions set PvP to allow, deny natural mob spawning, and use configurable priority.
+- Added `worldguard` settings to `world/zonepvp.yml` for region id, priority, passthrough, mob spawning, and region-query behavior.
+
+### Changed
+- ZonePvP reload and position commands now resync the WorldGuard region automatically when WorldGuard is installed.
+- Added EngineHub Maven and WorldGuard compile-only dependency for typed API integration.
+- Added WorldGuard and WorldEdit to plugin soft dependencies.
+
+### Fixed
+- Fixed duel cleanup spectator-target crashes by only clearing spectator targets while the player is actually in spectator mode.
+- Duel cleanup now respawns dead players before restoring/teleporting them, so `/kill` or vanilla death states do not trap players after a match.
+- Duel active-player tracking now self-heals stale flags instead of command-locking players after a broken cleanup.
+- Duel queue swords are now stripped while a player is flagged as actively dueling, not only while a match lookup exists.
+- Spectator `/leave` now safely clears spectator targets without throwing if Bukkit already changed the player's mode.
+- Removed invalid Multiverse monster/animal spawning commands from dungeon world creation; natural spawning is controlled through gamerules instead.
+- OP players now bypass spawn build protection while normal players remain blocked.
+
+### Changed
+- Duel kit editor saves full serialized ItemStack data with slot indexes, preserving stack amounts, potion meta, enchants, item names, durability, armor/offhand, and layout.
+- New/no-row money balances now default to $1,000,000.
+- Chat formatting now restores selected prefix and tag rendering from the cosmetics prefix/tag configs while still applying message color cosmetics.
+- Hub hotbar items are suppressed during active duels and ZonePvP, then refreshed cleanly after duel cleanup.
+
+### Fixed
+- `/spawn`, `/survival`, RTP, and duel post-match returns now force players back into Survival mode and safely clear spectator targets first.
+- Duel post-match cleanup now always removes frozen countdown state before restoring players and refreshing hub items.
+- Duel map editor save now behaves as a complete save-and-exit flow: removes editor markers, saves the arena, restores the developer inventory, returns the developer to spawn, and closes editor state.
+- Removed the free-floating map editor toggle from the dev panel; editor tools are now tied to selecting an arena and saving that arena.
+- RTP now resolves to the configured survival world by default instead of accidentally using the player's current spawn world.
+- RTP candidate generation is async, while Bukkit world safety checks and teleporting happen back on the main thread.
+
+### Changed
+- Duel countdown now teleports and kits players before the countdown, freezes movement while still allowing hotbar organization, plays a tick sound each second, and shows a large START title with a level-up sound when the fight begins.
+- Duel dev panel labels now explain the arena selection/save flow instead of exposing a manual editor toggle.
+- Added `default-world` and `defaults` sections to `world/rtp.yml` for easier future RTP expansion.
+
+### Added
+- Added duel kit metadata for `auto-apply-potions` and `rounds`, loaded from `duels/kits.yml` and editable from the kit editor.
+- Added auto splash-potion visuals at duel start for kits with `auto-apply-potions: true`.
+- Added `/duel <player>` challenge kit selection flow; the challenger now picks the kit from the duel kit UI before the challenge is sent.
+- Added randomized duel map selection that avoids repeating the previously selected map when multiple enabled maps exist.
+- Added ZonePvP staged upgrades every configured kill interval, randomizing armor piece upgrades before sword upgrade.
+- Added ZonePvP upgrade money rewards and kill ding sounds.
+- Added ZonePvP kill streak display through the XP level/progress and actionbar.
+- Added dungeon spawn commands: `/d spawn` and `/d setspawn`.
+- Added dungeon dev save tool via `/d dev`, with shift-right-click marker toolbox and right-click room saving.
+- Added config-driven hologram displays for duel leaderboard, survival money leaderboard, and dungeon display placeholders.
+
+### Fixed
+- Duel entry now clears saturation, exhaustion, fire, fall distance, and all potion effects before applying the kit.
+- Non-admin `/duel` usage is now restricted to direct player challenges plus accept/deny/leave support.
+- Starter money default changed from $1,000,000 to $1,000 for new/no-row players.
+- Dungeon compass item only opens the dungeon UI; dungeon teleporting is tied to explicit start/spawn actions.
+
+### Changed
+- `world/zonepvp.yml` now includes `upgrade.interval-kills`, `upgrade.money-reward`, and upgrade order.
+- `world/holograms.yml` now uses named display definitions with location, yaw, type, and line spacing.
+
+## 2026-04-22
+
+### Fixed
+- Fixed party duel setup buttons so red/blue selectors no longer trigger party create/disband item logic.
+- Fixed party duel kit selection by routing the setup menu into the duel kit registry.
+- Fixed duel totem handling by allowing vanilla totem resurrection before custom duel elimination runs.
+- Fixed duel arena marker placement to save the admin's exact location, yaw, and pitch for spawn markers.
+- Removed obsolete duel arena bounds marker tools from the editor flow.
+
+### Added
+- Added automatic red/blue assignment for two-player party duel setups.
+- Added sign-based party duel round input with dashed guide lines.
+- Added sign-based kit editor round input with dashed guide lines.
+- Added four kit editor auto-potion slots that are saved to `duels/kits.yml` and splashed on duel start when enabled.
+- Added kit-level health indicator configuration metadata for future duel HUD wiring.
+- Added default duel kill effect feedback with enchant particles and a ding sound.
+- Added kill effects as a cosmetics menu category with configurable entries.
+- Added automatic durability tooltip lore for duel kit weapons and armor during kit application.
+- Added arena publishing from edit worlds into clean `arena_<id>_live` playable templates.
+
+### Changed
+- Party duel setup now starts real configured party duels through the duel service using selected teams and kit.
+- Duel arena saves now remove editor markers before publishing the playable arena template.
+- Duel match world instances now copy from the latest published live arena after editor saves.
+- Duel kit definitions now include `auto-potions`, `rounds`, and `health-indicator` fields.
+
+## 2026-04-23
+
+### Added
+- Added persistent friend system with `/friend` and `/friends` commands for list, add, accept, deny, and remove actions.
+- Added clickable friend request chat buttons for accept and deny flows.
+- Added SQLite-backed `player_friends` storage and repository methods for persistent friend data.
+- Added `social/friends.yml` for friend and tab-social configuration placeholders.
+- Added social tab view service that cycles player-side TAB modes between Global, Party, and Dungeon when sneaking.
+- Added PlaceholderAPI values for social and TAB integration: `%smpcore_party_members%`, `%smpcore_dungeon_members%`, `%smpcore_friends_count%`, `%smpcore_friends_list%`, `%smpcore_tab_mode%`, `%smpcore_tab_title%`, and `%smpcore_tab_members%`.
+- Added direct `/friend` and `/friends` command registration.
+- Added Team Dungeon entry point to the Party GUI.
+
+### Changed
+- Party invite picker now sorts friend players first before other online candidates.
+- Party service now integrates with the dungeon module so the party leader can open dungeons directly in party mode.
+- Dungeon startup flow now supports party runs from the existing dungeon UI instead of treating all runs as solo-only.
+- Placeholder expansions now expose party, dungeon, friend, and social tab state for external plugins like TAB.
+
+### Fixed
+- Welcome/join flow patch notes were kept in sync by recording the new friend, TAB, and party-dungeon integration pass.
+- Party dungeon starts now validate that all party members are online before launch.
+- Party dungeon starts now validate per-member difficulty access, including Nightmare unlock requirements.
+- Active dungeon group membership is now tracked per player so dungeon-specific TAB views can show the current team.
+- Party dungeon failure now clears the active run for the group when a member dies, preventing stale dungeon teammate state.

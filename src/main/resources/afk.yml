@@ -1,5 +1,0 @@
-enabled: true
-kick-after-seconds: 900
-check-interval-seconds: 30
-bypass-permission: 3smpcore.afk.bypass
-kick-message: "<red>You were kicked for being AFK too long.</red>"

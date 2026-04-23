@@ -39,7 +39,7 @@ public final class SapphireService {
     public boolean take(UUID uuid, long amount) { long current = balance(uuid); if (amount < 0L || current < amount) return false; set(uuid, current - amount); return true; }
     public void reset(UUID uuid) { set(uuid, 0L); }
     public List<String> commandIds() {
-        var section = configs.get("sapphires.yml").getConfigurationSection("sapphire.commands");
+        var section = configs.get("economy/sapphires.yml").getConfigurationSection("sapphire.commands");
         if (section == null) return List.of();
         return List.copyOf(section.getKeys(false));
     }
@@ -82,13 +82,13 @@ public final class SapphireService {
     public void sendShopSummary(Player player) {
         Text.send(player, "<gradient:#1A2A4A:#D6E8F7>3SMP Sapphire Summary</gradient>");
         Text.send(player, "<gray>Balance:</gray> <white>" + balance(player.getUniqueId()) + "</white>");
-        Text.send(player, "<gray>Shop link:</gray> <white>" + configs.get("sapphires.yml").getString("sapphire.shop-url", "https://example.com") + "</white>");
+        Text.send(player, "<gray>Shop link:</gray> <white>" + configs.get("economy/sapphires.yml").getString("sapphire.shop-url", "https://example.com") + "</white>");
         Text.send(player, "<gray>Commands:</gray> <white>/sapphire bal, /sapphire ballance, /sapphire shop</white>");
     }
     public void sendBalance(Player player) { Text.send(player, "<gray>Your sapphires: <gradient:#22d3ee:#a78bfa>" + balance(player.getUniqueId()) + "</gradient></gray>"); }
     public void openShopInfo(Player player) { openShopLink(player); }
     public void sendCommandHelp(Player player) { Text.send(player, "<gray>Sapphires are premium and non-tradeable. Use <white>/sapphire bal</white> or <white>/sapphire shop</white>.</gray>"); }
-    public String shopUrl() { return configs.get("sapphires.yml").getString("sapphire.shop-url", "https://example.com"); }
+    public String shopUrl() { return configs.get("economy/sapphires.yml").getString("sapphire.shop-url", "https://example.com"); }
 
     public void handleSummaryClick(Player player, int slot) {
         if (slot == 22) openShop(player);

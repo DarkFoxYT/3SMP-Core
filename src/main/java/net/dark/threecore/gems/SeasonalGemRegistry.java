@@ -18,8 +18,8 @@ public final class SeasonalGemRegistry {
     private final String currentSeason;
 
     public SeasonalGemRegistry(ConfigFiles configs) {
-        this.currentSeason = configs.get("gems.yml").getString("gems.current-season", "").toLowerCase(Locale.ROOT);
-        var list = configs.get("gems.yml").getStringList("gems.supported-materials");
+        this.currentSeason = configs.get("gems/gems.yml").getString("gems.current-season", "").toLowerCase(Locale.ROOT);
+        var list = configs.get("gems/gems.yml").getStringList("gems.supported-materials");
         EnumSet<Material> set = EnumSet.noneOf(Material.class);
         for (String name : list) {
             try {
@@ -29,7 +29,7 @@ public final class SeasonalGemRegistry {
         }
         this.supported = set;
         loadDefinitions(configs, "gems.definitions", baseStats);
-        var seasons = configs.get("gems.yml").getConfigurationSection("gems.seasons");
+        var seasons = configs.get("gems/gems.yml").getConfigurationSection("gems.seasons");
         if (seasons != null) {
             for (String seasonId : seasons.getKeys(false)) {
                 Map<String, GemStats> seasonal = new HashMap<>();
@@ -123,7 +123,7 @@ public final class SeasonalGemRegistry {
     }
 
     private void loadDefinitions(ConfigFiles configs, String path, Map<String, GemStats> target) {
-        var defs = configs.get("gems.yml").getConfigurationSection(path);
+        var defs = configs.get("gems/gems.yml").getConfigurationSection(path);
         if (defs == null) return;
         for (String id : defs.getKeys(false)) {
             var sec = defs.getConfigurationSection(id);

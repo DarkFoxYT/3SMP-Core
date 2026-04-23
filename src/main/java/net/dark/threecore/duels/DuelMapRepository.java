@@ -23,7 +23,7 @@ public final class DuelMapRepository {
     public DuelMapRepository(JavaPlugin plugin, ConfigFiles configs) {
         this.plugin = plugin;
         this.configs = configs;
-        this.file = new File(plugin.getDataFolder(), "duel-maps.yml");
+        this.file = new File(plugin.getDataFolder(), "duels/maps.yml");
     }
 
     public Map<String, DuelMap> load() {

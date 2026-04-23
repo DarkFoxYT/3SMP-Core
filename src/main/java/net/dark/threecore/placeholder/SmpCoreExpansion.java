@@ -1,13 +1,16 @@
 package net.dark.threecore.placeholder;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
-import net.dark.threecore.perks.PerkService;
-import net.dark.threecore.spawn.SpawnService;
+import net.dark.threecore.dungeons.DungeonService;
 import net.dark.threecore.money.MoneyService;
+import net.dark.threecore.party.PartyService;
+import net.dark.threecore.perks.PerkService;
 import net.dark.threecore.sapphires.SapphireService;
+import net.dark.threecore.social.FriendService;
+import net.dark.threecore.social.SocialTabService;
+import net.dark.threecore.spawn.SpawnService;
 import net.dark.threecore.warp.WarpManager;
 import org.bukkit.OfflinePlayer;
-import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.plugin.java.JavaPlugin;
 
 public class SmpCoreExpansion extends PlaceholderExpansion {
@@ -17,14 +20,22 @@ public class SmpCoreExpansion extends PlaceholderExpansion {
     private final SpawnService spawnService;
     private final MoneyService moneyService;
     private final SapphireService sapphireService;
+    private final PartyService partyService;
+    private final DungeonService dungeonService;
+    private final FriendService friendService;
+    private final SocialTabService socialTabService;
 
-    public SmpCoreExpansion(JavaPlugin plugin, PerkService perkService, WarpManager warpManager, SpawnService spawnService, MoneyService moneyService, SapphireService sapphireService) {
+    public SmpCoreExpansion(JavaPlugin plugin, PerkService perkService, WarpManager warpManager, SpawnService spawnService, MoneyService moneyService, SapphireService sapphireService, PartyService partyService, DungeonService dungeonService, FriendService friendService, SocialTabService socialTabService) {
         this.plugin = plugin;
         this.perkService = perkService;
         this.warpManager = warpManager;
         this.spawnService = spawnService;
         this.moneyService = moneyService;
         this.sapphireService = sapphireService;
+        this.partyService = partyService;
+        this.dungeonService = dungeonService;
+        this.friendService = friendService;
+        this.socialTabService = socialTabService;
     }
 
     @Override public String getIdentifier() { return "smpcore"; }
@@ -58,11 +69,26 @@ public class SmpCoreExpansion extends PlaceholderExpansion {
             case "cosmetic" -> data.activeCosmetic();
             case "cosmetic_id" -> data.activeCosmetic();
             case "has_cosmetic" -> String.valueOf(!data.activeCosmetic().isBlank());
+            case "party_size" -> partyService == null ? "0" : String.valueOf(partyService.partySize(player.getUniqueId()));
+            case "party_members" -> partyService == null ? "" : partyService.partyMembers(player.getUniqueId()).stream().map(this::nameOf).sorted(String.CASE_INSENSITIVE_ORDER).reduce((a, b) -> a + ", " + b).orElse("");
+            case "dungeon_members" -> dungeonService == null ? "" : String.join(", ", dungeonService.activeMemberNames(player.getUniqueId()));
+            case "friends_count" -> friendService == null ? "0" : String.valueOf(friendService.count(player.getUniqueId()));
+            case "friends_list" -> friendService == null ? "" : friendService.friendList(player.getUniqueId());
+            case "tab_mode" -> socialTabService == null ? "global" : socialTabService.modeName(player.getUniqueId());
+            case "tab_title" -> socialTabService == null ? "Global View" : socialTabService.title(player.getUniqueId());
+            case "tab_members" -> socialTabService == null ? "" : socialTabService.members(player.getUniqueId());
             default -> {
                 if (params.startsWith("job_")) yield jobPlaceholder(data, params);
                 yield "";
             }
         };
+    }
+
+    private String nameOf(java.util.UUID uuid) {
+        var online = plugin.getServer().getPlayer(uuid);
+        if (online != null) return online.getName();
+        var offline = plugin.getServer().getOfflinePlayer(uuid);
+        return offline.getName() == null ? uuid.toString() : offline.getName();
     }
 
     private String jobPlaceholder(net.dark.threecore.model.PlayerProgressionData data, String params) { return "0"; }

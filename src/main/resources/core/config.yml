@@ -22,6 +22,10 @@ systems:
   displays: true
 
 spawn:
+  protection:
+    entire-world: true
+    bypass-permission: 3smpcore.spawn.build
+    cancel-physics: false
   world: spawn
   radius: 100.0
   effects:

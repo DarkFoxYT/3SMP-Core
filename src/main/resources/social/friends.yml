@@ -1,0 +1,12 @@
+friends:
+  enabled: true
+  max-friends: 50
+  requests:
+    clickable-chat: true
+    timeout-seconds: 120
+  tab:
+    sneak-cycle-enabled: true
+    modes:
+      - global
+      - party
+      - dungeon

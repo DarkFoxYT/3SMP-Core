@@ -5,6 +5,7 @@ import net.dark.threecore.text.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.GameMode;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -18,6 +19,7 @@ import org.bukkit.plugin.java.JavaPlugin;
 import java.io.File;
 
 public final class SpawnService implements Listener {
+    private net.dark.threecore.welcome.WelcomeService welcomeService;
     private final JavaPlugin plugin;
     private final ConfigFiles configs;
 
@@ -26,8 +28,10 @@ public final class SpawnService implements Listener {
         this.configs = configs;
     }
 
+    public void setWelcomeService(net.dark.threecore.welcome.WelcomeService welcomeService) { this.welcomeService = welcomeService; }
+
     public void setSpawnLocation(CommandSender sender, Location location) {
-        var yaml = configs.get("config.yml");
+        var yaml = configs.get("core/config.yml");
         String worldName = location.getWorld() == null ? "spawn" : location.getWorld().getName();
         yaml.set("spawn.world", worldName);
         yaml.set("spawn.location.world", worldName);
@@ -37,7 +41,7 @@ public final class SpawnService implements Listener {
         yaml.set("spawn.location.yaw", location.getYaw());
         yaml.set("spawn.location.pitch", location.getPitch());
         try {
-            yaml.save(new File(plugin.getDataFolder(), "config.yml"));
+            yaml.save(new File(plugin.getDataFolder(), "core/config.yml"));
         } catch (Exception ignored) {
         }
         Text.send(sender, "<green>Spawn location saved.</green>");
@@ -49,25 +53,30 @@ public final class SpawnService implements Listener {
             Text.send(player, "<red>Spawn is not configured.</red>");
             return;
         }
+        if (player.getGameMode() == GameMode.SPECTATOR) {
+            try { player.setSpectatorTarget(null); } catch (IllegalArgumentException ignored) {}
+        }
+        player.setGameMode(GameMode.SURVIVAL);
         player.teleport(spawn);
         applySpawnEffects(player);
+        if (welcomeService != null) welcomeService.send(player);
         Text.send(player, "<green>Teleported to spawn.</green>");
     }
 
     public void applySpawnEffects(Player player) {
         if (!isSpawnWorld(player.getWorld())) return;
-        int amplifier = Math.max(0, configs.get("config.yml").getInt("spawn.effects.speed.level", configs.get("config.yml").getInt("spawn.speed-level", 2)) - 1);
+        int amplifier = Math.max(0, configs.get("core/config.yml").getInt("spawn.effects.speed.level", configs.get("core/config.yml").getInt("spawn.speed-level", 2)) - 1);
         player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 20 * 60 * 60, amplifier, true, false, false));
     }
 
     public boolean isSpawnWorld(World world) {
         if (world == null) return false;
-        String configured = configs.get("config.yml").getString("spawn.world", "spawn");
+        String configured = configs.get("core/config.yml").getString("spawn.world", "spawn");
         return world.getName().equalsIgnoreCase(configured) || world.getName().equalsIgnoreCase("spawn");
     }
 
     public Location getSpawnLocation() {
-        var yaml = configs.get("config.yml");
+        var yaml = configs.get("core/config.yml");
         String worldName = yaml.getString("spawn.world", "spawn");
         World world = Bukkit.getWorld(worldName);
         if (world == null && !Bukkit.getWorlds().isEmpty()) world = Bukkit.getWorlds().getFirst();
@@ -94,3 +103,5 @@ public final class SpawnService implements Listener {
         applySpawnEffects(event.getPlayer());
     }
 }
+
+

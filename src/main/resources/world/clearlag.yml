@@ -6,3 +6,10 @@ entity-types:
   - ARROW
   - SPECTRAL_ARROW
   - TRIDENT
+
+max-removals-per-run: 2500
+disabled-worlds:
+  - afk_void
+protect:
+  named-items: true
+  persistent-entities: true

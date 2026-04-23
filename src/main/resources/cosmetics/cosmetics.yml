@@ -57,3 +57,19 @@ dungeon_cosmetics:
     icon: BARRIER
     lore:
       - "<gray>No dungeon cosmetic selected.</gray>"
+
+kill_effects:
+  default:
+    display-name: "<gradient:#facc15:#f59e0b>Default Kill Spark</gradient>"
+    permission: ""
+    default-unlocked: true
+    icon: ENCHANTED_BOOK
+    lore:
+      - "<gray>Enchant particles and a clean ding on kill.</gray>"
+  sapphire_burst:
+    display-name: "<gradient:#1A2A4A:#D6E8F7>Sapphire Burst</gradient>"
+    permission: "3smpcore.cosmetic.kill.sapphire"
+    default-unlocked: false
+    icon: DIAMOND
+    lore:
+      - "<gray>Framework entry for future sapphire kill visuals.</gray>"

@@ -78,7 +78,7 @@ public final class GemAutoApplyListener implements Listener {
         if (player == null || !player.isOnline()) return;
         if (player.getGameMode() == GameMode.SPECTATOR) return;
         if (duelService != null && duelService.isPlayerInDuel(player.getUniqueId())) return;
-        if (configs.get("gems.yml").getStringList("gems.disabled-worlds").stream().anyMatch(w -> w.equalsIgnoreCase(player.getWorld().getName()))) return;
+        if (configs.get("gems/gems.yml").getStringList("gems.disabled-worlds").stream().anyMatch(w -> w.equalsIgnoreCase(player.getWorld().getName()))) return;
         applyIfNeeded(player.getInventory().getItemInMainHand());
         applyIfNeeded(player.getInventory().getItemInOffHand());
         for (ItemStack armor : player.getInventory().getArmorContents()) applyIfNeeded(armor);

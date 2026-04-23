@@ -5,7 +5,7 @@ main: net.dark.threecore.ThreeSMPCorePlugin
 api-version: '1.21'
 load: POSTWORLD
 authors: [ DarkFox ]
-softdepend: [ ItemsAdder, PlaceholderAPI, PlayerPoints ]
+softdepend: [ ItemsAdder, PlaceholderAPI, PlayerPoints, Multiverse-Core, WorldGuard, WorldEdit ]
 commands:
   help:
     description: Custom 3SMP help command
@@ -14,6 +14,8 @@ commands:
     description: Central command hub
   duel:
     description: Duel command
+  savearena:
+    description: Save the current duel arena editor world
   zonepvp:
     description: ZonePvP admin commands
   dungeon:
@@ -25,9 +27,19 @@ commands:
     description: Dungeon commands
   leave:
     description: Leave the current duel or duel queue
+  spectate:
+    description: Spectate a duel player
+    aliases: [ spec ]
   party:
     description: Party command
     aliases: [ p ]
+  friend:
+    description: Friend command
+    aliases: [ friends ]
+  friends:
+    description: Friend command
+  devpanel:
+    description: Open the duel developer panel
   perks:
     description: Open the cosmetics menu
     aliases: [ cosmetics ]
@@ -61,6 +73,8 @@ commands:
     description: Pay money to another player
   sell:
     description: Sell items for money
+  shop:
+    description: Open the server shop
   ah:
     description: Auction house
   auction:
@@ -102,11 +116,15 @@ permissions:
     default: true
   3smpcore.party.admin:
     default: op
+  3smpcore.friends.use:
+    default: true
   3smpcore.launchpad.admin:
     default: op
   3smpcore.spawn.use:
     default: true
   3smpcore.spawn.admin:
+    default: op
+  3smpcore.spawn.build:
     default: op
   3smpcore.warp.admin:
     default: op
@@ -144,3 +162,20 @@ permissions:
 
   3smpcore.zonepvp.admin:
     default: op
+
+  3smpcore.shop.use:
+    default: true
+
+  3smpcore.queue.bypass:
+    default: op
+  3smpcore.queue.priority.vip:
+    default: false
+  3smpcore.queue.priority.staff:
+    default: op
+  3smpcore.queue.priority.owner:
+    default: op
+  3smpcore.essentials:
+    default: op
+
+
+

@@ -30,8 +30,8 @@ public final class SellService implements Listener {
     }
 
     public void open(Player player) {
-        int size = Math.max(9, Math.min(54, configs.get("sell.yml").getInt("menu.size", 54)));
-        Inventory inv = Bukkit.createInventory(new SellHolder(), size, configs.get("sell.yml").getString("menu.title", "3SMP Sell Bin"));
+        int size = Math.max(9, Math.min(54, configs.get("economy/sell.yml").getInt("menu.size", 54)));
+        Inventory inv = Bukkit.createInventory(new SellHolder(), size, configs.get("economy/sell.yml").getString("menu.title", "3SMP Sell Bin"));
         player.openInventory(inv);
         Text.send(player, "<gray>Drop sellable items into the chest, then close it to sell.</gray>");
     }
@@ -60,7 +60,7 @@ public final class SellService implements Listener {
     }
 
     private double price(Material material) {
-        return configs.get("sell.yml").getDouble("prices." + material.name().toLowerCase(Locale.ROOT), 0.0D);
+        return configs.get("economy/sell.yml").getDouble("prices." + material.name().toLowerCase(Locale.ROOT), 0.0D);
     }
 
     private static final class SellHolder implements InventoryHolder {

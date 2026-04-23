@@ -5,6 +5,7 @@ import net.dark.threecore.text.Text;
 import org.bukkit.Location;
 import org.bukkit.World;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.Projectile;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
@@ -35,7 +36,7 @@ public final class SpawnZoneManager implements Listener {
 
     public boolean inZone(Location loc) {
         if (loc == null || loc.getWorld() == null) return false;
-        var yaml = configs.get("config.yml");
+        var yaml = configs.get("core/config.yml");
         if (!yaml.getBoolean("spawn.zone.enabled", true)) return false;
         String world = yaml.getString("spawn.zone.world", yaml.getString("spawn.world", "spawn"));
         if (!loc.getWorld().getName().equalsIgnoreCase(world)) return false;
@@ -54,12 +55,12 @@ public final class SpawnZoneManager implements Listener {
             player.removePotionEffect(PotionEffectType.SATURATION);
             return;
         }
-        if (inSpawnZone(player) && configs.get("config.yml").getBoolean("spawn.effects.speed.enabled", true)) {
-            int amplifier = Math.max(0, configs.get("config.yml").getInt("spawn.effects.speed.level", configs.get("config.yml").getInt("spawn.speed-level", 2)) - 1);
+        if (inSpawnZone(player) && configs.get("core/config.yml").getBoolean("spawn.effects.speed.enabled", true)) {
+            int amplifier = Math.max(0, configs.get("core/config.yml").getInt("spawn.effects.speed.level", configs.get("core/config.yml").getInt("spawn.speed-level", 2)) - 1);
             player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, PotionEffect.INFINITE_DURATION, amplifier, true, false, false));
             player.addPotionEffect(new PotionEffect(PotionEffectType.SATURATION, PotionEffect.INFINITE_DURATION, 0, true, false, false));
             player.setFoodLevel(20); player.setSaturation(20.0f);
-        } else if (configs.get("config.yml").getBoolean("spawn.effects.speed.remove-on-exit", true)) {
+        } else if (configs.get("core/config.yml").getBoolean("spawn.effects.speed.remove-on-exit", true)) {
             PotionEffect effect = player.getPotionEffect(PotionEffectType.SPEED);
             if (effect != null && effect.getDuration() > 20 * 30) player.removePotionEffect(PotionEffectType.SPEED);
             player.removePotionEffect(PotionEffectType.SATURATION);
@@ -75,19 +76,23 @@ public final class SpawnZoneManager implements Listener {
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onDamage(EntityDamageEvent event) {
         if (!(event.getEntity() instanceof Player player)) return;
-        if (zonePvpService != null && zonePvpService.isActive(player)) return;
-        if (inSpawnZone(player) && configs.get("config.yml").getBoolean("spawn.zone.disable-damage", true)) event.setCancelled(true);
+        if (zonePvpService != null && (zonePvpService.isActive(player) || zonePvpService.inZone(player.getLocation()))) return;
+        if (inSpawnZone(player) && configs.get("core/config.yml").getBoolean("spawn.zone.disable-damage", true)) event.setCancelled(true);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onPvp(EntityDamageByEntityEvent event) {
         Player victim = event.getEntity() instanceof Player p ? p : null;
-        Player attacker = event.getDamager() instanceof Player p ? p : null;
+        Player attacker = event.getDamager() instanceof Player p ? p : projectileShooter(event.getDamager());
         if (victim == null || attacker == null) return;
-        if (zonePvpService != null && (zonePvpService.isActive(victim) || zonePvpService.isActive(attacker))) return;
-        if (!configs.get("config.yml").getBoolean("spawn.zone.pvp.enabled", false) && (inSpawnZone(victim) || inSpawnZone(attacker))) {
+        if (zonePvpService != null && (zonePvpService.isActive(victim) || zonePvpService.isActive(attacker) || zonePvpService.inZone(victim.getLocation()) || zonePvpService.inZone(attacker.getLocation()))) return;
+        if (!configs.get("core/config.yml").getBoolean("spawn.zone.pvp.enabled", false) && (inSpawnZone(victim) || inSpawnZone(attacker))) {
             event.setCancelled(true);
-            Text.send(attacker, configs.get("config.yml").getString("spawn.zone.pvp-deny-message", "<red>PvP is disabled in spawn.</red>"));
+            Text.send(attacker, configs.get("core/config.yml").getString("spawn.zone.pvp-deny-message", "<red>PvP is disabled in spawn.</red>"));
         }
+    }
+    private Player projectileShooter(org.bukkit.entity.Entity damager) {
+        if (!(damager instanceof Projectile projectile)) return null;
+        return projectile.getShooter() instanceof Player player ? player : null;
     }
 }

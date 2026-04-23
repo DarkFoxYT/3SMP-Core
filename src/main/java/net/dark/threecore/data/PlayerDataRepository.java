@@ -7,7 +7,9 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.Arrays;
 import java.util.HashMap;
+import java.util.LinkedHashSet;
 import java.util.Map;
+import java.util.Set;
 import java.util.UUID;
 
 public final class PlayerDataRepository {
@@ -65,7 +67,7 @@ public final class PlayerDataRepository {
         try (PreparedStatement ps = database.connection().prepareStatement("SELECT balance FROM player_money WHERE uuid = ?")) {
             ps.setString(1, uuid.toString());
             try (ResultSet rs = ps.executeQuery()) {
-                return rs.next() ? rs.getDouble(1) : 0.0D;
+                return rs.next() ? rs.getDouble(1) : 1_000.0D;
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Failed to load money balance", e);
@@ -79,6 +81,65 @@ public final class PlayerDataRepository {
             ps.executeUpdate();
         } catch (SQLException e) {
             throw new IllegalStateException("Failed to save money balance", e);
+        }
+    }
+
+    public boolean hasDungeonCompletion(UUID uuid, String level, String difficulty) {
+        try (PreparedStatement ps = database.connection().prepareStatement("SELECT 1 FROM player_dungeon_completions WHERE uuid = ? AND level = ? AND difficulty = ?")) {
+            ps.setString(1, uuid.toString());
+            ps.setString(2, level.toLowerCase(java.util.Locale.ROOT));
+            ps.setString(3, difficulty.toLowerCase(java.util.Locale.ROOT));
+            try (ResultSet rs = ps.executeQuery()) {
+                return rs.next();
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to load dungeon completion", e);
+        }
+    }
+
+    public void markDungeonCompletion(UUID uuid, String level, String difficulty) {
+        try (PreparedStatement ps = database.connection().prepareStatement("INSERT INTO player_dungeon_completions(uuid, level, difficulty, completed_at) VALUES(?, ?, ?, ?) ON CONFLICT(uuid, level, difficulty) DO UPDATE SET completed_at = excluded.completed_at")) {
+            ps.setString(1, uuid.toString());
+            ps.setString(2, level.toLowerCase(java.util.Locale.ROOT));
+            ps.setString(3, difficulty.toLowerCase(java.util.Locale.ROOT));
+            ps.setLong(4, System.currentTimeMillis());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to save dungeon completion", e);
+        }
+    }
+
+    public Set<UUID> friends(UUID uuid) {
+        Set<UUID> friends = new LinkedHashSet<>();
+        try (PreparedStatement ps = database.connection().prepareStatement("SELECT friend FROM player_friends WHERE owner = ? ORDER BY created_at ASC")) {
+            ps.setString(1, uuid.toString());
+            try (ResultSet rs = ps.executeQuery()) {
+                while (rs.next()) friends.add(UUID.fromString(rs.getString(1)));
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to load friends", e);
+        }
+        return friends;
+    }
+
+    public void addFriend(UUID owner, UUID friend) {
+        try (PreparedStatement ps = database.connection().prepareStatement("INSERT INTO player_friends(owner, friend, created_at) VALUES(?, ?, ?) ON CONFLICT(owner, friend) DO NOTHING")) {
+            ps.setString(1, owner.toString());
+            ps.setString(2, friend.toString());
+            ps.setLong(3, System.currentTimeMillis());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to add friend", e);
+        }
+    }
+
+    public void removeFriend(UUID owner, UUID friend) {
+        try (PreparedStatement ps = database.connection().prepareStatement("DELETE FROM player_friends WHERE owner = ? AND friend = ?")) {
+            ps.setString(1, owner.toString());
+            ps.setString(2, friend.toString());
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to remove friend", e);
         }
     }
 
