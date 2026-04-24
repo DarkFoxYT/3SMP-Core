@@ -5,6 +5,10 @@ import net.dark.threecore.config.ConfigFiles;
 import net.dark.threecore.data.PlayerDataRepository;
 import net.dark.threecore.duels.gui.DuelMenu;
 import net.dark.threecore.duels.DuelLeaderboardService;
+import net.dark.threecore.duels.DuelGuiManager;
+import net.dark.threecore.duels.DuelMessageService;
+import net.dark.threecore.duels.DuelQueueManager;
+import net.dark.threecore.duels.DuelScoreService;
 import net.dark.threecore.gui.menu.CoreMenuHolder;
 import net.dark.threecore.gui.menu.CoreMenuType;
 import net.dark.threecore.duels.model.DuelKit;
@@ -13,6 +17,7 @@ import net.dark.threecore.duels.model.DuelMatch;
 import net.dark.threecore.duels.model.DuelMode;
 import net.dark.threecore.gui.MenuService;
 import net.dark.threecore.launchpads.LaunchpadService;
+import net.dark.threecore.dungeons.DungeonService;
 import net.dark.threecore.party.PartyService;
 import net.dark.threecore.text.Text;
 import org.bukkit.Bukkit;
@@ -33,6 +38,8 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
+import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.block.BlockPlaceEvent;
 import org.bukkit.event.block.SignChangeEvent;
 import org.bukkit.event.entity.EntityDamageEvent;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
@@ -65,6 +72,7 @@ import java.io.ByteArrayOutputStream;
 import java.util.*;
 import java.util.function.Consumer;
 import java.util.concurrent.ThreadLocalRandom;
+import org.bukkit.potion.PotionEffectType;
 
 public final class DuelService implements Listener {
     private static final String ITEM_ID_KEY = "3smpcore_duel_item";
@@ -78,7 +86,12 @@ public final class DuelService implements Listener {
     private final MenuService menuService;
     private final PartyService partyService;
     private final DuelLeaderboardService leaderboardService;
+    private final DuelGuiManager guiManager;
+    private final DuelMessageService messageService;
+    private final DuelScoreService scoreService;
+    private final DuelQueueManager queueManager;
     private final LaunchpadService launchpadService;
+    private final DungeonService dungeonService;
     private final DuelWorldService worldService;
     private final Map<String, DuelKit> kits = new LinkedHashMap<>();
     private final Map<Integer, String> kitSlots = new HashMap<>();
@@ -97,6 +110,7 @@ public final class DuelService implements Listener {
     private final Set<UUID> devMode = new HashSet<>();
     private final Set<UUID> mapEditorMode = new HashSet<>();
     private final Set<UUID> endingMatches = new HashSet<>();
+    private final Set<String> placedMatchBlocks = new HashSet<>();
     private final Map<UUID, ItemStack[]> editorInventorySnapshots = new HashMap<>();
     private final Map<UUID, PendingKitRoundEdit> pendingKitRoundEdits = new HashMap<>();
     private final Map<UUID, DuelChallenge> challengesByTarget = new HashMap<>();
@@ -106,14 +120,19 @@ public final class DuelService implements Listener {
     private boolean enabled = true;
     private String lastPickedMapId = "";
 
-    public DuelService(JavaPlugin plugin, ConfigFiles configs, PlayerDataRepository repository, MenuService menuService, PartyService partyService, DuelLeaderboardService leaderboardService, LaunchpadService launchpadService) {
+    public DuelService(JavaPlugin plugin, ConfigFiles configs, PlayerDataRepository repository, MenuService menuService, PartyService partyService, DuelLeaderboardService leaderboardService, LaunchpadService launchpadService, DungeonService dungeonService) {
         this.plugin = plugin;
         this.configs = configs;
         this.repository = repository;
         this.menuService = menuService;
         this.partyService = partyService;
         this.leaderboardService = leaderboardService;
+        this.guiManager = new DuelGuiManager(this);
+        this.messageService = new DuelMessageService(plugin, configs);
+        this.scoreService = new DuelScoreService(repository);
+        this.queueManager = new DuelQueueManager();
         this.launchpadService = launchpadService;
+        this.dungeonService = dungeonService;
         this.worldService = new DuelWorldService(plugin, configs);
         reload();
         startHudTask();
@@ -180,14 +199,32 @@ public final class DuelService implements Listener {
     public Collection<DuelKit> kits() { return kits.values(); }
     public Collection<DuelMap> maps() { return maps.values(); }
     public boolean isQueuedForKit(UUID uuid, String kitId) { QueueUnit unit = queueByPlayer.get(uuid); return unit != null && unit.kitId().equalsIgnoreCase(kitId); }
+    public String queueSummary(UUID uuid) {
+        QueueUnit unit = queueByPlayer.get(uuid);
+        if (unit == null) return "none";
+        String mode = unit.mode() == DuelMode.SOLO ? "1v1" : "2v2";
+        DuelKit kit = kits.get(unit.kitId().toLowerCase(Locale.ROOT));
+        return mode + " / " + (kit == null ? unit.kitId() : kit.displayName());
+    }
+    public String queueModeName(UUID uuid) {
+        QueueUnit unit = queueByPlayer.get(uuid);
+        if (unit == null) return "none";
+        return unit.mode() == DuelMode.SOLO ? "1v1" : "2v2";
+    }
+    public String queueKitName(UUID uuid) {
+        QueueUnit unit = queueByPlayer.get(uuid);
+        if (unit == null) return "none";
+        DuelKit kit = kits.get(unit.kitId().toLowerCase(Locale.ROOT));
+        return kit == null ? unit.kitId() : kit.displayName();
+    }
     public boolean isPlayerInDuel(UUID uuid) { return matchesByPlayer.containsKey(uuid); }
     public static boolean isDuelPlayer(Player player) { return player != null && ACTIVE_DUEL_PLAYERS.contains(player.getUniqueId()); }
     public void addPostMatchItemRefresher(Consumer<Player> refresher) { postMatchItemRefreshers.add(refresher); }
 
-    public void openMainMenu(Player player) { menuService.open(player, new DuelMenu(this).buildMain(player)); }
-    public void openSummary(Player player) { menuService.open(player, new DuelMenu(this).buildSummary(player)); }
+    public void openMainMenu(Player player) { menuService.open(player, guiManager.buildMain(player)); }
+    public void openSummary(Player player) { menuService.open(player, guiManager.buildSummary(player)); }
 
-    public void openKitMenu(Player player) { menuService.open(player, new DuelMenu(this).buildKitMenu(player)); }
+    public void openKitMenu(Player player) { menuService.open(player, guiManager.buildKitSelector(player)); }
     private void openChallengeKitMenu(Player player, Player target) {
         pendingChallengeTargets.put(player.getUniqueId(), target.getName());
         menuService.open(player, new DuelMenu(this).buildKitMenu(player, "<gradient:#60a5fa:#c084fc>Choose Kit vs " + target.getName() + "</gradient>"));
@@ -207,8 +244,8 @@ public final class DuelService implements Listener {
 
     public void handleMainMenuClick(Player player, int slot) {
         if (slot == 7) openSummary(player);
-        else if (slot == 11) openKitMenu(player);
-        else if (slot == 15) queueParty(player);
+        else if (slot == 10) openKitMenu(player);
+        else if (slot == 16) queueParty(player);
     }
 
     public void handleSummaryClick(Player player, int slot) {
@@ -282,6 +319,7 @@ public final class DuelService implements Listener {
             case 14 -> openMapEditor(player);
             case 16 -> openLeaderboard(player);
             case 18 -> openKitEditorSelector(player);
+            case 20 -> dungeonService.openDungeonEditor(player);
             case 28 -> { reload(); Text.send(player, "<green>Duel configs reloaded.</green>"); openDevMenu(player); }
             case 30 -> { enabled = !enabled; Text.send(player, enabled ? "<green>Duel module enabled.</green>" : "<red>Duel module disabled.</red>"); openDevMenu(player); }
             case 32 -> { if (launchpadService != null) launchpadService.openMenu(player); }
@@ -516,7 +554,6 @@ public final class DuelService implements Listener {
     public void queueSolo(Player player, String kitId) {
         if (!enabled) { Text.send(player, "<red>Duels are currently disabled.</red>"); return; }
         if (!canUseInWorld(player)) { Text.send(player, "<red>Duels are not available in this world.</red>"); return; }
-        if (!canUseInWorld(player)) { Text.send(player, "<red>Duels are not available in this world.</red>"); return; }
         if (matchesByPlayer.containsKey(player.getUniqueId())) { Text.send(player, "<red>You are already in a duel.</red>"); return; }
         if (queueByPlayer.containsKey(player.getUniqueId())) leaveQueue(player, true);
         DuelKit kit = kits.get(kitId.toLowerCase(Locale.ROOT));
@@ -526,12 +563,13 @@ public final class DuelService implements Listener {
         queueByPlayer.put(player.getUniqueId(), unit);
         soloQueues.computeIfAbsent(kitId, ignored -> new ArrayDeque<>()).add(unit.unitId());
         giveQueueItem(player);
-        Text.actionBar(player, "<gradient:#60a5fa:#c084fc>Queued for 1v1</gradient> <gray>" + kit.displayName() + "</gray>");
+        messageService.queue(player, "1v1", kit.displayName());
         tryMatchAll();
     }
 
     public void queueParty(Player player) {
         if (!enabled) { Text.send(player, "<red>Duels are currently disabled.</red>"); return; }
+        if (!canUseInWorld(player)) { Text.send(player, "<red>Duels are not available in this world.</red>"); return; }
         if (matchesByPlayer.containsKey(player.getUniqueId())) { Text.send(player, "<red>You are already in a duel.</red>"); return; }
         UUID leader = partyService.partyLeader(player.getUniqueId());
         if (leader == null) { Text.send(player, "<red>You need a party to queue party duels.</red>"); return; }
@@ -546,7 +584,7 @@ public final class DuelService implements Listener {
         queueUnits.put(unit.unitId(), unit);
         for (UUID member : members) queueByPlayer.put(member, unit);
         partyQueues.computeIfAbsent(kitId, ignored -> new ArrayDeque<>()).add(unit.unitId());
-        actionBarMembers(members, "<gradient:#34d399:#22c55e>Queued for 2v2</gradient> <gray>" + kits.get(kitId).displayName() + "</gray>");
+        messageService.queue(player, "2v2", kits.get(kitId).displayName());
         tryMatchAll();
     }
 
@@ -738,7 +776,8 @@ public final class DuelService implements Listener {
         meta.lore(List.of(
                 Text.mm("<gray>Click to open duel modes.</gray>"),
                 Text.mm("<gray>1v1 queued:</gray> <white>" + soloQueueCount() + "</white>"),
-                Text.mm("<gray>2v2 queued:</gray> <white>" + partyQueueCount() + "</white>")
+                Text.mm("<gray>2v2 queued:</gray> <white>" + partyQueueCount() + "</white>"),
+                Text.mm("<gray>Your queue:</gray> <white>" + queueSummary(player.getUniqueId()) + "</white>")
         ));
         item.setItemMeta(meta);
         player.getInventory().setItem(slot, item);
@@ -764,6 +803,20 @@ public final class DuelService implements Listener {
         if (id == null) return;
         event.setCancelled(true);
         if (QUEUE_ITEM_ID.equals(id)) { if (canUseInWorld(event.getPlayer())) openMainMenu(event.getPlayer()); else Text.send(event.getPlayer(), "<red>Duels are not available in this world.</red>"); }
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onPlaceInDuel(BlockPlaceEvent event) {
+        if (!matchesByPlayer.containsKey(event.getPlayer().getUniqueId())) return;
+        placedMatchBlocks.add(blockKey(event.getBlockPlaced().getLocation()));
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBreakInDuel(BlockBreakEvent event) {
+        if (!matchesByPlayer.containsKey(event.getPlayer().getUniqueId())) return;
+        String key = blockKey(event.getBlock().getLocation());
+        if (placedMatchBlocks.remove(key)) return;
+        event.setCancelled(true);
     }
 
     @EventHandler
@@ -852,6 +905,7 @@ public final class DuelService implements Listener {
         DuelMatch match = matchesByPlayer.get(event.getEntity().getUniqueId());
         if (match == null) return;
         event.getDrops().clear();
+        scoreService.recordDeath(event.getEntity().getUniqueId());
         if (event.getEntity().getKiller() != null) playKillEffect(event.getEntity().getKiller());
         handleDuelElimination(event.getEntity(), match, "death");
     }
@@ -898,12 +952,30 @@ public final class DuelService implements Listener {
 
     private void playKillEffect(Player player) {
         if (player == null || !player.isOnline()) return;
+        if (!matchesByPlayer.containsKey(player.getUniqueId())) return;
         player.getWorld().spawnParticle(Particle.ENCHANT, player.getLocation().add(0, 1.1, 0), 38, 0.45, 0.65, 0.45, 0.02);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.9f, 1.55f);
     }
     private void handleDuelElimination(Player eliminated, DuelMatch match, String reason) {
-        if (!endingMatches.add(match.id())) return;
         Set<UUID> winners = match.teamOne().contains(eliminated.getUniqueId()) ? match.teamTwo() : match.teamOne();
+        if (match.awardWin(winners) && !match.isComplete()) {
+            Set<UUID> all = new LinkedHashSet<>();
+            all.addAll(match.teamOne());
+            all.addAll(match.teamTwo());
+            messageService.roundEnd(all, match.teamOneWins(), match.teamTwoWins());
+            titleMembers(all, "<gradient:#60a5fa:#c084fc>Round " + match.totalRoundsPlayed() + " complete</gradient>", "<gray>Next round starting soon</gray>");
+            eliminated.setGameMode(GameMode.SPECTATOR);
+            Player target = firstOnline(winners);
+            if (target != null) {
+                try {
+                    eliminated.setSpectatorTarget(target);
+                } catch (IllegalArgumentException ignored) {
+                }
+            }
+            Bukkit.getScheduler().runTaskLater(plugin, () -> resetAndRestartRound(match), 100L);
+            return;
+        }
+        if (!endingMatches.add(match.id())) return;
         try {
             eliminated.setHealth(Math.max(1.0, Math.min(20.0, eliminated.getAttribute(Attribute.MAX_HEALTH) == null ? 20.0 : eliminated.getAttribute(Attribute.MAX_HEALTH).getValue())));
             eliminated.setFireTicks(0);
@@ -920,7 +992,35 @@ public final class DuelService implements Listener {
         all.addAll(match.teamTwo());
         notifyMembers(all, "<gradient:#60a5fa:#c084fc>Duel finished.</gradient> <gray>Winner:</gray> <white>" + winnerNames + "</white>");
         titleMembers(all, "<gradient:#60a5fa:#c084fc>" + winnerNames + " wins</gradient>", "<gray>Returning to spawn in 5 seconds</gray>");
+        for (UUID uuid : winners) scoreService.recordWin(uuid);
+        for (UUID uuid : all) if (!winners.contains(uuid)) scoreService.recordLoss(uuid);
         Bukkit.getScheduler().runTaskLater(plugin, () -> endMatch(match, winners, reason), 100L);
+    }
+
+    private void resetAndRestartRound(DuelMatch match) {
+        DuelMap map = maps.get(match.mapId());
+        if (map == null) return;
+        for (UUID uuid : match.teamOne()) resetForNextRound(uuid, map.spawnA());
+        for (UUID uuid : match.teamTwo()) resetForNextRound(uuid, map.spawnB());
+        notifyMembers(match.teamOne(), "<gray>Next round starting soon...</gray>");
+        notifyMembers(match.teamTwo(), "<gray>Next round starting soon...</gray>");
+        startArenaCountdown(match, map);
+    }
+
+    private void resetForNextRound(UUID uuid, Location spawn) {
+        Player player = Bukkit.getPlayer(uuid);
+        if (player == null) return;
+        player.setGameMode(GameMode.SURVIVAL);
+        player.removePotionEffect(org.bukkit.potion.PotionEffectType.BLINDNESS);
+        player.removePotionEffect(org.bukkit.potion.PotionEffectType.DARKNESS);
+        player.setFireTicks(0);
+        player.setFallDistance(0.0f);
+        player.setSaturation(20.0f);
+        player.setFoodLevel(20);
+        player.teleport(spawn);
+        stripHubItems(player);
+        DuelKit kit = kits.get(matchesByPlayer.get(uuid).kitId().toLowerCase(Locale.ROOT));
+        if (kit != null) applyKit(player, kit);
     }
 
     private Player firstOnline(Collection<UUID> uuids) {
@@ -1199,7 +1299,7 @@ public final class DuelService implements Listener {
                 String kitName = kits.containsKey(unit.kitId().toLowerCase(Locale.ROOT)) ? kits.get(unit.kitId().toLowerCase(Locale.ROOT)).displayName() : unit.kitId();
                 String modeLabel = unit.mode() == DuelMode.SOLO ? "1v1" : "2v2";
                 String msg = "<gradient:#60a5fa:#c084fc>Queued " + modeLabel + "</gradient> <gray>" + kitName + "</gray> <dark_gray>|</dark_gray> <white>" + elapsed + "</white>";
-                notifyMembers(unit.members(), msg);
+                actionBarMembers(unit.members(), msg);
             }
         }, 20L, 20L);
     }
@@ -1292,7 +1392,16 @@ public final class DuelService implements Listener {
         startMatch(first, second, map);
     }
 
+    private void startMatch(QueueUnit first, QueueUnit second, String mapId, int roundsToWin) {
+        DuelMap map = mapId == null || mapId.isBlank() ? pickMap() : maps.get(mapId.toLowerCase(Locale.ROOT));
+        startMatch(first, second, map, roundsToWin);
+    }
+
     private void startMatch(QueueUnit first, QueueUnit second, DuelMap map) {
+        startMatch(first, second, map, kitRounds(first.kitId()));
+    }
+
+    private void startMatch(QueueUnit first, QueueUnit second, DuelMap map, int roundsToWin) {
         if (map == null || map.spawnA() == null || map.spawnB() == null) {
             notifyMembers(first.members(), "<red>No valid duel map configured.</red>");
             notifyMembers(second.members(), "<red>No valid duel map configured.</red>");
@@ -1303,7 +1412,9 @@ public final class DuelService implements Listener {
         UUID matchId = UUID.randomUUID();
         DuelWorldService.InstancedMap instanced = worldService.create(map, matchId);
         DuelMap activeMap = instanced.map();
-        DuelMatch match = new DuelMatch(matchId, first.mode(), first.kitId(), activeMap.id(), first.members(), second.members(), System.currentTimeMillis());
+        DuelKit kit = kits.get(first.kitId().toLowerCase(Locale.ROOT));
+        roundsToWin = Math.max(1, roundsToWin);
+        DuelMatch match = new DuelMatch(matchId, first.mode(), first.kitId(), activeMap.id(), first.members(), second.members(), System.currentTimeMillis(), roundsToWin);
         if (instanced.world() != null) instanceWorldsByMatch.put(matchId, instanced.world());
         first.members().forEach(member -> { matchesByPlayer.put(member, match); ACTIVE_DUEL_PLAYERS.add(member); });
         second.members().forEach(member -> { matchesByPlayer.put(member, match); ACTIVE_DUEL_PLAYERS.add(member); });
@@ -1311,19 +1422,26 @@ public final class DuelService implements Listener {
         removeQueueUnit(second, false);
         notifyMembers(match.teamOne(), "<green>Match found. Starting on " + activeMap.displayName() + "</green>");
         notifyMembers(match.teamTwo(), "<green>Match found. Starting on " + activeMap.displayName() + "</green>");
+        applyMatchFoundEffects(match.teamOne());
+        applyMatchFoundEffects(match.teamTwo());
         prepareMatch(match, activeMap);
+        startArenaCountdown(match, activeMap);
+    }
+
+    private void startArenaCountdown(DuelMatch match, DuelMap map) {
         int seconds = Math.max(1, configs.get("duels/duels.yml").getInt("duels.countdown.seconds", 5));
         new BukkitRunnable() {
             int remaining = seconds;
             @Override public void run() {
-                if (!matchesByPlayer.containsKey(match.teamOne().iterator().next()) || remaining < 0) { cancel(); return; }
-                if (remaining == 0) {
-                    beginFight(match, activeMap);
+                if (!matchesByPlayer.containsKey(match.teamOne().iterator().next()) || remaining < 0) {
                     cancel();
                     return;
                 }
-                notifyMembers(match.teamOne(), "<gradient:#60a5fa:#c084fc>Duel starts in " + remaining + "</gradient>");
-                notifyMembers(match.teamTwo(), "<gradient:#60a5fa:#c084fc>Duel starts in " + remaining + "</gradient>");
+                if (remaining == 0) {
+                    beginFight(match, map);
+                    cancel();
+                    return;
+                }
                 titleMembers(match.teamOne(), "<gradient:#60a5fa:#c084fc>" + remaining + "</gradient>", "<gray>Get ready</gray>");
                 titleMembers(match.teamTwo(), "<gradient:#60a5fa:#c084fc>" + remaining + "</gradient>", "<gray>Get ready</gray>");
                 soundMembers(match.teamOne(), Sound.BLOCK_NOTE_BLOCK_PLING, 1.0f, 1.25f);
@@ -1345,6 +1463,8 @@ public final class DuelService implements Listener {
     private void beginFight(DuelMatch match, DuelMap map) {
         frozenDuelPlayers.removeAll(match.teamOne());
         frozenDuelPlayers.removeAll(match.teamTwo());
+        clearMatchFoundEffects(match.teamOne());
+        clearMatchFoundEffects(match.teamTwo());
         notifyMembers(match.teamOne(), "<green>Fight!</green>");
         notifyMembers(match.teamTwo(), "<green>Fight!</green>");
         titleMembers(match.teamOne(), "<gradient:#34d399:#22c55e>START!</gradient>", "<gray>Good luck.</gray>");
@@ -1353,6 +1473,24 @@ public final class DuelService implements Listener {
         soundMembers(match.teamTwo(), Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.0f);
         autoSplashTeam(match.teamOne(), match.kitId());
         autoSplashTeam(match.teamTwo(), match.kitId());
+    }
+
+    private void applyMatchFoundEffects(Collection<UUID> members) {
+        for (UUID uuid : members) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player == null) continue;
+            player.addPotionEffect(new org.bukkit.potion.PotionEffect(PotionEffectType.BLINDNESS, 40, 0, true, false, false));
+            player.playSound(player.getLocation(), Sound.BLOCK_GLASS_BREAK, 0.8f, 0.7f);
+            Text.actionBar(player, "<gray>Match found. Preparing arena...</gray>");
+        }
+    }
+
+    private void clearMatchFoundEffects(Collection<UUID> members) {
+        for (UUID uuid : members) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player == null) continue;
+            player.removePotionEffect(PotionEffectType.BLINDNESS);
+        }
     }
 
     private void autoSplashTeam(Set<UUID> members, String kitId) {
@@ -1511,7 +1649,12 @@ public final class DuelService implements Listener {
                 player.setFoodLevel(20);
                 player.setSaturation(20.0f);
                 player.setFireTicks(0);
-                Bukkit.getScheduler().runTaskLater(plugin, () -> refreshPostMatchItems(player), 2L);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    refreshPostMatchItems(player);
+                    var data = repository.load(uuid);
+                    String duration = formatDuration(System.currentTimeMillis() - match.startedAt());
+                    menuService.open(player, guiManager.buildEndSummary(player, winnerNames, duration, data.duelKills(), data.duelDeaths(), data.duelWins(), data.duelLosses(), data.duelWinStreak()));
+                }, 2L);
                 boolean win = winners.contains(uuid);
                 Text.send(player, win ? "<green>You won the duel.</green> <gray>Winner: <white>" + winnerNames + "</white></gray>" : "<gray>Duel ended: " + reason + ". Winner: <white>" + winnerNames + "</white></gray>");
             }
@@ -1524,6 +1667,7 @@ public final class DuelService implements Listener {
                 snapshots.remove(uuid);
             }
             org.bukkit.World instance = instanceWorldsByMatch.remove(match.id());
+            clearPlacedBlocks(instance);
             if (instance != null) worldService.cleanup(instance);
             endingMatches.remove(match.id());
         }
@@ -1545,6 +1689,16 @@ public final class DuelService implements Listener {
             names.add(player == null ? uuid.toString().substring(0, 8) : player.getName());
         }
         return String.join(", ", names);
+    }
+
+    private void clearPlacedBlocks(World world) {
+        if (world == null) return;
+        String worldName = world.getName().toLowerCase(Locale.ROOT);
+        placedMatchBlocks.removeIf(key -> key.startsWith(worldName + ":"));
+    }
+
+    private String blockKey(Location location) {
+        return location.getWorld().getName().toLowerCase(Locale.ROOT) + ":" + location.getBlockX() + ":" + location.getBlockY() + ":" + location.getBlockZ();
     }
 
     private void balanceRatings(Set<UUID> teamOne, Set<UUID> teamTwo, Set<UUID> winners) {
@@ -1650,6 +1804,11 @@ public final class DuelService implements Listener {
     }
 
     private String selectedKitForParty() { return kits.values().stream().filter(DuelKit::enabled).findFirst().map(DuelKit::id).orElse(null); }
+
+    private int kitRounds(String kitId) {
+        DuelKit kit = kits.get(kitId == null ? "" : kitId.toLowerCase(Locale.ROOT));
+        return kit == null ? 1 : Math.max(1, kit.rounds());
+    }
 
     private void loadKits() {
         var section = configs.get("duels/kits.yml").getConfigurationSection("kits");

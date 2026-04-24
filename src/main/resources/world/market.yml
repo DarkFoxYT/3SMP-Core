@@ -1,0 +1,15 @@
+world:
+  name: market
+  generator: VoidGen
+  spawn:
+    y: 80
+  multiverse:
+    register: true
+    hide: true
+
+rent:
+  period-days: 7
+  grace-period-hours: 48
+  check-interval-seconds: 3600
+
+plots: {}

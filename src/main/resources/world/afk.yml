@@ -1,18 +1,25 @@
 enabled: true
+bypass-permission: 3smpcore.afk.bypass
 kick-after-seconds: 900
-check-interval-seconds: 30
+check-interval-seconds: 5
 payout-every-minutes: 30
 payout-amount: 1000
-bypass-permission: 3smpcore.afk.bypass
 kick-message: "<red>You were kicked for being AFK too long.</red>"
 
-zone:
-  enabled: true
-  world: afk_void
-  generator: VoidGen
-  spawn:
-    x: 0.5
-    y: 80.0
-    z: 0.5
-  actionbar: "<gradient:#1A2A4A:#D6E8F7>AFK Zone</gradient> <gray>Move, click, chat, or run a command to return to spawn.</gray>"
-  reward-actionbar: "<green>AFK reward received.</green>"
+messages:
+  entering: "<gradient:#1A2A4A:#D6E8F7>Entered AFK zone.</gradient>"
+  afk: "<yellow>You are now AFK.</yellow>"
+  reward: "<green>AFK reward received.</green>"
+  leaving: "<gray>You left the AFK zone.</gray>"
+
+zones:
+  default:
+    world: afk_void
+    pos1:
+      x: -10
+      y: 60
+      z: -10
+    pos2:
+      x: 10
+      y: 90
+      z: 10

@@ -311,3 +311,108 @@
 - Party dungeon starts now validate per-member difficulty access, including Nightmare unlock requirements.
 - Active dungeon group membership is now tracked per player so dungeon-specific TAB views can show the current team.
 - Party dungeon failure now clears the active run for the group when a member dies, preventing stale dungeon teammate state.
+
+### Fixed
+- Chat prefixes are now always rendered as a core chat feature using LuckPerms first and a configured fallback prefix when LuckPerms has no value.
+- Prefix rendering no longer depends on cosmetics selection state.
+
+### Changed
+- Added `chat.default-prefix` to `core/config.yml` so servers can control the fallback prefix shown when a player has no LuckPerms prefix.
+
+### Fixed
+- Duel matchmaking now starts matches immediately after finding an opponent instead of showing a second queue-side countdown.
+- Duel arena starts still use the configured start countdown, with blindness applied on match found and cleared when the arena countdown ends.
+
+### Added
+- Added a custom fishing minigame with GUI timing, moving fish targets, rarity rolls, rewards, and persistent fishing stats.
+- Added fishing session storage and reward handling with Vault coin payouts and ItemsAdder-ready fish icons/rewards.
+- Added `/3SMPCore` integration points for fishing GUI routing through the shared chest-menu listener system.
+- Added a chest-GUI Daily Reward system with `/daily`, `/rewards`, and `/3smpcore daily`.
+- Added SQLite-backed daily claim storage with streak tracking, 24-hour cooldowns, and weekly/monthly bonus reward support.
+- Added configurable daily reward entries with coins, commands, items, and ItemsAdder-ready icon/item placeholders.
+- Added Sapphire shop categories for crate keys, gem extractors, gem capsules, cosmetics, and donor ranks with balance checks before purchase.
+- Added gem capsule shop support with Rough, Polished, Cut, Flawless, and Mystery tiers.
+- Added `/gems capsules` and `/gems givecapsule <player> <tier> <amount>`.
+
+### Fixed
+- Duel rounds now track score across the full match and continue into additional rounds until a team reaches the configured win threshold.
+- Duel match-found blindness now only applies during the arena transition and is cleared when the fight starts.
+- Duel instance worlds now force a VoidGen-style generator and `generateStructures(false)` to avoid terrain generation in unexplored chunks.
+- LuckPerms prefixes remain the always-on chat prefix source and do not depend on badges or cosmetic state.
+- Party duel round selection is now passed into the actual match instead of being ignored at start.
+- Party duel setup continues to use the saved arena and rounds values when starting from the GUI or sign input.
+- Duel queue UI now shows the actual queued mode and kit instead of only generic queue counts.
+- Duel match instances are recreated from the saved arena template before players are teleported in, keeping live maps reset between fights.
+- Duel queue timers now use actionbar only instead of chat messages, so queue updates no longer spam chat.
+- Duel arena maps are now protected from breaking unless the block was placed during the current match.
+- Chat rendering no longer injects cosmetic badges ahead of LuckPerms prefixes.
+
+### Added
+- Added duel-only kill effect templates in `cosmetics/cosmetics.yml`, with the default spark effect and placeholder premium variants.
+
+## 2026-04-24
+
+### Added
+- Added declared `/afk`, `/speed`, `/fly`, `/gamemode`, `/gm`, `/gms`, `/gmc`, `/gma`, `/gmsp`, `/time`, and `/gamerule` commands to `plugin.yml`.
+- Added `admin/permissions.yml` as a grouped permission reference for setup and staff configuration.
+- Added a real Chat Colors category to the Cosmetics hub and linked it from the summary screen.
+- Added AFK zone subsystem with `/3smpcore afkzone wand|create|delete|list`, zone tracking, Vault-backed coin rewards, and AFK state handling.
+
+### Changed
+- Chat rendering now resolves LuckPerms prefixes as the always-on prefix source and expands PlaceholderAPI placeholders in prefix text for ItemsAdder-friendly rank formatting.
+- Chat color rendering now happens on the final rendered chat component so selected colors apply consistently.
+- Cosmetics summary now reflects the always-on LuckPerms prefix model instead of treating prefixes like a cosmetic toggle.
+- Essential utility commands now support granular permission nodes alongside the legacy `3smpcore.essentials` bypass permission.
+- AFK rewards now only run inside configured AFK zones and respect duel/dungeon/creative/spectator exclusions.
+
+### Fixed
+- `/speed`, `/fly`, and gamemode shortcut commands now reject use during active duels.
+- Cosmetic chat colors now have a real GUI path and rank-aware unlock checks instead of only existing in config.
+- AFK zone state no longer conflicts with the legacy AFK timeout manager.
+
+### Added
+- Added a Souls system with kill-based drops, PvP zone drops, optional duel drops, anti-farm cooldowns, persistent balance storage, and a `/souls` chest GUI.
+- Added Souls reward trading for coins, items, and commands with configurable shop entries.
+- Added `SoulManager`, `SoulDropService`, `SoulGui`, and `SoulStorage` as the core Souls subsystem structure.
+
+### Added
+- Added a Market District system with a separate Multiverse world, plot ownership storage, weekly rent handling, and `/market` chest GUI access.
+- Added market plot admin tools for wand-based region setup, plot creation, deletion, naming, pricing, rent values, and trust lists.
+- Added market plot protection rules so only owners and trusted players can build inside their plots in the market world.
+- Added market world bootstrap and auto-registration support for the configured market world.
+
+### Added
+- Added a shop chest system for owned market plots with buyer purchase GUI, owner settings GUI, and owner shift-right-click chest access.
+- Added shop chest storage, stock handling, and transaction services with Vault-backed payouts to the chest owner.
+- Added shop chest enable/disable behavior that auto-disables empty shops and notifies the owner.
+- Added shop chest configuration support for item, price, quantity, and fair-price enforcement hooks.
+
+### Added
+- Added shared wrapper services for economy, messages, GUI theming, and player data access.
+- Added top-level `config.yml`, `messages.yml`, `gui.yml`, `rewards.yml`, `fishing.yml`, `souls.yml`, and `market.yml` defaults for cleaner server-side configuration entry points.
+- Added `/3smpcore reload` coverage for market plot refreshes so the market layer stays in sync after config reloads.
+
+### Fixed
+- Fishing rod casts now open the fishing GUI through the actual cast event flow, while cancelling vanilla fishing behavior so normal fish catches do not run.
+- Added `/fishdebug` and `/fishingdebug` for live fishing session diagnostics, guarded by `3smpcore.fishing.debug`.
+- `/market` now routes players into the market world before opening the market GUI, with a `/markert` alias for the common typo.
+- The market hub now exposes clearer plot info and settings actions from the chest GUI.
+- Survival now saves and clears the live inventory before teleporting to spawn or survival, preventing item leakage between spawn and survival profiles.
+- Survival now treats the overworld, nether, and end as the same survival family for inventory profile saving/loading.
+- Market world now shares the same survival-side inventory profile instead of falling back to spawn inventory.
+- Survival-family deaths now respawn at spawn only when no bed or anchor respawn point exists.
+- Dungeon entry now saves the player inventory profile first and clears the live inventory before applying the dungeon kit, preventing spawn items from carrying into dungeon runs.
+- Survival-world command usage is now restricted to the configured allowed commands only.
+- The duel home menu no longer routes through the dead formats screen; 1v1 kit selection and party duel queue flow now open directly from the main chest GUI.
+- Fishing now opens from both the real cast event path and a right-click rod fallback, so fishing rods reliably open the arcade GUI.
+- The accidental `/markert` alias was removed so only `/market` remains.
+- Duel dev panel now includes a dungeon editor shortcut that teleports devs into the dungeon world with the room marker tools ready.
+- Duel home now shows only the real duel options: `1v1` and `Party Duels`.
+- The dungeon compass item now teleports players to dungeon spawn instead of opening the dungeon GUI directly.
+- `/dungeon` now routes players to dungeon spawn, while the dev panel owns the dungeon editor entry.
+- Dungeons now use their own saved `dungeon` inventory profile instead of sharing spawn items.
+- `/leave` now exits dungeon space as well as duels.
+- Dungeon runtime and dungeon editor now use separate void worlds, with structure generation disabled by default.
+- Fishing now only opens the arcade GUI from an actual water cast path instead of non-water rod use.
+- Dungeon editor tools are now hardened against clicks, drags, drops, and slot scrambling, with the main save tool snapping back into its fixed toolbar slot.
+- Gamerule handling now uses the Paper registry-based lookup path instead of deprecated legacy gamerule APIs.

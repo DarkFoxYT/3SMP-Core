@@ -83,6 +83,39 @@ commands:
     description: Auction house
   spy:
     description: Toggle command spy
+  afk:
+    description: Enter the AFK zone
+  daily:
+    description: Open the daily rewards GUI
+    aliases: [ rewards ]
+  souls:
+    description: Open the souls GUI
+  fishdebug:
+    description: Show fishing debug information
+  fishingdebug:
+    description: Show fishing debug information
+  market:
+    description: Market district commands
+  speed:
+    description: Change your walk or fly speed
+  fly:
+    description: Toggle flight
+  gamemode:
+    description: Change gamemode
+  gm:
+    description: Change gamemode
+  gms:
+    description: Set survival mode
+  gmc:
+    description: Set creative mode
+  gma:
+    description: Set adventure mode
+  gmsp:
+    description: Set spectator mode
+  time:
+    description: Set world time
+  gamerule:
+    description: Change a gamerule
 permissions:
   3smpcore.admin:
     default: op
@@ -144,6 +177,22 @@ permissions:
     default: op
   3smpcore.afk.bypass:
     default: op
+  3smpcore.afkzone.admin:
+    default: op
+  3smpcore.daily.use:
+    default: true
+  3smpcore.daily.admin:
+    default: op
+  3smpcore.souls.use:
+    default: true
+  3smpcore.souls.admin:
+    default: op
+  3smpcore.fishing.debug:
+    default: op
+  3smpcore.market.use:
+    default: true
+  3smpcore.market.admin:
+    default: op
 
 
 
@@ -175,6 +224,20 @@ permissions:
   3smpcore.queue.priority.owner:
     default: op
   3smpcore.essentials:
+    default: op
+  3smpcore.command.afk:
+    default: true
+  3smpcore.command.speed:
+    default: op
+  3smpcore.command.fly:
+    default: op
+  3smpcore.command.gamemode:
+    default: op
+  3smpcore.command.gamemode.others:
+    default: op
+  3smpcore.command.time:
+    default: op
+  3smpcore.command.gamerule:
     default: op
 
 

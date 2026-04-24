@@ -1,6 +1,7 @@
 package net.dark.threecore.spawn;
 
 import net.dark.threecore.config.ConfigFiles;
+import net.dark.threecore.survival.SurvivalService;
 import net.dark.threecore.text.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -20,6 +21,7 @@ import java.io.File;
 
 public final class SpawnService implements Listener {
     private net.dark.threecore.welcome.WelcomeService welcomeService;
+    private SurvivalService survivalService;
     private final JavaPlugin plugin;
     private final ConfigFiles configs;
 
@@ -29,6 +31,7 @@ public final class SpawnService implements Listener {
     }
 
     public void setWelcomeService(net.dark.threecore.welcome.WelcomeService welcomeService) { this.welcomeService = welcomeService; }
+    public void setSurvivalService(SurvivalService survivalService) { this.survivalService = survivalService; }
 
     public void setSpawnLocation(CommandSender sender, Location location) {
         var yaml = configs.get("core/config.yml");
@@ -48,6 +51,7 @@ public final class SpawnService implements Listener {
     }
 
     public void sendToSpawn(Player player) {
+        if (survivalService != null) survivalService.saveCurrentProfile(player);
         Location spawn = getSpawnLocation();
         if (spawn == null) {
             Text.send(player, "<red>Spawn is not configured.</red>");
@@ -58,6 +62,7 @@ public final class SpawnService implements Listener {
         }
         player.setGameMode(GameMode.SURVIVAL);
         player.teleport(spawn);
+        if (survivalService != null) survivalService.loadProfile(player, "spawn");
         applySpawnEffects(player);
         if (welcomeService != null) welcomeService.send(player);
         Text.send(player, "<green>Teleported to spawn.</green>");

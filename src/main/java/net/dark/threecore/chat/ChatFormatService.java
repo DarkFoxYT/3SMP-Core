@@ -36,18 +36,15 @@ public final class ChatFormatService implements Listener {
     public void onChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
         var data = perkService.data(player.getUniqueId());
-        Component badge = display("cosmetics/badges.yml", "badges", data.activeBadge());
-        Component luckPermsPrefix = luckPermsPrefix(player);
-        Component tag = display("cosmetics/tags.yml", "tags", data.activeTag());
+        Component prefix = resolvePrefix(player);
+        Component tag = display(player, "cosmetics/tags.yml", "tags", data.activeTag());
         Component name = Component.text(player.getName(), TextColor.fromHexString("#FFFFFF"));
-        Component message = colorize(resolveMessageColor(player, data.activeMessageColor()), event.message());
-        event.renderer((source, sourceDisplayName, chatMessage, viewer) -> joinChatParts(badge, luckPermsPrefix, name, tag, message));
+        event.renderer((source, sourceDisplayName, chatMessage, viewer) -> joinChatParts(prefix, name, tag, colorize(resolveMessageColor(player, data.activeMessageColor()), chatMessage)));
     }
 
-    private Component joinChatParts(Component badge, Component prefix, Component name, Component tag, Component message) {
+    private Component joinChatParts(Component prefix, Component name, Component tag, Component message) {
         List<Component> leading = new ArrayList<>();
-        if (!badge.equals(Component.empty())) leading.add(badge);
-        if (!prefix.equals(Component.empty())) leading.add(prefix);
+        leading.add(prefix);
         leading.add(name);
         if (!tag.equals(Component.empty())) leading.add(tag);
 
@@ -113,23 +110,30 @@ public final class ChatFormatService implements Listener {
         return primary != null && primary.equalsIgnoreCase(requiredRank);
     }
 
-    private Component display(String file, String root, String id) {
+    private Component display(Player player, String file, String root, String id) {
         if (id == null || id.isBlank() || id.equalsIgnoreCase("default")) return Component.empty();
         ConfigurationSection sec = configs.get(file).getConfigurationSection(root + "." + id.toLowerCase(Locale.ROOT));
         if (sec == null) return Component.empty();
-        String value = sec.getString("preview", sec.getString("display-name", ""));
+        String value = applyPlayerPlaceholders(player, sec.getString("preview", sec.getString("display-name", "")));
         if (value == null || value.isBlank() || value.contains("?")) return Component.empty();
         try {
-            return Text.mm(value);
+            return deserializeDecoration(value);
         } catch (Exception ignored) {
             return Component.empty();
         }
     }
 
-    private Component luckPermsPrefix(Player player) {
-        String prefix = luckPermsPrefixString(player.getUniqueId());
-        if (prefix == null || prefix.isBlank()) return Component.empty();
-        return deserializeDecoration(prefix);
+    private Component resolvePrefix(Player player) {
+        String prefix = applyPlayerPlaceholders(player, luckPermsPrefixString(player.getUniqueId()));
+        if (prefix != null && !prefix.isBlank()) {
+            return deserializeDecoration(prefix);
+        }
+        String fallback = configs.get("core/config.yml").getString("chat.default-prefix", "<gray>[<white>Member</white>]</gray>");
+        try {
+            return Text.mm(fallback);
+        } catch (Exception ignored) {
+            return Component.text("[Member]", NamedTextColor.GRAY);
+        }
     }
 
     private String luckPermsPrefixString(UUID uuid) {
@@ -168,6 +172,7 @@ public final class ChatFormatService implements Listener {
 
     private Component deserializeDecoration(String input) {
         if (input == null || input.isBlank()) return Component.empty();
+        input = input.replace('§', '&');
         try {
             if (input.contains("<") && input.contains(">")) return Text.mm(input);
         } catch (Exception ignored) {
@@ -182,5 +187,16 @@ public final class ChatFormatService implements Listener {
     private String escapeMini(String input) {
         if (input == null) return "";
         return input.replace("<", "&lt;").replace(">", "&gt;");
+    }
+
+    private String applyPlayerPlaceholders(Player player, String input) {
+        if (input == null || input.isBlank()) return input;
+        if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") == null) return input;
+        try {
+            Class<?> placeholderApi = Class.forName("me.clip.placeholderapi.PlaceholderAPI");
+            return (String) placeholderApi.getMethod("setPlaceholders", org.bukkit.OfflinePlayer.class, String.class).invoke(null, player, input);
+        } catch (Throwable ignored) {
+            return input;
+        }
     }
 }

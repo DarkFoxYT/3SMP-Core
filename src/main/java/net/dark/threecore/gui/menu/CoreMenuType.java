@@ -10,5 +10,10 @@ public enum CoreMenuType {
     PERKS_CATEGORY,
     GEMS_MAIN,
     GEMS_STATS,
-    SAPPHIRES_MAIN
+    SAPPHIRES_MAIN,
+    DAILY_MAIN,
+    FISHING_MAIN,
+    SOULS_MAIN,
+    MARKET_MAIN,
+    SHOP_CHEST
 }

@@ -37,6 +37,11 @@ public final class SapphireMenu {
                 "<white>/sapphire ballance</white>",
                 "<white>/sapphire shop</white>"
         )));
+        inv.setItem(19, button(Material.TRIPWIRE_HOOK, "<gradient:#f59e0b:#f97316>Crate Keys</gradient>", List.of("<gray>Spend sapphires on crate keys.</gray>")));
+        inv.setItem(20, button(Material.PRISMARINE_SHARD, "<gradient:#06b6d4:#8b5cf6>Gem Extractor</gradient>", List.of("<gray>Buy a gem extractor.</gray>")));
+        inv.setItem(21, button(Material.AMETHYST_SHARD, "<gradient:#a855f7:#ec4899>Gem Capsules</gradient>", List.of("<gray>Buy gem capsules.</gray>")));
+        inv.setItem(22, button(Material.ENDER_EYE, "<gradient:#f472b6:#f59e0b>Cosmetics</gradient>", List.of("<gray>Spend sapphires on cosmetics.</gray>")));
+        inv.setItem(23, button(Material.NETHER_STAR, "<gradient:#facc15:#fb7185>Donor Ranks</gradient>", List.of("<gray>Browse rank unlocks.</gray>")));
         return inv;
     }
 
@@ -60,7 +65,11 @@ public final class SapphireMenu {
             case 11 -> service.sendBalance(player);
             case 13 -> service.openShopLink(player);
             case 15 -> service.sendCommandHelp(player);
-            case 22 -> service.openShop(player);
+            case 19 -> service.purchase(player, "crate_keys");
+            case 20 -> service.purchase(player, "gem_extractor");
+            case 21 -> service.purchase(player, "gem_capsule");
+            case 22 -> service.purchase(player, "cosmetics");
+            case 23 -> service.purchase(player, "donor_rank");
             default -> { }
         }
     }

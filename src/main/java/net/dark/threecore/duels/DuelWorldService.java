@@ -64,7 +64,10 @@ public final class DuelWorldService {
             delete(to);
             editorWorld.save();
             copyWorld(editorWorld.getWorldFolder().toPath(), to);
-            World world = Bukkit.createWorld(new WorldCreator(name));
+            WorldCreator creator = new WorldCreator(name);
+            creator.generator(configs.get("duels/duels.yml").getString("duels.world-instances.generator", "VoidGen"));
+            creator.generateStructures(false);
+            World world = Bukkit.createWorld(creator);
             if (world != null) {
                 world.setAutoSave(false);
                 applyWorldRules(world, "duels.world-instances");
@@ -94,8 +97,17 @@ public final class DuelWorldService {
         Path from = template.getWorldFolder().toPath();
         Path to = Bukkit.getWorldContainer().toPath().resolve(instanceName);
         try {
+            World existing = Bukkit.getWorld(instanceName);
+            if (existing != null) {
+                unregisterFromMultiverse(existing.getName());
+                Bukkit.unloadWorld(existing, false);
+            }
+            delete(to);
             copyWorld(from, to);
-            World world = Bukkit.createWorld(new WorldCreator(instanceName));
+            WorldCreator creator = new WorldCreator(instanceName);
+            creator.generator(configs.get("duels/duels.yml").getString("duels.world-instances.generator", "VoidGen"));
+            creator.generateStructures(false);
+            World world = Bukkit.createWorld(creator);
             if (world == null) return new InstancedMap(source, null);
             world.setAutoSave(false);
             applyWorldRules(world, "duels.world-instances");
@@ -118,16 +130,25 @@ public final class DuelWorldService {
     private void applyWorldRules(World world, String path) {
         if (world == null) return;
         if (configs.get("duels/duels.yml").getBoolean(path + ".disable-mob-spawning", true)) {
-            world.setGameRule(GameRule.DO_MOB_SPAWNING, false);
-            world.setGameRule(GameRule.DO_PATROL_SPAWNING, false);
-            world.setGameRule(GameRule.DO_TRADER_SPAWNING, false);
-            world.setGameRule(GameRule.DO_WARDEN_SPAWNING, false);
+            setGameRule(world, "doMobSpawning", false);
+            setGameRule(world, "doPatrolSpawning", false);
+            setGameRule(world, "doTraderSpawning", false);
+            setGameRule(world, "doWardenSpawning", false);
         }
         if (configs.get("duels/duels.yml").getBoolean(path + ".disable-weather", true)) {
             world.setStorm(false);
             world.setThundering(false);
-            world.setGameRule(GameRule.DO_WEATHER_CYCLE, false);
+            setGameRule(world, "doWeatherCycle", false);
         }
+    }
+    private <T> void setGameRule(World world, String ruleName, T value) {
+        @SuppressWarnings("unchecked")
+        GameRule<T> rule = (GameRule<T>) org.bukkit.Registry.GAME_RULE.get(org.bukkit.NamespacedKey.minecraft(toSnakeCase(ruleName)));
+        if (rule != null) world.setGameRule(rule, value);
+    }
+
+    private String toSnakeCase(String value) {
+        return value.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(java.util.Locale.ROOT);
     }
     private void registerWithMultiverse(World world) {
         if (world == null || Bukkit.getPluginManager().getPlugin("Multiverse-Core") == null) return;

@@ -4,6 +4,32 @@ sapphire:
   exchangeable: false
   shop-url: "https://example.com"
   command-aliases: [ sap, sapphires ]
+  shop-items:
+    crate_keys:
+      currency: sapphires
+      price: 100
+      amount: 1
+      give-command: "crate keys give {player} {amount}"
+    gem_extractor:
+      currency: sapphires
+      price: 250
+      amount: 1
+      give-command: "gems giveextractor {player} {amount}"
+    gem_capsule:
+      currency: sapphires
+      price: 400
+      amount: 1
+      give-command: "gems givecapsule {player} rough {amount}"
+    cosmetics:
+      currency: sapphires
+      price: 500
+      amount: 1
+      give-command: "perks unlock {player} cosmetics"
+    donor_rank:
+      currency: sapphires
+      price: 2000
+      amount: 1
+      give-command: "lp user {player} parent add vip"
   commands:
     store_bonus:
       action: give

@@ -1,0 +1,66 @@
+menu:
+  title: "<gradient:#1A2A4A:#D6E8F7>Fishing Mini-Game</gradient>"
+  frame:
+    material: "BLUE_STAINED_GLASS_PANE"
+  fish-slot: 13
+  fish-slots: [ 10, 11, 12, 13, 14, 15, 16 ]
+
+session:
+  wait-seconds:
+    min: 0
+    max: 120
+  base-fish-per-cast: 1
+
+enchantments:
+  lure:
+    reduce-seconds-per-level: 8
+  luck:
+    rarity-bonus-per-level: 0.05
+  trawler:
+    multi-catch-chance-per-level: 0.15
+    max-fish: 10
+    pdc-key: "fishing_trawler_level"
+
+rarity-rank-bonus:
+  vip: 0.5
+  mvp: 0.75
+  elite: 1.0
+  default: 0.0
+
+rarities:
+  common:
+    weight: 60
+    icon:
+      material: COD
+    display-name: "<white>Common Fish</white>"
+    coins-min: 25
+    coins-max: 100
+    fishing-points: 1
+    items: [ "COD" ]
+  uncommon:
+    weight: 25
+    icon:
+      material: SALMON
+    display-name: "<green>Uncommon Fish</green>"
+    coins-min: 100
+    coins-max: 250
+    fishing-points: 3
+    items: [ "SALMON" ]
+  rare:
+    weight: 10
+    icon:
+      material: TROPICAL_FISH
+    display-name: "<aqua>Rare Fish</aqua>"
+    coins-min: 250
+    coins-max: 750
+    fishing-points: 7
+    items: [ "TROPICAL_FISH" ]
+  legendary:
+    weight: 5
+    icon:
+      material: PUFFERFISH
+    display-name: "<gradient:#f59e0b:#fb7185>Legendary Fish</gradient>"
+    coins-min: 1000
+    coins-max: 2500
+    fishing-points: 15
+    items: [ "PUFFERFISH" ]

@@ -5,12 +5,18 @@ import net.dark.threecore.model.PlayerProgressionData;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.Base64;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
+import org.bukkit.inventory.ItemStack;
+import org.bukkit.util.io.BukkitObjectInputStream;
+import org.bukkit.util.io.BukkitObjectOutputStream;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 
 public final class PlayerDataRepository {
     private final Database database;
@@ -143,6 +149,35 @@ public final class PlayerDataRepository {
         }
     }
 
+    public void saveInventoryProfile(UUID uuid, String profile, ItemStack[] contents, ItemStack[] armor, ItemStack offhand) {
+        try (PreparedStatement ps = database.connection().prepareStatement("INSERT INTO player_inventory_profiles(uuid, profile, contents, armor, offhand) VALUES(?, ?, ?, ?, ?) ON CONFLICT(uuid, profile) DO UPDATE SET contents = excluded.contents, armor = excluded.armor, offhand = excluded.offhand")) {
+            ps.setString(1, uuid.toString());
+            ps.setString(2, profile);
+            ps.setString(3, encode(contents));
+            ps.setString(4, encode(armor));
+            ps.setString(5, encode(new ItemStack[]{offhand}));
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to save inventory profile", e);
+        }
+    }
+
+    public InventoryProfile loadInventoryProfile(UUID uuid, String profile) {
+        try (PreparedStatement ps = database.connection().prepareStatement("SELECT contents, armor, offhand FROM player_inventory_profiles WHERE uuid = ? AND profile = ?")) {
+            ps.setString(1, uuid.toString());
+            ps.setString(2, profile);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (!rs.next()) return new InventoryProfile(new ItemStack[36], new ItemStack[4], null);
+                ItemStack[] contents = decode(rs.getString(1));
+                ItemStack[] armor = decode(rs.getString(2));
+                ItemStack[] offhand = decode(rs.getString(3));
+                return new InventoryProfile(contents, armor, offhand.length == 0 ? null : offhand[0]);
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to load inventory profile", e);
+        }
+    }
+
     private void parseInto(PlayerProgressionData data, String text) {
         if (text == null || text.isBlank()) return;
         Map<String, String> values = new HashMap<>();
@@ -166,6 +201,8 @@ public final class PlayerDataRepository {
         data.duelLosses(parseInt(values.getOrDefault("duelLosses", "0")));
         data.duelWinStreak(parseInt(values.getOrDefault("duelWinStreak", "0")));
         data.duelBestWinStreak(parseInt(values.getOrDefault("duelBestWinStreak", "0")));
+        data.duelKills(parseInt(values.getOrDefault("duelKills", "0")));
+        data.duelDeaths(parseInt(values.getOrDefault("duelDeaths", "0")));
     }
 
     private String serialize(PlayerProgressionData data) {
@@ -182,9 +219,36 @@ public final class PlayerDataRepository {
                 + ";duelWins=" + data.duelWins()
                 + ";duelLosses=" + data.duelLosses()
                 + ";duelWinStreak=" + data.duelWinStreak()
-                + ";duelBestWinStreak=" + data.duelBestWinStreak();
+                + ";duelBestWinStreak=" + data.duelBestWinStreak()
+                + ";duelKills=" + data.duelKills()
+                + ";duelDeaths=" + data.duelDeaths();
     }
 
     private int parseInt(String input) { try { return Integer.parseInt(input); } catch (NumberFormatException ex) { return 0; } }
     private String clean(String value) { return value == null ? "" : value.replace(";", "").replace("=", "").replace(",", ""); }
+
+    private String encode(ItemStack[] items) {
+        try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); BukkitObjectOutputStream oos = new BukkitObjectOutputStream(baos)) {
+            oos.writeInt(items == null ? 0 : items.length);
+            if (items != null) for (ItemStack item : items) oos.writeObject(item);
+            oos.flush();
+            return Base64.getEncoder().encodeToString(baos.toByteArray());
+        } catch (Exception e) {
+            return "";
+        }
+    }
+
+    private ItemStack[] decode(String data) {
+        if (data == null || data.isBlank()) return new ItemStack[0];
+        try (ByteArrayInputStream bais = new ByteArrayInputStream(Base64.getDecoder().decode(data)); BukkitObjectInputStream ois = new BukkitObjectInputStream(bais)) {
+            int len = ois.readInt();
+            ItemStack[] items = new ItemStack[len];
+            for (int i = 0; i < len; i++) items[i] = (ItemStack) ois.readObject();
+            return items;
+        } catch (Exception e) {
+            return new ItemStack[0];
+        }
+    }
+
+    public record InventoryProfile(ItemStack[] contents, ItemStack[] armor, ItemStack offhand) {}
 }

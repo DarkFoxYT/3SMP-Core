@@ -1,0 +1,112 @@
+menu:
+  title: "<gradient:#1A2A4A:#f59e0b>Daily Rewards</gradient>"
+  size: 54
+  fill:
+    material: BLACK_STAINED_GLASS_PANE
+  icons:
+    streak:
+      material: EXPERIENCE_BOTTLE
+    claim:
+      material: LIME_DYE
+    locked:
+      material: RED_DYE
+    info:
+      material: BOOK
+    back:
+      material: ARROW
+  slots:
+    streak: 4
+    current: 13
+    claim: 49
+    weekly: 31
+    monthly: 33
+    info: 22
+    back: 45
+  reward-slots:
+    - 10
+    - 11
+    - 12
+    - 13
+    - 14
+    - 15
+    - 16
+
+settings:
+  claim-cooldown-hours: 24
+  streak-reset-hours: 48
+
+messages:
+  claimed: "<green>You claimed <white>{reward}</white>. Your streak is now <white>{streak}</white>.</green>"
+  not-ready: "<red>You can claim again in <white>{remaining}</white>.</red>"
+
+rewards:
+  days:
+    "1":
+      display-name: "<gradient:#60a5fa:#c084fc>Day 1 Reward</gradient>"
+      icon:
+        material: EMERALD
+      coins: 250
+      lore:
+        - "<gray>Simple daily starter reward.</gray>"
+      commands: []
+      items:
+        starter_gift:
+          material: PAPER
+          amount: 1
+          display-name: "<white>Starter Ticket</white>"
+          lore:
+            - "<gray>Placeholder for future ItemsAdder icons.</gray>"
+    "2":
+      display-name: "<gradient:#60a5fa:#c084fc>Day 2 Reward</gradient>"
+      icon:
+        material: DIAMOND
+      coins: 500
+      lore:
+        - "<gray>More coins and a nicer item.</gray>"
+    "3":
+      display-name: "<gradient:#60a5fa:#c084fc>Day 3 Reward</gradient>"
+      icon:
+        material: GOLD_INGOT
+      coins: 750
+    "4":
+      display-name: "<gradient:#60a5fa:#c084fc>Day 4 Reward</gradient>"
+      icon:
+        material: IRON_INGOT
+      coins: 1000
+    "5":
+      display-name: "<gradient:#60a5fa:#c084fc>Day 5 Reward</gradient>"
+      icon:
+        material: NETHER_STAR
+      coins: 1250
+    "6":
+      display-name: "<gradient:#60a5fa:#c084fc>Day 6 Reward</gradient>"
+      icon:
+        material: AMETHYST_SHARD
+      coins: 1500
+    "7":
+      display-name: "<gradient:#f59e0b:#fb7185>Day 7 Reward</gradient>"
+      icon:
+        material: ENCHANTED_GOLDEN_APPLE
+      coins: 2500
+      commands:
+        - "say {player} claimed the weekly day 7 reward"
+  weekly:
+    enabled: true
+    interval-days: 7
+    reward:
+      display-name: "<gradient:#f59e0b:#fb7185>Weekly Bonus</gradient>"
+      icon:
+        material: SUNFLOWER
+      coins: 5000
+      commands:
+        - "give {player} diamond 2"
+  monthly:
+    enabled: true
+    interval-days: 30
+    reward:
+      display-name: "<gradient:#8b5cf6:#ec4899>Monthly Bonus</gradient>"
+      icon:
+        material: NETHER_STAR
+      coins: 25000
+      commands:
+        - "give {player} emerald 5"

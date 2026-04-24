@@ -2,6 +2,8 @@ package net.dark.threecore.gui;
 
 import net.dark.threecore.duels.DuelLeaderboardService;
 import net.dark.threecore.duels.DuelService;
+import net.dark.threecore.daily.DailyRewardManager;
+import net.dark.threecore.fishing.FishingRewardManager;
 import net.dark.threecore.gems.GemService;
 import net.dark.threecore.gui.menu.CoreMenuHolder;
 import net.dark.threecore.gui.menu.CoreMenuType;
@@ -11,6 +13,9 @@ import net.dark.threecore.shop.ShopService;
 import net.dark.threecore.party.PartyService;
 import net.dark.threecore.perks.PerkService;
 import net.dark.threecore.sapphires.SapphireService;
+import net.dark.threecore.souls.SoulManager;
+import net.dark.threecore.market.MarketPlotManager;
+import net.dark.threecore.gui.menu.CoreMenuType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
@@ -22,21 +27,29 @@ public final class MenuListener implements Listener {
     private final PerkService perkService;
     private final GemService gemService;
     private final SapphireService sapphireService;
+    private final DailyRewardManager dailyRewardManager;
+    private final FishingRewardManager fishingRewardManager;
+    private final SoulManager soulManager;
     private final DuelLeaderboardService leaderboardService;
     private final LaunchpadService launchpadService;
     private final WarpManager warpManager;
     private final ShopService shopService;
+    private final MarketPlotManager marketPlotManager;
 
-    public MenuListener(DuelService duelService, PartyService partyService, PerkService perkService, GemService gemService, SapphireService sapphireService, DuelLeaderboardService leaderboardService, LaunchpadService launchpadService, WarpManager warpManager, ShopService shopService) {
+    public MenuListener(DuelService duelService, PartyService partyService, PerkService perkService, GemService gemService, SapphireService sapphireService, DailyRewardManager dailyRewardManager, FishingRewardManager fishingRewardManager, SoulManager soulManager, DuelLeaderboardService leaderboardService, LaunchpadService launchpadService, WarpManager warpManager, ShopService shopService, MarketPlotManager marketPlotManager) {
         this.duelService = duelService;
         this.partyService = partyService;
         this.perkService = perkService;
         this.gemService = gemService;
         this.sapphireService = sapphireService;
+        this.dailyRewardManager = dailyRewardManager;
+        this.fishingRewardManager = fishingRewardManager;
+        this.soulManager = soulManager;
         this.leaderboardService = leaderboardService;
         this.launchpadService = launchpadService;
         this.warpManager = warpManager;
         this.shopService = shopService;
+        this.marketPlotManager = marketPlotManager;
     }
 
     @EventHandler
@@ -83,6 +96,7 @@ public final class MenuListener implements Listener {
                 String ctx = holder.context().toLowerCase(java.util.Locale.ROOT);
                 if (ctx.equals("combine")) gemService.handleCombineClick(player, slot);
                 else if (ctx.equals("browse")) gemService.handleBrowseClick(player, slot);
+                else if (ctx.equals("capsules")) gemService.handleCapsuleClick(player, slot);
                 else gemService.handleMenuClick(player, slot);
             }
             case GEMS_STATS -> gemService.handleStatsClick(player, slot);
@@ -90,6 +104,15 @@ public final class MenuListener implements Listener {
                 if (holder.context().equalsIgnoreCase("summary")) sapphireService.handleSummaryClick(player, slot);
                 else sapphireService.handleMenuClick(player, slot);
             }
+            case DAILY_MAIN -> dailyRewardManager.handleClick(player, slot);
+            case FISHING_MAIN -> fishingRewardManager.handleClick(player, slot);
+            case SOULS_MAIN -> {
+                String ctx = holder.context().toLowerCase(java.util.Locale.ROOT);
+                if (ctx.equals("souls-rewards")) soulManager.handleRewardsClick(player, slot);
+                else soulManager.handleClick(player, slot);
+            }
+            case MARKET_MAIN -> marketPlotManager.handle(player, slot);
+            case SHOP_CHEST -> { }
         }
     }
 }

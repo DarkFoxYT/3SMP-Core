@@ -61,6 +61,7 @@ public final class SapphireService {
                 apply(sub, target.getUniqueId(), amount);
                 Text.send(sender, "<green>Updated sapphires for " + displayName(target, args[1]) + ".</green>");
             }
+            case "info" -> sendCommandHelp(sender);
             case "commands" -> Text.send(sender, "<gray>Configured sapphire commands: " + String.join(", ", commandIds()) + "</gray>");
             default -> { if (sender instanceof Player player) openShop(player); else Text.send(sender, "<yellow>Use /sapphire shop|bal|give|remove|take|set|reset|commands</yellow>"); }
         }
@@ -75,6 +76,11 @@ public final class SapphireService {
             case 11 -> sendBalance(player);
             case 13 -> openShopLink(player);
             case 15 -> sendCommandHelp(player);
+            case 19 -> purchase(player, "crate_keys");
+            case 20 -> purchase(player, "gem_extractor");
+            case 21 -> purchase(player, "gem_capsule");
+            case 22 -> purchase(player, "cosmetics");
+            case 23 -> purchase(player, "donor_rank");
             default -> { }
         }
     }
@@ -87,8 +93,29 @@ public final class SapphireService {
     }
     public void sendBalance(Player player) { Text.send(player, "<gray>Your sapphires: <gradient:#22d3ee:#a78bfa>" + balance(player.getUniqueId()) + "</gradient></gray>"); }
     public void openShopInfo(Player player) { openShopLink(player); }
-    public void sendCommandHelp(Player player) { Text.send(player, "<gray>Sapphires are premium and non-tradeable. Use <white>/sapphire bal</white> or <white>/sapphire shop</white>.</gray>"); }
+    public void sendCommandHelp(CommandSender sender) { Text.send(sender, "<gray>Sapphires are premium and non-tradeable. Use <white>/sapphire bal</white> or <white>/sapphire shop</white>.</gray>"); }
     public String shopUrl() { return configs.get("economy/sapphires.yml").getString("sapphire.shop-url", "https://example.com"); }
+    public boolean purchase(Player player, String id) {
+        var sec = configs.get("economy/sapphires.yml").getConfigurationSection("sapphire.shop-items." + id);
+        if (sec == null) {
+            Text.send(player, "<red>That sapphire item is not configured.</red>");
+            return false;
+        }
+        long price = sec.getLong("price", 0L);
+        String currency = sec.getString("currency", "sapphires");
+        if (!takeCurrency(player.getUniqueId(), currency, price)) {
+            Text.send(player, "<red>You cannot afford this purchase.</red>");
+            return false;
+        }
+        String command = sec.getString("give-command", "");
+        int amount = sec.getInt("amount", 1);
+        if (!command.isBlank()) {
+            Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("{player}", player.getName()).replace("{amount}", String.valueOf(amount)).replace("{uuid}", player.getUniqueId().toString()));
+        }
+        Text.send(player, "<green>Purchase completed.</green>");
+        player.closeInventory();
+        return true;
+    }
 
     public void handleSummaryClick(Player player, int slot) {
         if (slot == 22) openShop(player);
@@ -116,6 +143,16 @@ public final class SapphireService {
             case "reset" -> reset(target);
             default -> throw new IllegalArgumentException("Unknown sapphire action: " + action);
         }
+    }
+
+    private boolean takeCurrency(UUID uuid, String currency, long amount) {
+        if (currency.equalsIgnoreCase("money")) {
+            double current = repository.getMoneyBalance(uuid);
+            if (current < amount) return false;
+            repository.setMoneyBalance(uuid, current - amount);
+            return true;
+        }
+        return take(uuid, amount);
     }
 
     private long parseLong(String input) { try { return Long.parseLong(input); } catch (NumberFormatException ex) { return 0L; } }

@@ -1,0 +1,18 @@
+drop:
+  chance: 0.25
+  amount: 1
+  cooldown-seconds: 600
+  disabled-worlds: [world_nether, world_the_end]
+  duels:
+    enabled: false
+
+sell-value-per-soul: 25
+
+rewards:
+  basic_key:
+    cost: 10
+    commands:
+      - "crate key give {player} basic 1"
+  coin_bundle:
+    cost: 25
+    coins: 250

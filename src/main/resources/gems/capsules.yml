@@ -2,3 +2,30 @@ capsules:
   sapphire-gem-capsule:
     display-name: "<gradient:#06b6d4:#8b5cf6>Sapphire Gem Capsule</gradient>"
     reward-table: default
+    currency: sapphires
+    price: 400
+    tier: rough
+  polished:
+    display-name: "<aqua>Polished Capsule</aqua>"
+    reward-table: default
+    currency: sapphires
+    price: 700
+    tier: polished
+  cut:
+    display-name: "<light_purple>Cut Capsule</light_purple>"
+    reward-table: default
+    currency: sapphires
+    price: 1200
+    tier: cut
+  flawless:
+    display-name: "<gradient:#f59e0b:#fbbf24>Flawless Capsule</gradient>"
+    reward-table: default
+    currency: sapphires
+    price: 2500
+    tier: flawless
+  mystery:
+    display-name: "<gradient:#8b5cf6:#ec4899>Mystery Capsule</gradient>"
+    reward-table: default
+    currency: money
+    price: 5000
+    tier: mystery

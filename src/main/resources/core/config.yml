@@ -5,6 +5,7 @@ chat:
   allow-gradient: true
   allow-hex: true
   max-message-length: 256
+  default-prefix: "<gray>[<white>Member</white>]</gray>"
   format: "<prefix><tag><name-color><player></name-color><message-color>: <message>"
 
 hooks:

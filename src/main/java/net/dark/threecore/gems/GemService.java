@@ -36,6 +36,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 public final class GemService implements Listener {
     private static final String GEM_KEY = "3smpcore_gem_id";
@@ -93,11 +94,13 @@ public final class GemService implements Listener {
             case "info" -> Text.send(sender, "<gray>Gem system supports seasonal registries, proc chances, cooldowns, and an in-game combine/extract UI.</gray>");
             case "stats" -> { if (sender instanceof Player player) openStatsMenu(player, player.getInventory().getItemInMainHand()); else Text.send(sender, "<red>Players only.</red>"); }
             case "giveextractor" -> { if (!sender.hasPermission("3smpcore.gems.admin")) { Text.send(sender, "<red>No permission.</red>"); return; } if (args.length < 3) { Text.send(sender, "<red>Usage: /gems giveextractor <player> <amount></red>"); return; } Player target = Bukkit.getPlayerExact(args[1]); if (target == null) { Text.send(sender, "<red>Player not found.</red>"); return; } giveExtractor(target, parseInt(args[2])); Text.send(sender, "<green>Gave extractor(s) to " + target.getName() + ".</green>"); }
+            case "givecapsule" -> { if (!sender.hasPermission("3smpcore.gems.admin")) { Text.send(sender, "<red>No permission.</red>"); return; } if (args.length < 4) { Text.send(sender, "<red>Usage: /gems givecapsule <player> <tier> <amount></red>"); return; } Player target = Bukkit.getPlayerExact(args[1]); if (target == null) { Text.send(sender, "<red>Player not found.</red>"); return; } giveCapsules(target, args[2], parseInt(args[3])); Text.send(sender, "<green>Gave capsule(s) to " + target.getName() + ".</green>"); }
             case "givegem" -> { if (!sender.hasPermission("3smpcore.gems.admin")) { Text.send(sender, "<red>No permission.</red>"); return; } if (args.length < 3) { Text.send(sender, "<red>Usage: /gems givegem <player> <gemId></red>"); return; } Player target = Bukkit.getPlayerExact(args[1]); if (target == null) { Text.send(sender, "<red>Player not found.</red>"); return; } giveGem(target, args[2]); Text.send(sender, "<green>Given gem.</green>"); }
             case "extract" -> { if (!(sender instanceof Player player)) { Text.send(sender, "<red>Players only.</red>"); return; } if (player.getInventory().getItemInMainHand().isEmpty()) { Text.send(player, "<red>Hold a socketed item first.</red>"); return; } if (!tryExtract(player, player.getInventory().getItemInMainHand(), false)) Text.send(player, "<red>No gem found on that item.</red>"); }
             case "combine" -> { if (sender instanceof Player player) openCombineMenu(player); else Text.send(sender, "<red>Players only.</red>"); }
             case "browse" -> { if (sender instanceof Player player) openGemBrowse(player); else Text.send(sender, "<red>Players only.</red>"); }
-            default -> { if (sender instanceof Player player) openMenu(player); else Text.send(sender, "<gray>Use /gems info, /gems reload, /gems stats, /gems giveextractor <player> <amount>, /gems givegem <player> <gemId>, /gems combine, or /gems extract.</gray>"); }
+            case "capsules", "capsule" -> { if (sender instanceof Player player) openCapsuleShop(player); else Text.send(sender, "<red>Players only.</red>"); }
+            default -> { if (sender instanceof Player player) openMenu(player); else Text.send(sender, "<gray>Use /gems info, /gems reload, /gems stats, /gems giveextractor <player> <amount>, /gems givegem <player> <gemId>, /gems combine, /gems browse, /gems capsules, or /gems extract.</gray>"); }
         }
     }
 
@@ -118,6 +121,7 @@ public final class GemService implements Listener {
         else if (slot == 13) Text.send(player, "<gray>Shift-right click a socketed item with a Gem Extractor to remove its gem.</gray>");
         else if (slot == 16) openGemBrowse(player);
         else if (slot == 19) openStatsMenu(player, player.getInventory().getItemInMainHand());
+        else if (slot == 22) openCapsuleShop(player);
     }
 
     public Inventory buildCombineMenu(Player player) {
@@ -169,6 +173,7 @@ public final class GemService implements Listener {
 
     public void giveExtractor(Player player, int amount) { for (int i = 0; i < amount; i++) player.getInventory().addItem(extractorItem()); }
     public void giveGem(Player player, String id) { ItemStack item = gemItem(id); if (item != null) player.getInventory().addItem(item); }
+    public void giveCapsules(Player player, String tier, int amount) { for (int i = 0; i < amount; i++) player.getInventory().addItem(capsuleItem(tier)); }
 
     @EventHandler
     public void onInteract(PlayerInteractEvent event) {
@@ -237,6 +242,7 @@ public final class GemService implements Listener {
     }
 
     public void openGemBrowse(Player player) { menuService.open(player, buildGemBrowse(player)); }
+    public void openCapsuleShop(Player player) { menuService.open(player, buildCapsuleShop(player)); }
     public Inventory buildGemBrowse(Player player) {
         Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.GEMS_MAIN, "browse"), 54, "3SMP Gem Types");
         fill(inv, pane());
@@ -258,6 +264,31 @@ public final class GemService implements Listener {
         uiState.computeIfAbsent(player.getUniqueId(), k -> new GemUiState()).selectedGem = gemItem(def.id());
         Text.send(player, "<green>Selected gem: " + def.displayName() + "</green>");
         openCombineMenu(player);
+    }
+
+    public Inventory buildCapsuleShop(Player player) {
+        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.GEMS_MAIN, "capsules"), 45, "3SMP Gem Capsules");
+        fill(inv, pane());
+        inv.setItem(10, capsuleButton("rough", Material.QUARTZ, "<white>Rough Capsule</white>", List.of("<gray>Random rough gem.</gray>")));
+        inv.setItem(12, capsuleButton("polished", Material.PRISMARINE_CRYSTALS, "<aqua>Polished Capsule</aqua>", List.of("<gray>Random polished gem.</gray>")));
+        inv.setItem(14, capsuleButton("cut", Material.AMETHYST_SHARD, "<light_purple>Cut Capsule</light_purple>", List.of("<gray>Random cut gem.</gray>")));
+        inv.setItem(16, capsuleButton("flawless", Material.NETHER_STAR, "<gradient:#f59e0b:#fbbf24>Flawless Capsule</gradient>", List.of("<gray>Random flawless gem.</gray>")));
+        inv.setItem(22, capsuleButton("mystery", Material.ENDER_CHEST, "<gradient:#8b5cf6:#ec4899>Mystery Capsule</gradient>", List.of("<gray>Random gem from allowed tiers.</gray>")));
+        inv.setItem(31, button(Material.ARROW, "<gray>Back</gray>", List.of("<gray>Return to gem menu.</gray>")));
+        return inv;
+    }
+
+    public void handleCapsuleClick(Player player, int slot) {
+        if (slot == 31) { openMenu(player); return; }
+        String capsule = switch (slot) {
+            case 10 -> "rough";
+            case 12 -> "polished";
+            case 14 -> "cut";
+            case 16 -> "flawless";
+            case 22 -> "mystery";
+            default -> null;
+        };
+        if (capsule != null) buyCapsule(player, capsule);
     }
 
     public void openCombineMenu(Player player) { menuService.open(player, buildCombineMenu(player)); }
@@ -306,6 +337,54 @@ public final class GemService implements Listener {
         return icon;
     }
 
+    private void buyCapsule(Player player, String capsuleId) {
+        var sec = configs.get("gems/capsules.yml").getConfigurationSection("capsules." + capsuleId);
+        if (sec == null) {
+            Text.send(player, "<red>That capsule is not configured.</red>");
+            return;
+        }
+        String currency = sec.getString("currency", "sapphires");
+        long price = sec.getLong("price", 0L);
+        if (!takeCurrency(player.getUniqueId(), currency, price)) {
+            Text.send(player, "<red>You cannot afford that capsule.</red>");
+            return;
+        }
+        String rewardTier = sec.getString("tier", capsuleId);
+        String gemId = rollGemByTier(rewardTier);
+        if (gemId == null) {
+            Text.send(player, "<red>No gems are available for that capsule.</red>");
+            return;
+        }
+        giveGem(player, gemId);
+        Text.send(player, "<green>You received a <white>" + registry.displayName(gemId) + "</white> gem.</green>");
+        player.playSound(player.getLocation(), org.bukkit.Sound.ENTITY_PLAYER_LEVELUP, 1.0f, 1.2f);
+        player.getWorld().spawnParticle(registry.particle(gemId), player.getLocation().add(0, 1, 0), 18, 0.3, 0.4, 0.3, 0.02);
+    }
+
+    private String rollGemByTier(String capsuleTier) {
+        String tier = capsuleTier == null ? "" : capsuleTier.toLowerCase(Locale.ROOT);
+        List<String> candidates = registry.statsSnapshot().entrySet().stream()
+                .filter(entry -> tier.equals("mystery") || entry.getValue().tier().equalsIgnoreCase(tier))
+                .filter(entry -> !entry.getValue().tier().equalsIgnoreCase("prismatic"))
+                .map(Map.Entry::getKey)
+                .toList();
+        if (candidates.isEmpty()) return null;
+        return candidates.get(ThreadLocalRandom.current().nextInt(candidates.size()));
+    }
+
+    private boolean takeCurrency(UUID uuid, String currency, long amount) {
+        if (currency.equalsIgnoreCase("money")) {
+            double current = repository.getMoneyBalance(uuid);
+            if (current < amount) return false;
+            repository.setMoneyBalance(uuid, current - amount);
+            return true;
+        }
+        long current = repository.getSapphireBalance(uuid);
+        if (current < amount) return false;
+        repository.setSapphireBalance(uuid, current - amount);
+        return true;
+    }
+
     private ItemStack firstGem(Player player) { for (ItemStack item : player.getInventory().getContents()) { String id = selectedGemId(item); if (id != null) return item.clone(); } return null; }
     private String selectedGemId(ItemStack item) { if (item == null || !item.hasItemMeta()) return null; var pdc = item.getItemMeta().getPersistentDataContainer(); String legacy = pdc.get(keyGem(), PersistentDataType.STRING); if (legacy != null && !legacy.isBlank()) return legacy.toLowerCase(Locale.ROOT); List<String> sockets = parseSockets(pdc.get(keySockets(), PersistentDataType.STRING)); return sockets.isEmpty() ? null : sockets.get(sockets.size() - 1); }
     private List<String> socketIds(ItemStack item) { if (item == null || !item.hasItemMeta()) return List.of(); var pdc = item.getItemMeta().getPersistentDataContainer(); List<String> sockets = parseSockets(pdc.get(keySockets(), PersistentDataType.STRING)); if (!sockets.isEmpty()) return sockets; String legacy = pdc.get(keyGem(), PersistentDataType.STRING); if (legacy == null || legacy.isBlank()) return List.of(); return List.of(legacy.toLowerCase(Locale.ROOT)); }
@@ -324,6 +403,8 @@ public final class GemService implements Listener {
     }
     private void consumeOne(Player player, ItemStack item) { if (item == null) return; int amount = item.getAmount(); if (amount <= 1) player.getInventory().removeItem(item); else item.setAmount(amount - 1); }
     private ItemStack gemItem(String id) { GemDefinition def = gems.get(id.toLowerCase(Locale.ROOT)); if (def == null) return null; ItemStack item = new ItemStack(def.material()); ItemMeta meta = item.getItemMeta(); meta.displayName(Text.mm(def.displayName())); List<String> lore = new ArrayList<>(def.lore()); lore.add("<gray>Effect:</gray> <white>" + def.effect() + "</white>"); lore.add("<gray>Tier:</gray> <white>" + registry.tier(def.id()) + "</white>"); lore.add("<gray>Proc chance:</gray> <white>" + Math.round(def.procChance() * 100.0) + "%</white>"); lore.add("<gray>Cooldown:</gray> <white>" + (def.cooldownTicks() / 20L) + "s</white>"); meta.lore(lore.stream().map(Text::mm).toList()); meta.getPersistentDataContainer().set(keyGem(), PersistentDataType.STRING, def.id()); meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES); item.setItemMeta(meta); return item; }
+    private ItemStack capsuleButton(String id, Material material, String name, List<String> lore) { ItemStack item = new ItemStack(material); ItemMeta meta = item.getItemMeta(); meta.displayName(Text.mm(name)); List<String> lines = new ArrayList<>(lore); var sec = configs.get("gems/capsules.yml").getConfigurationSection("capsules." + id); if (sec != null) { lines.add("<gray>Currency:</gray> <white>" + sec.getString("currency", "sapphires") + "</white>"); lines.add("<gray>Price:</gray> <white>" + sec.getLong("price", 0L) + "</white>"); } meta.lore(lines.stream().map(Text::mm).toList()); meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES); item.setItemMeta(meta); return item; }
+    private ItemStack capsuleItem(String tier) { ItemStack item = new ItemStack(Material.ENDER_CHEST); ItemMeta meta = item.getItemMeta(); meta.displayName(Text.mm("<gradient:#06b6d4:#8b5cf6>" + tier.substring(0, 1).toUpperCase(Locale.ROOT) + tier.substring(1).toLowerCase(Locale.ROOT) + " Gem Capsule</gradient>")); meta.lore(List.of(Text.mm("<gray>Opens to a random gem of the selected tier.</gray>"), Text.mm("<gray>Prismatic gems are not in capsules.</gray>"))); meta.getPersistentDataContainer().set(keyGem(), PersistentDataType.STRING, "capsule:" + tier.toLowerCase(Locale.ROOT)); meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES); item.setItemMeta(meta); return item; }
     private double damageBonus(Player player) { double bonus = 0.0; for (ItemStack item : player.getInventory().getContents()) { for (String gemId : socketIds(item)) { GemDefinition def = gems.get(gemId.toLowerCase(Locale.ROOT)); if (def == null) continue; double scaled = def.value() * registry.scale(gemId); if (def.effect().equalsIgnoreCase("increase_damage")) bonus += Math.max(0.0, scaled) * 0.8; } } return bonus; }
     private void applyPassiveEffects(Player player) { int speedLevel = 0; int healthBoost = 0; int bowPower = 0; int miningSpeed = 0; for (ItemStack item : player.getInventory().getArmorContents()) { for (String gemId : socketIds(item)) { GemDefinition def = gems.get(gemId.toLowerCase(Locale.ROOT)); if (def == null) continue; double scaled = def.value() * registry.scale(gemId); if (def.effect().equalsIgnoreCase("increase_speed")) speedLevel = Math.max(speedLevel, (int) Math.ceil(scaled)); if (def.effect().equalsIgnoreCase("increase_health")) healthBoost = Math.max(healthBoost, (int) Math.ceil(scaled)); if (def.effect().equalsIgnoreCase("increase_bow_power")) bowPower = Math.max(bowPower, (int) Math.ceil(scaled)); if (def.effect().equalsIgnoreCase("increase_mining_speed")) miningSpeed = Math.max(miningSpeed, (int) Math.ceil(scaled)); } } if (speedLevel > 0) player.addPotionEffect(new PotionEffect(PotionEffectType.SPEED, 80, Math.max(0, speedLevel - 1), true, false, false)); if (bowPower > 0) player.addPotionEffect(new PotionEffect(PotionEffectType.STRENGTH, 80, Math.max(0, bowPower - 1), true, false, false)); if (miningSpeed > 0) player.addPotionEffect(new PotionEffect(PotionEffectType.HASTE, 80, Math.max(0, miningSpeed - 1), true, false, false)); if (healthBoost > 0 && player.getAttribute(Attribute.MAX_HEALTH) != null) { double max = 20.0 + (healthBoost * 2.0); player.getAttribute(Attribute.MAX_HEALTH).setBaseValue(max); player.setHealth(Math.min(player.getHealth(), max)); } }
     private void healPlayer(Player player, double amount) { if (amount <= 0.0) return; double max = player.getAttribute(Attribute.MAX_HEALTH) == null ? 20.0 : player.getAttribute(Attribute.MAX_HEALTH).getValue(); player.setHealth(Math.min(max, player.getHealth() + amount)); }

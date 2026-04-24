@@ -1,7 +1,7 @@
 # 3SMPCore Duel System
 # Modes supported by the module:
 # - 1v1 queue and direct challenge
-# - 2v2 / 3v3 party queue and party-leader challenge
+# - 2v2 party queue and party-leader challenge
 # - Monthly leaderboard tracking, with prizes listed below for staff payout
 
 duels:

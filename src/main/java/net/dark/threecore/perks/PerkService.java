@@ -86,30 +86,32 @@ public final class PerkService implements Listener {
     public Inventory buildMainMenu() {
         Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.PERKS_MAIN, "main"), 54, "3SMP Cosmetics");
         for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, pane());
-        inv.setItem(4, icon(org.bukkit.Material.NETHER_STAR, "<gradient:#7c4a03:#f59e0b>Cosmetics Hub</gradient>", List.of("<gray>Chat, particles, kill effects, weapon cosmetics, and dungeon cosmetics.</gray>")));
-        inv.setItem(19, icon(org.bukkit.Material.NETHER_STAR, "<gradient:#f59e0b:#fff7ad>Badges</gradient>", List.of("<gray>Shown before your name in chat.</gray>")));
-        inv.setItem(21, icon(org.bukkit.Material.FIREWORK_ROCKET, "<gradient:#facc15:#7c4a03>Particles</gradient>", List.of("<gray>Cosmetic particles. Default is none.</gray>")));
-        inv.setItem(23, icon(org.bukkit.Material.ENCHANTED_BOOK, "<gradient:#facc15:#f59e0b>Kill Effects</gradient>", List.of("<gray>Particles and sounds that play when you win a fight.</gray>")));
-        inv.setItem(25, icon(org.bukkit.Material.GLOWSTONE_DUST, "<gradient:#f59e0b:#fbbf24>Effects</gradient>", List.of("<gray>Light cosmetic effects.</gray>")));
-        inv.setItem(30, icon(org.bukkit.Material.TRIDENT, "<gradient:#b45309:#f59e0b>Weapon Cosmetics</gradient>", List.of("<gray>Framework tab for future models and skins.</gray>")));
-        inv.setItem(32, icon(org.bukkit.Material.ECHO_SHARD, "<gradient:#7c2d12:#facc15>Dungeon Cosmetics</gradient>", List.of("<gray>Dungeon-ready cosmetic categories.</gray>")));
+        inv.setItem(4, icon(org.bukkit.Material.NETHER_STAR, "<gradient:#7c4a03:#f59e0b>Cosmetics Hub</gradient>", List.of("<gray>Chat colors, particles, kill effects, weapon cosmetics, and dungeon cosmetics.</gray>")));
+        inv.setItem(19, icon(org.bukkit.Material.BLUE_DYE, "<gradient:#1A2A4A:#D6E8F7>Chat Colors</gradient>", List.of("<gray>Choose how your sent messages look.</gray>")));
+        inv.setItem(21, icon(org.bukkit.Material.NETHER_STAR, "<gradient:#f59e0b:#fff7ad>Badges</gradient>", List.of("<gray>Optional cosmetic badges for supported views.</gray>")));
+        inv.setItem(23, icon(org.bukkit.Material.FIREWORK_ROCKET, "<gradient:#facc15:#7c4a03>Particles</gradient>", List.of("<gray>Cosmetic particles. Default is none.</gray>")));
+        inv.setItem(25, icon(org.bukkit.Material.ENCHANTED_BOOK, "<gradient:#facc15:#f59e0b>Kill Effects</gradient>", List.of("<gray>Particles and sounds that play when you win a duel.</gray>")));
+        inv.setItem(29, icon(org.bukkit.Material.GLOWSTONE_DUST, "<gradient:#f59e0b:#fbbf24>Effects</gradient>", List.of("<gray>Light cosmetic effects.</gray>")));
+        inv.setItem(31, icon(org.bukkit.Material.TRIDENT, "<gradient:#b45309:#f59e0b>Weapon Cosmetics</gradient>", List.of("<gray>Framework tab for future models and skins.</gray>")));
+        inv.setItem(33, icon(org.bukkit.Material.ECHO_SHARD, "<gradient:#7c2d12:#facc15>Dungeon Cosmetics</gradient>", List.of("<gray>Dungeon-ready cosmetic categories.</gray>")));
         inv.setItem(49, icon(org.bukkit.Material.BOOK, "<gradient:#1A2A4A:#D6E8F7>Summary</gradient>", List.of("<gray>Review active cosmetics.</gray>")));
         return inv;
     }
 
     public void handleMenuClick(Player player, int slot) {
         if (slot == 49) menuService.open(player, buildSummaryMenu(player));
-        else if (slot == 19) menuService.open(player, buildCategoryMenu("badges", "Badges"));
-        else if (slot == 21) menuService.open(player, buildCategoryMenu("particles", "Particles"));
-        else if (slot == 23) menuService.open(player, buildCategoryMenu("kill_effects", "Kill Effects"));
-        else if (slot == 25) menuService.open(player, buildCategoryMenu("effects", "Effects"));
-        else if (slot == 30) menuService.open(player, buildCategoryMenu("weapon_cosmetics", "Weapon Cosmetics"));
-        else if (slot == 32) menuService.open(player, buildCategoryMenu("dungeon_cosmetics", "Dungeon Cosmetics"));
+        else if (slot == 19) menuService.open(player, buildCategoryMenu("colors", "Chat Colors"));
+        else if (slot == 21) menuService.open(player, buildCategoryMenu("badges", "Badges"));
+        else if (slot == 23) menuService.open(player, buildCategoryMenu("particles", "Particles"));
+        else if (slot == 25) menuService.open(player, buildCategoryMenu("kill_effects", "Kill Effects"));
+        else if (slot == 29) menuService.open(player, buildCategoryMenu("effects", "Effects"));
+        else if (slot == 31) menuService.open(player, buildCategoryMenu("weapon_cosmetics", "Weapon Cosmetics"));
+        else if (slot == 33) menuService.open(player, buildCategoryMenu("dungeon_cosmetics", "Dungeon Cosmetics"));
     }
 
     public void handleSummaryMenuClick(Player player, int slot) {
         if (slot == 22) openMainMenu(player);
-        else if (slot == 11) menuService.open(player, buildCategoryMenu("badges", "Badges"));
+        else if (slot == 11) menuService.open(player, buildCategoryMenu("colors", "Chat Colors"));
         else if (slot == 13) menuService.open(player, buildCategoryMenu("particles", "Particles"));
         else if (slot == 15) menuService.open(player, buildCategoryMenu("kill_effects", "Kill Effects"));
     }
@@ -119,10 +121,10 @@ public final class PerkService implements Listener {
         for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, pane());
         PlayerProgressionData data = data(player.getUniqueId());
         inv.setItem(11, icon(org.bukkit.Material.NAME_TAG, "<gradient:#7c4a03:#f59e0b>Chat Style</gradient>", List.of(
-                "<gray>Prefix:</gray> <white>" + data.activePrefix() + "</white>",
-                "<gray>Tag:</gray> <white>" + data.activeTag() + "</white>",
-                "<gray>Badge:</gray> <white>" + data.activeBadge() + "</white>",
-                "<gray>Message color:</gray> <white>" + data.activeMessageColor() + "</white>"
+                "<gray>LuckPerms prefix:</gray> <white>always active</white>",
+                "<gray>Selected chat color:</gray> <white>" + (data.activeMessageColor().isBlank() ? "default" : data.activeMessageColor()) + "</white>",
+                "<gray>Badge:</gray> <white>" + (data.activeBadge().isBlank() ? "none" : data.activeBadge()) + "</white>",
+                "<gray>Click to edit chat colors.</gray>"
         )));
         inv.setItem(13, icon(org.bukkit.Material.AMETHYST_SHARD, "<gradient:#f59e0b:#f97316>Appearance</gradient>", List.of(
                 "<gray>Trim:</gray> <white>" + data.activeTrim() + "</white>",
@@ -310,6 +312,7 @@ public final class PerkService implements Listener {
     private void save(UUID uuid) { repository.save(data(uuid)); }
 
     private boolean canUse(Player player, PerkDefinition def) {
+        if (def.requiredRank != null && !def.requiredRank.isBlank() && !matchesRank(player, def.requiredRank)) return false;
         if (def.defaultUnlocked || hasUnlocked(player.getUniqueId(), def.id)) return true;
         return def.permission == null || def.permission.isBlank() || player.hasPermission(def.permission);
     }
@@ -354,7 +357,7 @@ public final class PerkService implements Listener {
         for (String id : section.getKeys(false)) {
             ConfigurationSection item = section.getConfigurationSection(id);
             if (item == null) continue;
-            definitions.put(id.toLowerCase(Locale.ROOT), new PerkDefinition(id.toLowerCase(Locale.ROOT), root, parseMaterial(item.getString("icon", fallbackMaterial.name())), item.getString("display-name", id), item.getString("permission", item.getString("required-permission", "")), item.getBoolean("default-unlocked", false), item.getStringList("lore")));
+            definitions.put(id.toLowerCase(Locale.ROOT), new PerkDefinition(id.toLowerCase(Locale.ROOT), root, parseMaterial(item.getString("icon", fallbackMaterial.name())), item.getString("display-name", id), item.getString("permission", item.getString("required-permission", "")), item.getString("required-rank", ""), item.getBoolean("default-unlocked", false), item.getStringList("lore")));
             if ("trims".equalsIgnoreCase(root)) trims.put(id.toLowerCase(Locale.ROOT), new TrimDefinition(id.toLowerCase(Locale.ROOT), item.getString("required-permission", ""), item.getString("required-rank", "")));
         }
     }
@@ -366,6 +369,12 @@ public final class PerkService implements Listener {
         if (def.requiredRank == null || def.requiredRank.isBlank()) return true;
         String currentRank = luckPermsPrimaryGroup(player);
         return currentRank != null && currentRank.equalsIgnoreCase(def.requiredRank);
+    }
+
+    private boolean matchesRank(Player player, String requiredRank) {
+        if (requiredRank == null || requiredRank.isBlank()) return true;
+        String currentRank = luckPermsPrimaryGroup(player);
+        return currentRank != null && currentRank.equalsIgnoreCase(requiredRank);
     }
 
     private String luckPermsPrimaryGroup(Player player) {
@@ -397,7 +406,7 @@ public final class PerkService implements Listener {
     }
 
     private org.bukkit.Material parseMaterial(String name) { try { return org.bukkit.Material.valueOf(name.toUpperCase(Locale.ROOT)); } catch (Exception ex) { return org.bukkit.Material.PAPER; } }
-    private record PerkDefinition(String id, String category, org.bukkit.Material material, String displayName, String permission, boolean defaultUnlocked, List<String> lore) {}
+    private record PerkDefinition(String id, String category, org.bukkit.Material material, String displayName, String permission, String requiredRank, boolean defaultUnlocked, List<String> lore) {}
     private record TrimDefinition(String id, String requiredPermission, String requiredRank) {}
 }
 
