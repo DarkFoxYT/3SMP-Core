@@ -1137,9 +1137,9 @@ public final class DungeonService implements Listener {
     private RoomReservation connectedRoomCandidate(String key, RoomReservation previousRoom, String previousId, String nextId, ConnectionPair pair) {
         SavedMarker previous = transformMarker(pair.previous(), templateSize(previousId), previousRoom.rotation());
         SavedMarker next = transformMarker(pair.next(), templateSize(nextId), pair.nextRotation());
-        int x = previousRoom.centerX() + previous.x() + connectionDx(previous) - next.x();
-        int z = previousRoom.centerZ() + previous.z() + connectionDz(previous) - next.z();
-        int y = previousRoom.y() + previous.y() + verticalDelta(previous.id(), next.id()) - next.y();
+        int x = previousRoom.centerX() + previous.x() + pair.dx() - next.x();
+        int z = previousRoom.centerZ() + previous.z() + pair.dz() - next.z();
+        int y = previousRoom.y() + previous.y() + pair.dy() - next.y();
         return new RoomReservation(key, previousRoom.world(), previousRoom.level(), x, y, z, pair.nextRotation());
     }
     private int verticalDelta(String previous, String next) {
@@ -1178,10 +1178,14 @@ public final class DungeonService implements Listener {
             for (SavedMarker next : nextMarkers) {
                 for (StructureRotation rotation : rotations()) {
                     SavedMarker rotatedNext = transformMarker(next, templateSize(nextId), rotation);
-                    if (("up".equalsIgnoreCase(rotatedPrevious.id()) && "down".equalsIgnoreCase(rotatedNext.id())) || ("down".equalsIgnoreCase(rotatedPrevious.id()) && "up".equalsIgnoreCase(rotatedNext.id()))) {
-                        vertical.add(new ConnectionPair(previous, next, rotation));
-                    } else if (!isVerticalMarker(rotatedPrevious) && !isVerticalMarker(rotatedNext) && facesEachOther(rotatedPrevious, rotatedNext)) {
-                        facingMatched.add(new ConnectionPair(previous, next, rotation));
+                    if ("up".equalsIgnoreCase(rotatedPrevious.id()) && "down".equalsIgnoreCase(rotatedNext.id())) {
+                        vertical.add(new ConnectionPair(previous, next, rotation, 0, 1, 0));
+                    } else if ("down".equalsIgnoreCase(rotatedPrevious.id()) && "up".equalsIgnoreCase(rotatedNext.id())) {
+                        vertical.add(new ConnectionPair(previous, next, rotation, 0, -1, 0));
+                    } else if (!isVerticalMarker(rotatedPrevious) && !isVerticalMarker(rotatedNext)) {
+                        for (DirectionOffset offset : doorwayOffsets(rotatedPrevious, rotatedNext)) {
+                            facingMatched.add(new ConnectionPair(previous, next, rotation, offset.dx(), 0, offset.dz()));
+                        }
                     }
                 }
             }
@@ -1191,6 +1195,30 @@ public final class DungeonService implements Listener {
         if (!facingMatched.isEmpty()) pool.addAll(facingMatched);
         Collections.shuffle(pool);
         return pool;
+    }
+    private List<DirectionOffset> doorwayOffsets(SavedMarker previous, SavedMarker next) {
+        DirectionOffset faced = facingOffsetIfCompatible(previous, next);
+        if (faced != null) return List.of(faced);
+        if (isFlexibleFacing(previous.facing()) || isFlexibleFacing(next.facing())) {
+            List<DirectionOffset> offsets = new ArrayList<>(List.of(new DirectionOffset(1, 0), new DirectionOffset(-1, 0), new DirectionOffset(0, 1), new DirectionOffset(0, -1)));
+            Collections.shuffle(offsets);
+            return offsets;
+        }
+        return List.of();
+    }
+    private DirectionOffset facingOffsetIfCompatible(SavedMarker previous, SavedMarker next) {
+        if (!facesEachOther(previous, next)) return null;
+        return switch (previous.facing().toUpperCase(Locale.ROOT)) {
+            case "EAST" -> new DirectionOffset(1, 0);
+            case "WEST" -> new DirectionOffset(-1, 0);
+            case "SOUTH" -> new DirectionOffset(0, 1);
+            case "NORTH" -> new DirectionOffset(0, -1);
+            default -> null;
+        };
+    }
+    private boolean isFlexibleFacing(String facing) {
+        String value = facing == null ? "" : facing.toUpperCase(Locale.ROOT);
+        return !value.equals("NORTH") && !value.equals("SOUTH") && !value.equals("EAST") && !value.equals("WEST");
     }
     private List<StructureRotation> rotations() {
         return List.of(StructureRotation.NONE, StructureRotation.CLOCKWISE_90, StructureRotation.CLOCKWISE_180, StructureRotation.COUNTERCLOCKWISE_90);
@@ -1304,7 +1332,8 @@ public final class DungeonService implements Listener {
     private record Marker(String id){}
     private record RoomReservation(String key,String world,String level,int centerX,int y,int centerZ,StructureRotation rotation){}
     private record ActiveDungeonRun(String level, String difficulty, boolean bossDefeated, int kills){}
-    private record ConnectionPair(SavedMarker previous, SavedMarker next, StructureRotation nextRotation){}
+    private record ConnectionPair(SavedMarker previous, SavedMarker next, StructureRotation nextRotation, int dx, int dy, int dz){}
+    private record DirectionOffset(int dx, int dz){}
     private record RoomSize(int x, int y, int z){}
     private record RoomBox(int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
         private boolean intersects(RoomBox other) {
