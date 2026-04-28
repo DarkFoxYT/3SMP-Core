@@ -21,12 +21,23 @@ public final class SoulGui {
     }
 
     public Inventory build(Player player) {
-        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.SOULS_MAIN, "souls"), 27, title());
+        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.SOULS_MAIN, "souls"), 45, title());
         fill(inv, frame());
-        inv.setItem(11, button(Material.ENDER_PEARL, "<gradient:#6b7280:#f3f4f6>Balance</gradient>", List.of("<gray>Current souls:</gray> <white>" + manager.balance(player.getUniqueId()) + "</white>")));
-        inv.setItem(13, button(Material.EMERALD, "<gradient:#6b7280:#f3f4f6>Sell Souls</gradient>", List.of("<gray>Convert souls into money.</gray>")));
-        inv.setItem(15, button(Material.CHEST, "<gradient:#6b7280:#f3f4f6>Reward Shop</gradient>", List.of("<gray>Spend souls on rewards.</gray>")));
-        inv.setItem(22, button(Material.ARROW, "<gray>Close</gray>", List.of("<gray>Close this menu.</gray>")));
+        inv.setItem(4, button(Material.SOUL_LANTERN, "<gradient:#6b7280:#f3f4f6>Soul Forge</gradient>", List.of("<gray>Dungeon souls become power here.</gray>", "<gray>Current souls:</gray> <white>" + manager.balance(player.getUniqueId()) + "</white>")));
+        inv.setItem(20, button(Material.ENCHANTING_TABLE, "<gradient:#8b5cf6:#f3f4f6>Random Dungeon Enchant</gradient>", List.of("<gray>Put an item in the forge slot.</gray>", "<gray>Roll a random dungeon enchant.</gray>")));
+        inv.setItem(22, button(Material.EMERALD, "<gradient:#22c55e:#f3f4f6>Convert to Cash</gradient>", List.of("<gray>Convert all souls into money.</gray>")));
+        inv.setItem(24, button(Material.CHEST, "<gradient:#6b7280:#f3f4f6>Reward Shop</gradient>", List.of("<gray>Spend souls on rewards.</gray>")));
+        inv.setItem(40, button(Material.ARROW, "<gray>Close</gray>", List.of("<gray>Close this menu.</gray>")));
+        return inv;
+    }
+
+    public Inventory buildForge(Player player) {
+        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.SOULS_MAIN, "souls-forge"), 45, "<gradient:#8b5cf6:#f3f4f6>Soul Enchant Forge</gradient>");
+        fill(inv, frame());
+        inv.setItem(4, button(Material.SOUL_LANTERN, "<gradient:#8b5cf6:#f3f4f6>Soul Enchant Forge</gradient>", List.of("<gray>Balance:</gray> <white>" + manager.balance(player.getUniqueId()) + "</white>", "<gray>Only opens at dungeon spawn.</gray>")));
+        inv.setItem(20, button(Material.PURPLE_STAINED_GLASS_PANE, "<light_purple>Item Slot</light_purple>", List.of("<gray>Place your target item here.</gray>")));
+        inv.setItem(24, button(Material.ENCHANTED_BOOK, "<gradient:#8b5cf6:#f3f4f6>Roll Enchant</gradient>", List.of("<gray>Cost:</gray> <white>" + manager.enchantCost() + " souls</white>", "<gray>Applies a random dungeon enchant.</gray>")));
+        inv.setItem(40, button(Material.ARROW, "<gray>Back</gray>", List.of("<gray>Return to souls menu.</gray>")));
         return inv;
     }
 

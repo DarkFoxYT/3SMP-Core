@@ -351,6 +351,7 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(shopChestManager, this);
         getServer().getPluginManager().registerEvents(fishingListener, this);
         getServer().getPluginManager().registerEvents(soulDropService, this);
+        getServer().getPluginManager().registerEvents(soulManager, this);
 
         getServer().getPluginManager().registerEvents(zonePvpService, this);
         if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) { new SmpCoreExpansion(this, perkService, warpManager, spawnService, moneyService, sapphireService, partyService, dungeonService, friendService, socialTabService).register(); new ThreeSmpCoreExpansion(this, perkService, warpManager, spawnService, moneyService, sapphireService, partyService, dungeonService, friendService, socialTabService).register(); }

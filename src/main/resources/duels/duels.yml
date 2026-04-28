@@ -48,8 +48,12 @@ duels:
     disable-weather: true
     multiverse:
       register-worlds: true
+      # Temporary duel match worlds are loaded directly by Bukkit so Multiverse does not
+      # spam import/remove checks every fight. Editor/live arena worlds still register.
+      register-temporary-worlds: false
       hide-worlds: true
       pvp: true
+      quiet-failures: true
 
   editor-worlds:
     # false creates a clean editable world using the configured generator.

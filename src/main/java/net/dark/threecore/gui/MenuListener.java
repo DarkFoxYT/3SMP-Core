@@ -108,6 +108,7 @@ public final class MenuListener implements Listener {
             case FISHING_MAIN -> fishingRewardManager.handleClick(player, slot);
             case SOULS_MAIN -> {
                 String ctx = holder.context().toLowerCase(java.util.Locale.ROOT);
+                if (ctx.equals("souls-forge")) { soulManager.handleForgeClick(event); return; }
                 if (ctx.equals("souls-rewards")) soulManager.handleRewardsClick(player, slot);
                 else soulManager.handleClick(player, slot);
             }

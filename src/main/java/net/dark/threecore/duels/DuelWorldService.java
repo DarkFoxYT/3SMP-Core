@@ -151,8 +151,7 @@ public final class DuelWorldService {
         return value.replaceAll("([a-z])([A-Z])", "$1_$2").toLowerCase(java.util.Locale.ROOT);
     }
     private void registerWithMultiverse(World world) {
-        if (world == null || Bukkit.getPluginManager().getPlugin("Multiverse-Core") == null) return;
-        if (!configs.get("duels/duels.yml").getBoolean("duels.world-instances.multiverse.register-worlds", true)) return;
+        if (world == null || !shouldUseMultiverse(world.getName())) return;
         String env = switch (world.getEnvironment()) {
             case NETHER -> "nether";
             case THE_END -> "end";
@@ -167,18 +166,38 @@ public final class DuelWorldService {
                 boolean pvp = configs.get("duels/duels.yml").getBoolean("duels.world-instances.multiverse.pvp", true);
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mv modify " + world.getName() + " set pvp " + pvp);
             } catch (Exception ex) {
-                plugin.getLogger().warning("Failed to register duel world with Multiverse: " + ex.getMessage());
+                logMultiverseFailure("Failed to register duel world with Multiverse: " + ex.getMessage());
             }
         });
     }
 
     private void unregisterFromMultiverse(String worldName) {
-        if (worldName == null || Bukkit.getPluginManager().getPlugin("Multiverse-Core") == null) return;
-        if (!configs.get("duels/duels.yml").getBoolean("duels.world-instances.multiverse.register-worlds", true)) return;
+        if (worldName == null || !shouldUseMultiverse(worldName)) return;
         try {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mv remove " + worldName);
         } catch (Exception ex) {
-            plugin.getLogger().fine("Failed to unregister duel world from Multiverse: " + ex.getMessage());
+            logMultiverseFailure("Failed to unregister duel world from Multiverse: " + ex.getMessage());
+        }
+    }
+
+    private boolean shouldUseMultiverse(String worldName) {
+        if (Bukkit.getPluginManager().getPlugin("Multiverse-Core") == null) return false;
+        if (!configs.get("duels/duels.yml").getBoolean("duels.world-instances.multiverse.register-worlds", true)) return false;
+        if (isTemporaryDuelWorld(worldName)) {
+            return configs.get("duels/duels.yml").getBoolean("duels.world-instances.multiverse.register-temporary-worlds", false);
+        }
+        return true;
+    }
+
+    private boolean isTemporaryDuelWorld(String worldName) {
+        return worldName != null && worldName.contains("_match_");
+    }
+
+    private void logMultiverseFailure(String message) {
+        if (configs.get("duels/duels.yml").getBoolean("duels.world-instances.multiverse.quiet-failures", true)) {
+            plugin.getLogger().fine(message);
+        } else {
+            plugin.getLogger().warning(message);
         }
     }
 

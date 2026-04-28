@@ -8,6 +8,71 @@ drop:
 
 sell-value-per-soul: 25
 
+npc:
+  enabled: true
+  name: "Soul Forge"
+  only-dungeon-spawn: true
+  spawn-radius: 18.0
+  only-dungeon-spawn-message: "<red>The Soul Forge only answers inside dungeon spawn.</red>"
+
+enchanting:
+  cost: 35
+  enchants:
+    sharpness:
+      minecraft: sharpness
+      display: "Sharpness"
+      min-level: 1
+      max-level: 5
+      weight: 20
+    protection:
+      minecraft: protection
+      display: "Protection"
+      min-level: 1
+      max-level: 4
+      weight: 18
+    unbreaking:
+      minecraft: unbreaking
+      display: "Unbreaking"
+      min-level: 1
+      max-level: 3
+      weight: 16
+    efficiency:
+      minecraft: efficiency
+      display: "Efficiency"
+      min-level: 1
+      max-level: 5
+      weight: 14
+    power:
+      minecraft: power
+      display: "Power"
+      min-level: 1
+      max-level: 5
+      weight: 12
+    mending:
+      minecraft: mending
+      display: "Mending"
+      min-level: 1
+      max-level: 1
+      weight: 4
+    density:
+      minecraft: density
+      display: "Density"
+      min-level: 1
+      max-level: 5
+      weight: 5
+    breach:
+      minecraft: breach
+      display: "Breach"
+      min-level: 1
+      max-level: 4
+      weight: 4
+    wind_burst:
+      minecraft: wind_burst
+      display: "Wind Burst"
+      min-level: 1
+      max-level: 3
+      weight: 2
+
 rewards:
   basic_key:
     cost: 10
