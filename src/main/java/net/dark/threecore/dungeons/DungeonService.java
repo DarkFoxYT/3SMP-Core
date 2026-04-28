@@ -8,10 +8,15 @@ import net.dark.threecore.survival.SurvivalService;
 import net.dark.threecore.text.Text;
 import org.bukkit.*;
 import org.bukkit.block.Block;
+import org.bukkit.block.structure.Mirror;
+import org.bukkit.block.structure.StructureRotation;
 import org.bukkit.block.data.BlockData;
 import org.bukkit.block.data.Directional;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.file.YamlConfiguration;
+import org.bukkit.entity.Entity;
+import org.bukkit.entity.EntityType;
+import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
@@ -30,6 +35,8 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.structure.Structure;
+import org.bukkit.structure.StructureManager;
 import net.kyori.adventure.text.Component;
 
 import java.io.File;
@@ -50,6 +57,8 @@ public final class DungeonService implements Listener {
     private static final String TEMPLATE_USED_PATH = "template-command-used";
     private static final Set<UUID> ACTIVE_DUNGEON_PLAYERS = new HashSet<>();
     private static final String DEBUG_PATH = "debug.enabled";
+    private static final String DUNGEON_BOSS_KEY = "dungeon_boss";
+    private static final String DUNGEON_MOB_KEY = "dungeon_mob";
     private final JavaPlugin plugin;
     private final ConfigFiles configs;
     private final MenuService menuService;
@@ -60,6 +69,7 @@ public final class DungeonService implements Listener {
     private final Map<UUID, DungeonRunOptions> menuOptions = new HashMap<>();
     private final Map<UUID, ActiveDungeonRun> activeRuns = new HashMap<>();
     private final Map<UUID, Set<UUID>> activeGroups = new HashMap<>();
+    private final Map<UUID, List<PlacedRoom>> activeLayouts = new HashMap<>();
     private net.dark.threecore.social.SocialTabService socialTabService;
 
     public DungeonService(JavaPlugin plugin, ConfigFiles configs, MenuService menuService, PlayerDataRepository repository, PartyService partyService, SurvivalService survivalService) {
@@ -125,6 +135,7 @@ public final class DungeonService implements Listener {
         player.setGameMode(GameMode.SURVIVAL);
         player.teleport(spawn);
         loadDungeonProfile(player);
+        clearDungeonHubItems(player);
         clearSpawnTools(player);
         applyDungeonSpawnBuffs(player);
         Text.send(player, "<gradient:#4c1d95:#a78bfa>Sent to dungeon spawn.</gradient>");
@@ -163,6 +174,7 @@ public final class DungeonService implements Listener {
         player.setGameMode(GameMode.SURVIVAL);
         player.teleport(new Location(spawn, 0.5D, Math.max(80, spawn.getHighestBlockYAt(0, 0) + 2.0D), 0.5D));
         loadDungeonProfile(player);
+        clearDungeonHubItems(player);
         debug(player, "<gray>Dungeon template initializer used once and locked globally.</gray>");
         Text.send(player, "<green>Dungeon template world prepared.</green> <gray>The one-time initializer is now locked.</gray>");
     }
@@ -224,8 +236,8 @@ public final class DungeonService implements Listener {
         clearDungeonVision(player);
         player.setGameMode(GameMode.SURVIVAL);
         player.teleport(new Location(world, 0.5D, world.getHighestBlockYAt(0, 0) + 2.0D, 0.5D));
-        loadDungeonProfile(player);
-        stripSpawnTools(player);
+        clearPlayerState(player);
+        clearDungeonHubItems(player);
         giveDevTool(player);
         openDevToolbox(player);
         debug(player, "<gray>Editor session opened in <white>" + world.getName() + "</white>.</gray>");
@@ -237,7 +249,6 @@ public final class DungeonService implements Listener {
             Text.send(player, "<gray>You are not in the dungeon editor.</gray>");
             return;
         }
-        saveDungeonProfile(player);
         clearPlayerState(player);
         stripSpawnTools(player);
         player.setGameMode(GameMode.SURVIVAL);
@@ -255,6 +266,7 @@ public final class DungeonService implements Listener {
         activeRuns.remove(player.getUniqueId());
         ACTIVE_DUNGEON_PLAYERS.remove(player.getUniqueId());
         activeGroups.remove(player.getUniqueId());
+        activeLayouts.remove(player.getUniqueId());
         player.setGameMode(GameMode.SURVIVAL);
         teleportDungeonSpawn(player);
     }
@@ -292,6 +304,7 @@ public final class DungeonService implements Listener {
         if (isEmptyDungeonProfile(player.getUniqueId())) debug(player, "<gray>First dungeon visit detected; applying starter kit.</gray>");
         applyBaseKit(player);
         activeRuns.put(player.getUniqueId(), new ActiveDungeonRun(id, options(player).difficulty()[0], false, 0));
+        activeLayouts.put(player.getUniqueId(), buildPlacedRooms(plan, placed));
         ACTIVE_DUNGEON_PLAYERS.add(player.getUniqueId());
         debug(player, "<gray>Dungeon run started:</gray> <white>" + id + "</white> <gray>difficulty</gray> <white>" + options(player).difficulty()[0] + "</white> <gray>rooms</gray> <white>" + plan.size() + "</white>");
         Text.send(player, "<green>Entered " + id + " dungeon.</green> <gray>Rooms:</gray> <white>" + plan.size() + "</white>");
@@ -310,9 +323,12 @@ public final class DungeonService implements Listener {
         inv.setItem(11, devMarker(Material.GREEN_SHULKER_BOX, "Player Spawn"));
         inv.setItem(12, devMarker(Material.YELLOW_SHULKER_BOX, "Entrance"));
         inv.setItem(13, devMarker(Material.ORANGE_SHULKER_BOX, "Connector"));
-        inv.setItem(14, devMarker(Material.LIGHT_BLUE_SHULKER_BOX, "Enemy Spawn"));
-        inv.setItem(15, devMarker(Material.RED_SHULKER_BOX, "Exit"));
-        inv.setItem(16, devMarker(Material.BLACK_SHULKER_BOX, "Boss"));
+        inv.setItem(14, devMarker(Material.MAGENTA_SHULKER_BOX, "Vertical Up"));
+        inv.setItem(15, devMarker(Material.BROWN_SHULKER_BOX, "Vertical Down"));
+        inv.setItem(16, devMarker(Material.LIGHT_BLUE_SHULKER_BOX, "Enemy Spawn"));
+        inv.setItem(19, devMarker(Material.RED_SHULKER_BOX, "Exit"));
+        inv.setItem(20, devMarker(Material.BLACK_SHULKER_BOX, "Boss"));
+        inv.setItem(21, devMarker(Material.CRYING_OBSIDIAN, "Boss Spawner"));
         inv.setItem(17, connectionPreviewItem(player));
         inv.setItem(22, button(Material.ARROW, "<gray>Back</gray>", List.of()));
         player.openInventory(inv);
@@ -320,7 +336,18 @@ public final class DungeonService implements Listener {
     }
 
     private void handleDevToolboxClick(Player player, int raw) {
-        Map<Integer, Material> markers = Map.of(10, Material.WHITE_SHULKER_BOX, 11, Material.GREEN_SHULKER_BOX, 12, Material.YELLOW_SHULKER_BOX, 13, Material.ORANGE_SHULKER_BOX, 14, Material.LIGHT_BLUE_SHULKER_BOX, 15, Material.RED_SHULKER_BOX, 16, Material.BLACK_SHULKER_BOX);
+        Map<Integer, Material> markers = Map.ofEntries(
+                Map.entry(10, Material.WHITE_SHULKER_BOX),
+                Map.entry(11, Material.GREEN_SHULKER_BOX),
+                Map.entry(12, Material.YELLOW_SHULKER_BOX),
+                Map.entry(13, Material.ORANGE_SHULKER_BOX),
+                Map.entry(14, Material.MAGENTA_SHULKER_BOX),
+                Map.entry(15, Material.BROWN_SHULKER_BOX),
+                Map.entry(16, Material.LIGHT_BLUE_SHULKER_BOX),
+                Map.entry(19, Material.RED_SHULKER_BOX),
+                Map.entry(20, Material.BLACK_SHULKER_BOX),
+                Map.entry(21, Material.CRYING_OBSIDIAN)
+        );
         Material material = markers.get(raw);
         if (material == null) return;
         player.getInventory().addItem(devMarker(material, material.name()));
@@ -347,16 +374,34 @@ public final class DungeonService implements Listener {
         YamlConfiguration yaml = configs.get("dungeons/templates.yml");
         String path = "templates." + id.toLowerCase(Locale.ROOT);
         yaml.set(path, null); yaml.set(path + ".level", level.toLowerCase(Locale.ROOT)); yaml.set(path + ".role", "normal"); yaml.set(path + ".size.x", maxX-minX+1); yaml.set(path + ".size.y", maxY-minY+1); yaml.set(path + ".size.z", maxZ-minZ+1);
-        List<String> blocks = new ArrayList<>(); List<String> markers = new ArrayList<>();
+        List<String> blocks = new ArrayList<>(); List<String> markers = new ArrayList<>(); List<String> entities = new ArrayList<>();
         for (int x=minX;x<=maxX;x++) for (int y=minY;y<=maxY;y++) for (int z=minZ;z<=maxZ;z++) {
             Block block = player.getWorld().getBlockAt(x,y,z); Material type = block.getType(); if (type.isAir()) continue;
             String rel = (x-minX)+","+(y-minY)+","+(z-minZ);
             Marker marker = marker(type); if (marker != null) { markers.add(rel+":"+marker.id()+":"+facing(block)); continue; }
             blocks.add(rel+"|"+serializeBlockData(block));
         }
+        for (Entity entity : player.getWorld().getEntities()) {
+            if (entity instanceof Player) continue;
+            Location loc = entity.getLocation();
+            if (loc.getBlockX() < minX || loc.getBlockX() > maxX || loc.getBlockY() < minY || loc.getBlockY() > maxY || loc.getBlockZ() < minZ || loc.getBlockZ() > maxZ) continue;
+            entities.add(serializeEntity(entity, minX, minY, minZ));
+        }
+        String safeId = id.toLowerCase(Locale.ROOT).replaceAll("[^a-z0-9_\\-]", "_");
+        File structureFile = templateStructureFile(safeId);
+        try {
+            StructureManager structureManager = Bukkit.getStructureManager();
+            Structure structure = structureManager.createStructure();
+            structure.fill(new Location(player.getWorld(), minX, minY, minZ), new Location(player.getWorld(), maxX, maxY, maxZ), true);
+            structureManager.saveStructure(structureFile, structure);
+            yaml.set(path + ".structure", "templates/" + structureFile.getName());
+        } catch (Exception ex) {
+            Text.send(player, "<yellow>Structure save failed, using YAML fallback only: " + ex.getMessage() + "</yellow>");
+            yaml.set(path + ".structure", null);
+        }
         yaml.set(path + ".role", detectRoomRole(markers));
         yaml.set(path + ".size-category", sizeCategory(maxX-minX+1, maxY-minY+1, maxZ-minZ+1));
-        yaml.set(path + ".blocks", blocks); yaml.set(path + ".markers", markers);
+        yaml.set(path + ".blocks", blocks); yaml.set(path + ".markers", markers); yaml.set(path + ".entities", entities);
         try { yaml.save(new File(plugin.getDataFolder(), "dungeons/templates.yml")); } catch (Exception ignored) {}
         debug(player, "<gray>Saved template</gray> <white>" + id + "</white> <gray>level</gray> <white>" + level + "</white> <gray>role</gray> <white>" + detectRoomRole(markers) + "</white> <gray>markers</gray> <white>" + markers.size() + "</white>");
         Text.send(player, "<green>Saved dungeon room template " + id + " with " + blocks.size() + " blocks and " + markers.size() + " markers.</green>");
@@ -367,17 +412,21 @@ public final class DungeonService implements Listener {
         var yaml = configs.get("dungeons/templates.yml");
         clearTemplateArea(world, room, yaml.getInt("templates." + id + ".size.x", MAX_SIZE), yaml.getInt("templates." + id + ".size.y", MAX_SIZE), yaml.getInt("templates." + id + ".size.z", MAX_SIZE));
         if (!roomIsConnectable(yaml, id)) return;
+        if (pasteStructure(id, room)) {
+            stripRuntimeMarkers(world, room, yaml.getInt("templates." + id + ".size.x", MAX_SIZE), yaml.getInt("templates." + id + ".size.y", MAX_SIZE), yaml.getInt("templates." + id + ".size.z", MAX_SIZE));
+            return;
+        }
         for (String entry : yaml.getStringList("templates." + id + ".blocks")) {
             String[] p = entry.split("\\|", 3); if (p.length < 2) continue; String[] xyz = p[0].split(",");
             Block target = world.getBlockAt(room.centerX()+Integer.parseInt(xyz[0]), room.y()+Integer.parseInt(xyz[1]), room.centerZ()+Integer.parseInt(xyz[2]));
-            String[] typeAndData = p[1].split(":", 2);
-            Material mat = parseMaterial(typeAndData[0]);
+            Material mat = parseMaterial(p[1]);
             target.setType(mat, false);
             if (p.length >= 3 && !p[2].isBlank()) {
                 BlockData data = Bukkit.createBlockData(p[2]);
                 target.setBlockData(data, false);
             }
         }
+        for (String raw : yaml.getStringList("templates." + id + ".entities")) spawnSerializedEntity(world, room, raw);
     }
 
     private void clearTemplateArea(World world, RoomReservation room, int sizeX, int sizeY, int sizeZ) {
@@ -385,6 +434,11 @@ public final class DungeonService implements Listener {
         int maxX = Math.min(MAX_SIZE, Math.max(1, sizeX));
         int maxY = Math.min(MAX_SIZE, Math.max(1, sizeY));
         int maxZ = Math.min(MAX_SIZE, Math.max(1, sizeZ));
+        for (Entity entity : new ArrayList<>(world.getEntities())) {
+            if (entity instanceof Player) continue;
+            Location loc = entity.getLocation();
+            if (loc.getBlockX() >= room.centerX() && loc.getBlockX() < room.centerX() + maxX && loc.getBlockY() >= room.y() && loc.getBlockY() < room.y() + maxY && loc.getBlockZ() >= room.centerZ() && loc.getBlockZ() < room.centerZ() + maxZ) entity.remove();
+        }
         for (int x = 0; x < maxX; x++) {
             for (int y = 0; y < maxY; y++) {
                 for (int z = 0; z < maxZ; z++) {
@@ -407,6 +461,10 @@ public final class DungeonService implements Listener {
             world.setThundering(false);
             setGameRule(world, "doWeatherCycle", false);
         }
+        if (configs.get("dungeons/dungeons.yml").getBoolean("world-generation.disable-random-ticks", true)) setGameRule(world, "randomTickSpeed", 0);
+        setGameRule(world, "doDaylightCycle", false);
+        setGameRule(world, "doInsomnia", false);
+        setGameRule(world, "doImmediateRespawn", true);
     }
     private Location markerSpawn(String id, RoomReservation room) {
         var yaml = configs.get("dungeons/templates.yml"); World world = Bukkit.getWorld(room.world()); if (world == null) return null;
@@ -436,13 +494,13 @@ public final class DungeonService implements Listener {
         }
         Bukkit.getScheduler().runTask(plugin, () -> giveItem(event.getPlayer()));
     }
-    @EventHandler public void onWorld(PlayerChangedWorldEvent event) { if (isDungeonWorld(event.getFrom())) saveDungeonProfile(event.getPlayer()); if (isDungeonWorld(event.getPlayer().getWorld())) { loadDungeonProfile(event.getPlayer()); clearDungeonHubItems(event.getPlayer()); giveItem(event.getPlayer()); } if (isDungeonSpawnWorld(event.getPlayer().getWorld())) applyDungeonSpawnBuffs(event.getPlayer()); else clearDungeonSpawnBuffs(event.getPlayer()); }
-    @EventHandler public void onMove(PlayerMoveEvent event) { if (event.getTo() == null) return; if (event.getFrom().getBlockX()==event.getTo().getBlockX() && event.getFrom().getBlockY()==event.getTo().getBlockY() && event.getFrom().getBlockZ()==event.getTo().getBlockZ()) return; if (isDungeonSpawnWorld(event.getPlayer().getWorld())) applyDungeonSpawnBuffs(event.getPlayer()); }
+    @EventHandler public void onWorld(PlayerChangedWorldEvent event) { Player player = event.getPlayer(); if (isDungeonWorld(event.getFrom()) && !isDungeonEditorWorld(event.getFrom())) saveDungeonProfile(player); if (isDungeonEditorWorld(player.getWorld())) { clearPlayerState(player); clearDungeonHubItems(player); giveDevTool(player); } else if (isDungeonWorld(player.getWorld())) { loadDungeonProfile(player); clearDungeonHubItems(player); giveItem(player); } if (isDungeonSpawnWorld(player.getWorld())) applyDungeonSpawnBuffs(player); else clearDungeonSpawnBuffs(player); }
+    @EventHandler public void onMove(PlayerMoveEvent event) { if (event.getTo() == null) return; if (event.getFrom().getBlockX()==event.getTo().getBlockX() && event.getFrom().getBlockY()==event.getTo().getBlockY() && event.getFrom().getBlockZ()==event.getTo().getBlockZ()) return; if (isDungeonSpawnWorld(event.getPlayer().getWorld())) applyDungeonSpawnBuffs(event.getPlayer()); handleDungeonRoomProgress(event.getPlayer(), event.getTo()); }
     @EventHandler public void onInteract(PlayerInteractEvent event) { if (event.getAction()!=Action.RIGHT_CLICK_AIR && event.getAction()!=Action.RIGHT_CLICK_BLOCK) return; if (isDevTool(event.getItem())) { event.setCancelled(true); if (!isDungeonEditorWorld(event.getPlayer().getWorld())) return; if (event.getPlayer().isSneaking()) openDevToolbox(event.getPlayer()); else saveTemplate(event.getPlayer(), "room_" + System.currentTimeMillis(), options(event.getPlayer()).level()); return; } if (isDevMarker(event.getItem())) { event.setCancelled(true); if (!isDungeonEditorWorld(event.getPlayer().getWorld())) return; placeDevMarker(event.getPlayer(), event.getItem().getType()); return; } if (isItem(event.getItem())) { event.setCancelled(true); teleportDungeonSpawn(event.getPlayer()); } }
     @EventHandler public void onDrop(PlayerDropItemEvent event) { if (isItem(event.getItemDrop().getItemStack()) || isDevTool(event.getItemDrop().getItemStack()) || isDevMarker(event.getItemDrop().getItemStack())) { event.setCancelled(true); if (isDungeonEditorWorld(event.getPlayer().getWorld())) Bukkit.getScheduler().runTask(plugin, () -> enforceEditorToolbar(event.getPlayer())); } }
     @EventHandler public void onClick(InventoryClickEvent event) { if (event.getInventory().getHolder() instanceof DungeonHolder holder) { event.setCancelled(true); if (!(event.getWhoClicked() instanceof Player p)) return; DungeonRunOptions options = options(p); int raw = event.getRawSlot(); if (raw == 22) { playBackSound(p); openMenu(p); return; } switch (holder.context()) { case "main" -> { if (raw == 10) { playBackSound(p); openLevelMenu(p); } else if (raw == 12) { playBackSound(p); openDifficultyMenu(p); } else if (raw == 14) { playBackSound(p); openPartyMenu(p); } else if (raw == 16) enter(p, options.level()); } case "levels" -> { int[] slots={10,11,12,13,14}; int idx=-1; for(int i=0;i<slots.length;i++) if(slots[i]==raw) idx=i; List<String> levels=levelIds(); if(idx>=0&&idx<levels.size()){String level=levels.get(idx); if(!configs.get("dungeons/dungeons.yml").getBoolean("levels."+level+".coming-soon",false)) options.level(level); playBackSound(p); openMenu(p);} } case "difficulty" -> { if(raw==10) options.difficulty()[0]="easy"; else if(raw==12) options.difficulty()[0]="normal"; else if(raw==14) options.difficulty()[0]="hard"; else if(raw==16) { if (canUseNightmare(p, options.level())) options.difficulty()[0]="nightmare"; else Text.send(p, "<red>Beat Easy, Normal and Hard on this level before Nightmare.</red>"); } playBackSound(p); openMenu(p); } case "party" -> { if(raw==11) options.party()[0]=false; else if(raw==15 && partyService!=null && partyService.isInParty(p.getUniqueId())) options.party()[0]=true; playBackSound(p); openMenu(p); } case "dev-toolbox" -> handleDevToolboxClick(p, raw); default -> { } } return; } if (isItem(event.getCurrentItem())) { event.setCancelled(true); clearCursor(event); if (event.getWhoClicked() instanceof Player p && event.getClickedInventory()==p.getInventory()) { p.setItemOnCursor(null); p.updateInventory(); teleportDungeonSpawn(p); } return; } if (event.getWhoClicked() instanceof Player p && isDungeonEditorWorld(p.getWorld()) && (isDevTool(event.getCurrentItem()) || isDevMarker(event.getCurrentItem()) || isDevTool(event.getCursor()) || isDevMarker(event.getCursor()))) { event.setCancelled(true); clearCursor(event); Bukkit.getScheduler().runTask(plugin, () -> enforceEditorToolbar(p)); } }
     @EventHandler public void onDrag(InventoryDragEvent event) { if (!(event.getWhoClicked() instanceof Player player) || !isDungeonEditorWorld(player.getWorld())) return; if (isDevTool(event.getOldCursor()) || isDevMarker(event.getOldCursor())) { event.setCancelled(true); Bukkit.getScheduler().runTask(plugin, () -> enforceEditorToolbar(player)); } }
-    @EventHandler public void onMobDeath(EntityDeathEvent event) { if (event.getEntity().getKiller() == null) return; Player killer = event.getEntity().getKiller(); ActiveDungeonRun run = activeRuns.get(killer.getUniqueId()); if (run == null) return; int kills = run.kills() + 1; boolean bossKill = event.getEntity().getPersistentDataContainer().has(new NamespacedKey(plugin, "dungeon_boss")); boolean firstBossKill = bossKill && !run.bossDefeated(); boolean bossDefeated = run.bossDefeated() || bossKill; activeRuns.put(killer.getUniqueId(), new ActiveDungeonRun(run.level(), run.difficulty(), bossDefeated, kills)); double amount = moneyPerKill(run.difficulty()); repository.setMoneyBalance(killer.getUniqueId(), repository.getMoneyBalance(killer.getUniqueId()) + amount); if (firstBossKill) rewardBossClear(killer, run); Text.actionBar(killer, "<gradient:#4c1d95:#a78bfa>Dungeon kill</gradient> <gray>+ $" + amount + "</gray>" + (bossDefeated ? " <green>Boss defeated. Exit room unlocked.</green>" : "")); }
+    @EventHandler public void onMobDeath(EntityDeathEvent event) { if (event.getEntity().getKiller() == null) return; Player killer = event.getEntity().getKiller(); ActiveDungeonRun run = activeRuns.get(killer.getUniqueId()); if (run == null) return; int kills = run.kills() + 1; boolean bossKill = event.getEntity().getPersistentDataContainer().has(new NamespacedKey(plugin, DUNGEON_BOSS_KEY)); boolean firstBossKill = bossKill && !run.bossDefeated(); boolean bossDefeated = run.bossDefeated() || bossKill; activeRuns.put(killer.getUniqueId(), new ActiveDungeonRun(run.level(), run.difficulty(), bossDefeated, kills)); double amount = moneyPerKill(run.difficulty()); repository.setMoneyBalance(killer.getUniqueId(), repository.getMoneyBalance(killer.getUniqueId()) + amount); if (firstBossKill) rewardBossClear(killer, run); Text.actionBar(killer, "<gradient:#4c1d95:#a78bfa>Dungeon kill</gradient> <gray>+ $" + amount + "</gray>" + (bossDefeated ? " <green>Boss defeated. Exit room unlocked.</green>" : "")); }
     @EventHandler public void onCreatureSpawn(CreatureSpawnEvent event) {
         if (!isDungeonWorld(event.getLocation().getWorld())) return;
         List<String> allowedReasons = configs.get("dungeons/dungeons.yml").getStringList("world-generation.allowed-spawn-reasons");
@@ -456,6 +514,7 @@ public final class DungeonService implements Listener {
     @EventHandler public void onPlayerDeath(PlayerDeathEvent event) {
         Player player = event.getEntity();
         if (!isDungeonWorld(player.getWorld()) && !activeRuns.containsKey(player.getUniqueId()) && !ACTIVE_DUNGEON_PLAYERS.contains(player.getUniqueId())) return;
+        if (isDungeonEditorWorld(player.getWorld())) return;
         event.setKeepInventory(true);
         event.setKeepLevel(true);
         event.getDrops().clear();
@@ -476,10 +535,11 @@ public final class DungeonService implements Listener {
     }
 
     @EventHandler public void onQuit(PlayerQuitEvent event) {
-        if (isDungeonWorld(event.getPlayer().getWorld())) saveDungeonProfile(event.getPlayer());
+        if (isDungeonWorld(event.getPlayer().getWorld()) && !isDungeonEditorWorld(event.getPlayer().getWorld())) saveDungeonProfile(event.getPlayer());
         activeRuns.remove(event.getPlayer().getUniqueId());
         ACTIVE_DUNGEON_PLAYERS.remove(event.getPlayer().getUniqueId());
         activeGroups.remove(event.getPlayer().getUniqueId());
+        activeLayouts.remove(event.getPlayer().getUniqueId());
     }
 
     private void enterParty(Player player, String level) {
@@ -509,6 +569,7 @@ public final class DungeonService implements Listener {
             applyBaseKit(member);
             ActiveDungeonRun run = new ActiveDungeonRun(level, difficulty, false, 0);
             activeRuns.put(member.getUniqueId(), run);
+            activeLayouts.put(member.getUniqueId(), buildPlacedRooms(plan, placed));
             ACTIVE_DUNGEON_PLAYERS.add(member.getUniqueId());
             activeGroups.put(member.getUniqueId(), new java.util.LinkedHashSet<>(members));
             Text.send(member, "<gradient:#4c1d95:#a78bfa>Party dungeon started.</gradient> <gray>Level:</gray> <white>" + level + "</white> <gray>Difficulty:</gray> <white>" + difficulty + "</white>");
@@ -551,13 +612,17 @@ public final class DungeonService implements Listener {
         if (normal.isEmpty()) normal = templates(level, "any");
         if (entrance.isEmpty()) return List.of();
         int target = Math.max(1, configs.get("dungeons/dungeons.yml").getInt("generation.rooms." + difficulty.toLowerCase(Locale.ROOT), configs.get("dungeons/dungeons.yml").getInt("generation.rooms.easy", 5)));
-        int maxMiddle = Math.min(target, normal.size());
         List<String> shuffled = new ArrayList<>(normal); Collections.shuffle(shuffled);
         List<String> plan = new ArrayList<>();
         plan.add(entrance.get(new Random().nextInt(entrance.size())));
-        for (int i = 0; i < maxMiddle; i++) {
-            String candidate = shuffled.get(i);
-            if (!plan.contains(candidate)) plan.add(candidate);
+        for (int i = 0; i < target && !shuffled.isEmpty(); i++) {
+            if (i > 0 && i % shuffled.size() == 0) Collections.shuffle(shuffled);
+            String candidate = shuffled.get(i % shuffled.size());
+            if (i < shuffled.size()) {
+                if (!plan.contains(candidate)) plan.add(candidate);
+            } else {
+                plan.add(candidate);
+            }
         }
         if (!boss.isEmpty()) plan.add(boss.get(new Random().nextInt(boss.size())));
         if (!exit.isEmpty()) plan.add(exit.get(new Random().nextInt(exit.size())));
@@ -566,22 +631,20 @@ public final class DungeonService implements Listener {
 
     private List<RoomReservation> pasteRoomPlan(List<String> plan, RoomReservation start) {
         List<RoomReservation> placed = new ArrayList<>();
-        int spacing = configs.get("dungeons/dungeons.yml").getInt("generation.spacing", 96);
-        int verticalShift = Math.max(6, configs.get("dungeons/dungeons.yml").getInt("generation.vertical-shift", 24));
-        Random random = new Random(Objects.hash(start.key(), plan.size(), start.world(), start.level()));
+        RoomReservation previousRoom = null;
+        String previousTemplate = null;
         for (int i = 0; i < plan.size(); i++) {
             String id = plan.get(i);
             if (!roomIsConnectable(configs.get("dungeons/templates.yml"), id)) {
                 Bukkit.getLogger().info("[3SMPCore] DungeonDebug skipped template " + id + " because it has no usable markers.");
                 continue;
             }
-            int x = start.centerX() + (i * spacing);
-            int y = start.y() + random.nextInt(-verticalShift, verticalShift + 1);
-            int z = start.centerZ() + random.nextInt(-(spacing / 3), (spacing / 3) + 1);
-            RoomReservation room = new RoomReservation(start.key() + ":" + i, start.world(), start.level(), x, y, z);
+            RoomReservation room = previousRoom == null ? new RoomReservation(start.key() + ":" + i, start.world(), start.level(), start.centerX(), start.y(), start.centerZ()) : nextConnectedRoom(start.key() + ":" + i, previousRoom, previousTemplate, id);
             pasteTemplate(id, room);
             placed.add(room);
-            debug(null, "<gray>Placed room</gray> <white>" + id + "</white> <gray>at</gray> <white>" + x + "," + y + "," + z + "</white> <gray>using flexible offsets.</gray>");
+            previousRoom = room;
+            previousTemplate = id;
+            debug(null, "<gray>Placed room</gray> <white>" + id + "</white> <gray>at</gray> <white>" + room.centerX() + "," + room.y() + "," + room.centerZ() + "</white> <gray>using marker chaining.</gray>");
         }
         return placed;
     }
@@ -623,7 +686,7 @@ public final class DungeonService implements Listener {
     private void clearPlayerState(Player player) { player.getInventory().clear(); player.getInventory().setArmorContents(new ItemStack[4]); player.getInventory().setItemInOffHand(new ItemStack(Material.AIR)); player.setItemOnCursor(null); player.updateInventory(); }
 
         private List<Block> nearby(Player player, Material material) { List<Block> out = new ArrayList<>(); Location c = player.getLocation(); int r = 80; for (int x=c.getBlockX()-r;x<=c.getBlockX()+r;x++) for(int y=Math.max(player.getWorld().getMinHeight(), c.getBlockY()-r);y<=Math.min(player.getWorld().getMaxHeight()-1,c.getBlockY()+r);y++) for(int z=c.getBlockZ()-r;z<=c.getBlockZ()+r;z++) { Block b=player.getWorld().getBlockAt(x,y,z); if(b.getType()==material) out.add(b); } return out; }
-    private Marker marker(Material m) { return switch(m) { case YELLOW_SHULKER_BOX -> new Marker("entrance"); case ORANGE_SHULKER_BOX -> new Marker("connector"); case LIGHT_BLUE_SHULKER_BOX -> new Marker("enemy_spawn"); case RED_SHULKER_BOX -> new Marker("exit"); case PURPLE_SHULKER_BOX -> new Marker("trigger"); case GREEN_SHULKER_BOX -> new Marker("player_spawn"); case BLACK_SHULKER_BOX -> new Marker("boss"); default -> null; }; }
+    private Marker marker(Material m) { return switch(m) { case YELLOW_SHULKER_BOX -> new Marker("entrance"); case ORANGE_SHULKER_BOX -> new Marker("connector"); case MAGENTA_SHULKER_BOX -> new Marker("up"); case BROWN_SHULKER_BOX -> new Marker("down"); case LIGHT_BLUE_SHULKER_BOX -> new Marker("enemy_spawn"); case RED_SHULKER_BOX -> new Marker("exit"); case PURPLE_SHULKER_BOX -> new Marker("trigger"); case GREEN_SHULKER_BOX -> new Marker("player_spawn"); case BLACK_SHULKER_BOX -> new Marker("boss"); case CRYING_OBSIDIAN -> new Marker("boss_spawner"); default -> null; }; }
     private String facing(Block b) { return b.getBlockData() instanceof Directional d ? d.getFacing().name() : "UP"; }
     private String serializeBlockData(Block block) {
         BlockData data = block.getBlockData();
@@ -743,7 +806,7 @@ public final class DungeonService implements Listener {
     }
     private void toggleEditorTool(Player player){ if (!player.hasPermission("3smpcore.dungeons.admin")) { Text.send(player, "<red>No permission.</red>"); return; } if (!isDungeonEditorWorld(player.getWorld())) { Text.send(player, "<red>You can only toggle the dungeon editor tool in the dungeon editor world.</red>"); return; } if (isDevTool(player.getInventory().getItem(DEV_TOOL_SLOT))) { player.getInventory().setItem(DEV_TOOL_SLOT, null); clearCursorToAir(player); Text.send(player, "<yellow>Dungeon editor tool hidden.</yellow>"); } else { giveDevTool(player); } player.updateInventory(); }
     private void giveMarker(Player player, Material material){ var marker = devMarker(material, material.name()); var leftover = player.getInventory().addItem(marker); leftover.values().forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item)); enforceEditorToolbar(player); }
-    private boolean roomIsConnectable(YamlConfiguration yaml, String id){ List<String> markers = yaml.getStringList("templates." + id + ".markers"); if (markers.isEmpty()) return false; String role = yaml.getString("templates." + id + ".role", "normal"); boolean entrance = markers.stream().anyMatch(v -> v.contains(":entrance:") || v.contains(":player_spawn:")); boolean connector = markers.stream().anyMatch(v -> v.contains(":connector:")); boolean boss = markers.stream().anyMatch(v -> v.contains(":boss:")); boolean exit = markers.stream().anyMatch(v -> v.contains(":exit:")); if (role.equalsIgnoreCase("entrance")) return entrance; if (role.equalsIgnoreCase("boss")) return boss; if (role.equalsIgnoreCase("exit")) return exit; return connector || entrance || boss || exit; }
+    private boolean roomIsConnectable(YamlConfiguration yaml, String id){ List<String> markers = yaml.getStringList("templates." + id + ".markers"); if (markers.isEmpty()) return false; String role = yaml.getString("templates." + id + ".role", "normal"); boolean entrance = markers.stream().anyMatch(v -> v.contains(":entrance:") || v.contains(":player_spawn:")); boolean connector = markers.stream().anyMatch(v -> v.contains(":connector:") || v.contains(":up:") || v.contains(":down:")); boolean boss = markers.stream().anyMatch(v -> v.contains(":boss:")); boolean exit = markers.stream().anyMatch(v -> v.contains(":exit:")); if (role.equalsIgnoreCase("entrance")) return entrance || connector; if (role.equalsIgnoreCase("boss")) return boss || connector; if (role.equalsIgnoreCase("exit")) return exit || connector; return connector || entrance || boss || exit; }
     private boolean roomsConnect(String previousId, String currentId){
         YamlConfiguration yaml = configs.get("dungeons/templates.yml");
         boolean previousOk = roomIsConnectable(yaml, previousId);
@@ -802,9 +865,217 @@ public final class DungeonService implements Listener {
         return "normal";
     }
     private boolean debugEnabled() { return configs.get("dungeons/dungeons.yml").getBoolean(DEBUG_PATH, true); }
+    private void handleDungeonRoomProgress(Player player, Location to) {
+        ActiveDungeonRun run = activeRuns.get(player.getUniqueId());
+        if (run == null) return;
+        List<PlacedRoom> rooms = activeLayouts.get(player.getUniqueId());
+        if (rooms == null) return;
+        for (PlacedRoom room : rooms) {
+            if (!room.contains(to)) continue;
+            if (room.role().equalsIgnoreCase("boss") && room.entered().add(player.getUniqueId())) spawnBossForRoom(player, room);
+            if (room.role().equalsIgnoreCase("exit") && room.isInsideMarkerRegion(to, "exit")) {
+                if (!run.bossDefeated()) {
+                    Text.actionBar(player, "<red>Beat the boss first.</red>");
+                    return;
+                }
+                leave(player);
+                Text.send(player, "<green>Dungeon clear.</green>");
+                return;
+            }
+        }
+    }
+
+    private boolean pasteStructure(String id, RoomReservation room) {
+        String relative = configs.get("dungeons/templates.yml").getString("templates." + id + ".structure", "");
+        if (relative == null || relative.isBlank()) return false;
+        File file = new File(plugin.getDataFolder(), "dungeons/" + relative.replace('\\', '/').replaceFirst("^dungeons/", ""));
+        if (!file.exists()) return false;
+        try {
+            Structure structure = Bukkit.getStructureManager().loadStructure(file);
+            World world = Bukkit.getWorld(room.world());
+            if (world == null) return false;
+            structure.place(new Location(world, room.centerX(), room.y(), room.centerZ()), true, StructureRotation.NONE, Mirror.NONE, 0, 1.0F, new Random());
+            return true;
+        } catch (Exception ex) {
+            Bukkit.getLogger().warning("[3SMPCore] Failed to paste dungeon structure " + file.getName() + ": " + ex.getMessage());
+            return false;
+        }
+    }
+
+    private void stripRuntimeMarkers(World world, RoomReservation room, int sizeX, int sizeY, int sizeZ) {
+        int maxX = Math.min(MAX_SIZE, Math.max(1, sizeX));
+        int maxY = Math.min(MAX_SIZE, Math.max(1, sizeY));
+        int maxZ = Math.min(MAX_SIZE, Math.max(1, sizeZ));
+        for (int x = 0; x < maxX; x++) {
+            for (int y = 0; y < maxY; y++) {
+                for (int z = 0; z < maxZ; z++) {
+                    Block block = world.getBlockAt(room.centerX() + x, room.y() + y, room.centerZ() + z);
+                    if (marker(block.getType()) != null) block.setType(Material.AIR, false);
+                }
+            }
+        }
+    }
+
+    private File templateStructureFile(String safeId) {
+        File dir = new File(plugin.getDataFolder(), "dungeons/templates");
+        if (!dir.exists()) dir.mkdirs();
+        return new File(dir, safeId + ".nbt");
+    }
+    private void spawnBossForRoom(Player player, PlacedRoom room) {
+        List<SavedMarker> spawners = room.markers().stream().filter(marker -> marker.id().equalsIgnoreCase("boss_spawner")).toList();
+        if (spawners.isEmpty()) return;
+        String mythicMob = configs.get("dungeons/dungeons.yml").getString("boss.mythicmob", "DungeonBoss");
+        String commandTemplate = configs.get("dungeons/dungeons.yml").getString("boss.spawn-command", "mm mobs spawn %mob% 1 %world%,%x%,%y%,%z%");
+        for (SavedMarker marker : spawners) {
+            Location spawn = marker.world(room).add(0.5D, 0.0D, 0.5D);
+            boolean usedMythic = Bukkit.getPluginManager().getPlugin("MythicBukkit") != null || Bukkit.getPluginManager().getPlugin("MythicMobs") != null;
+            if (usedMythic) {
+                String command = commandTemplate.replace("%mob%", mythicMob).replace("%world%", spawn.getWorld().getName()).replace("%x%", String.valueOf(spawn.getBlockX())).replace("%y%", String.valueOf(spawn.getBlockY())).replace("%z%", String.valueOf(spawn.getBlockZ()));
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
+                for (Entity nearby : spawn.getWorld().getNearbyEntities(spawn, 4.0D, 4.0D, 4.0D)) {
+                    if (!(nearby instanceof LivingEntity) || nearby instanceof Player) continue;
+                    nearby.getPersistentDataContainer().set(new NamespacedKey(plugin, DUNGEON_BOSS_KEY), PersistentDataType.BYTE, (byte) 1);
+                }
+            } else {
+                LivingEntity fallback = (LivingEntity) spawn.getWorld().spawnEntity(spawn, EntityType.ZOMBIE, CreatureSpawnEvent.SpawnReason.CUSTOM);
+                fallback.getPersistentDataContainer().set(new NamespacedKey(plugin, DUNGEON_BOSS_KEY), PersistentDataType.BYTE, (byte) 1);
+                fallback.customName(Text.mm("<red>Dungeon Boss</red>"));
+            }
+        }
+        Text.send(player, "<dark_red>Boss room awakened.</dark_red>");
+    }
+    private List<PlacedRoom> buildPlacedRooms(List<String> plan, List<RoomReservation> placed) {
+        List<PlacedRoom> out = new ArrayList<>();
+        YamlConfiguration yaml = configs.get("dungeons/templates.yml");
+        for (int i = 0; i < Math.min(plan.size(), placed.size()); i++) {
+            String id = plan.get(i);
+            RoomReservation room = placed.get(i);
+            String base = "templates." + id;
+            List<SavedMarker> markers = new ArrayList<>();
+            for (String raw : yaml.getStringList(base + ".markers")) {
+                SavedMarker parsed = parseMarker(raw);
+                if (parsed != null) markers.add(parsed);
+            }
+            out.add(new PlacedRoom(room, id, yaml.getString(base + ".role", "normal"), yaml.getInt(base + ".size.x", 1), yaml.getInt(base + ".size.y", 1), yaml.getInt(base + ".size.z", 1), markers, new HashSet<>()));
+        }
+        return out;
+    }
+    private RoomReservation nextConnectedRoom(String key, RoomReservation previousRoom, String previousId, String nextId) {
+        ConnectionPair pair = pickConnectionPair(previousId, nextId);
+        int spacing = configs.get("dungeons/dungeons.yml").getInt("generation.spacing", 96);
+        if (pair == null) return new RoomReservation(key, previousRoom.world(), previousRoom.level(), previousRoom.centerX() + spacing, previousRoom.y(), previousRoom.centerZ());
+        SavedMarker previous = pair.previous();
+        SavedMarker next = pair.next();
+        int x = previousRoom.centerX() + previous.x() - next.x();
+        int z = previousRoom.centerZ() + previous.z() - next.z();
+        int y = previousRoom.y() + previous.y() - next.y() + verticalDelta(previous.id(), next.id());
+        return new RoomReservation(key, previousRoom.world(), previousRoom.level(), x, y, z);
+    }
+    private int verticalDelta(String previous, String next) {
+        if ("up".equalsIgnoreCase(previous) && "down".equalsIgnoreCase(next)) return 1;
+        if ("down".equalsIgnoreCase(previous) && "up".equalsIgnoreCase(next)) return -1;
+        return 0;
+    }
+    private List<String> expectedMarkersFor(String previousType) {
+        if ("up".equalsIgnoreCase(previousType)) return List.of("down");
+        if ("down".equalsIgnoreCase(previousType)) return List.of("up");
+        return List.of("connector", "entrance", "boss", "exit", "up", "down");
+    }
+    private ConnectionPair pickConnectionPair(String previousId, String nextId) {
+        List<SavedMarker> previousMarkers = markersFor(previousId).stream().filter(this::isConnectionMarker).toList();
+        List<SavedMarker> nextMarkers = markersFor(nextId).stream().filter(this::isConnectionMarker).toList();
+        List<ConnectionPair> vertical = new ArrayList<>();
+        List<ConnectionPair> horizontal = new ArrayList<>();
+        for (SavedMarker previous : previousMarkers) {
+            for (SavedMarker next : nextMarkers) {
+                if (("up".equalsIgnoreCase(previous.id()) && "down".equalsIgnoreCase(next.id())) || ("down".equalsIgnoreCase(previous.id()) && "up".equalsIgnoreCase(next.id()))) {
+                    vertical.add(new ConnectionPair(previous, next));
+                } else if (!isVerticalMarker(previous) && !isVerticalMarker(next)) {
+                    horizontal.add(new ConnectionPair(previous, next));
+                }
+            }
+        }
+        List<ConnectionPair> pool = !vertical.isEmpty() ? vertical : horizontal;
+        if (pool.isEmpty()) return null;
+        return pool.get(new Random(Objects.hash(previousId, nextId, System.nanoTime())).nextInt(pool.size()));
+    }
+    private boolean isConnectionMarker(SavedMarker marker) {
+        return List.of("connector", "entrance", "boss", "exit", "up", "down").stream().anyMatch(value -> value.equalsIgnoreCase(marker.id()));
+    }
+    private boolean isVerticalMarker(SavedMarker marker) {
+        return "up".equalsIgnoreCase(marker.id()) || "down".equalsIgnoreCase(marker.id());
+    }
+    private SavedMarker pickConnectionMarker(String templateId, List<String> allowedTypes) {
+        List<SavedMarker> candidates = markersFor(templateId).stream().filter(marker -> allowedTypes.stream().anyMatch(type -> type.equalsIgnoreCase(marker.id()))).toList();
+        if (candidates.isEmpty()) return null;
+        return candidates.get(new Random(Objects.hash(templateId, allowedTypes, System.nanoTime())).nextInt(candidates.size()));
+    }
+    private List<SavedMarker> markersFor(String templateId) {
+        YamlConfiguration yaml = configs.get("dungeons/templates.yml");
+        List<SavedMarker> out = new ArrayList<>();
+        for (String raw : yaml.getStringList("templates." + templateId + ".markers")) {
+            SavedMarker marker = parseMarker(raw);
+            if (marker != null) out.add(marker);
+        }
+        return out;
+    }
+    private SavedMarker parseMarker(String raw) {
+        String[] parts = raw.split(":");
+        if (parts.length < 2) return null;
+        String[] xyz = parts[0].split(",");
+        if (xyz.length != 3) return null;
+        try {
+            return new SavedMarker(Integer.parseInt(xyz[0]), Integer.parseInt(xyz[1]), Integer.parseInt(xyz[2]), parts[1], parts.length >= 3 ? parts[2] : "UP");
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+    private String serializeEntity(Entity entity, int minX, int minY, int minZ) {
+        Location loc = entity.getLocation();
+        String name = entity.customName() == null ? "" : net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(entity.customName());
+        return entity.getType().name() + "|" + (loc.getX() - minX) + "|" + (loc.getY() - minY) + "|" + (loc.getZ() - minZ) + "|" + loc.getYaw() + "|" + loc.getPitch() + "|" + name;
+    }
+    private void spawnSerializedEntity(World world, RoomReservation room, String raw) {
+        String[] parts = raw.split("\\|", 7);
+        if (parts.length < 6) return;
+        try {
+            EntityType type = EntityType.valueOf(parts[0]);
+            Location loc = new Location(world, room.centerX() + Double.parseDouble(parts[1]), room.y() + Double.parseDouble(parts[2]), room.centerZ() + Double.parseDouble(parts[3]), Float.parseFloat(parts[4]), Float.parseFloat(parts[5]));
+            Entity entity = world.spawnEntity(loc, type, CreatureSpawnEvent.SpawnReason.CUSTOM);
+            entity.getPersistentDataContainer().set(new NamespacedKey(plugin, DUNGEON_MOB_KEY), PersistentDataType.BYTE, (byte) 1);
+            if (parts.length >= 7 && !parts[6].isBlank()) entity.customName(Component.text(parts[6]));
+        } catch (Exception ignored) {
+        }
+    }
     private record Marker(String id){}
     private record RoomReservation(String key,String world,String level,int centerX,int y,int centerZ){}
     private record ActiveDungeonRun(String level, String difficulty, boolean bossDefeated, int kills){}
+    private record ConnectionPair(SavedMarker previous, SavedMarker next){}
+    private record SavedMarker(int x, int y, int z, String id, String facing) {
+        private Location world(PlacedRoom room) { return new Location(Bukkit.getWorld(room.room().world()), room.room().centerX() + x, room.room().y() + y, room.room().centerZ() + z); }
+    }
+    private record PlacedRoom(RoomReservation room, String templateId, String role, int sizeX, int sizeY, int sizeZ, List<SavedMarker> markers, Set<UUID> entered) {
+        private boolean contains(Location location) {
+            if (location == null || location.getWorld() == null || !location.getWorld().getName().equalsIgnoreCase(room.world())) return false;
+            return location.getBlockX() >= room.centerX() && location.getBlockX() < room.centerX() + sizeX && location.getBlockY() >= room.y() && location.getBlockY() < room.y() + sizeY && location.getBlockZ() >= room.centerZ() && location.getBlockZ() < room.centerZ() + sizeZ;
+        }
+        private boolean isNearMarker(Location location, String markerId) {
+            for (SavedMarker marker : markers) if (marker.id().equalsIgnoreCase(markerId) && marker.world(this).distanceSquared(location) <= 4.0D) return true;
+            return false;
+        }
+        private boolean isInsideMarkerRegion(Location location, String markerId) {
+            List<SavedMarker> selected = markers.stream().filter(marker -> marker.id().equalsIgnoreCase(markerId)).toList();
+            if (selected.size() < 2) return isNearMarker(location, markerId);
+            int minX = selected.stream().mapToInt(SavedMarker::x).min().orElse(0) + room.centerX();
+            int maxX = selected.stream().mapToInt(SavedMarker::x).max().orElse(0) + room.centerX();
+            int minY = selected.stream().mapToInt(SavedMarker::y).min().orElse(0) + room.y();
+            int maxY = selected.stream().mapToInt(SavedMarker::y).max().orElse(0) + room.y();
+            int minZ = selected.stream().mapToInt(SavedMarker::z).min().orElse(0) + room.centerZ();
+            int maxZ = selected.stream().mapToInt(SavedMarker::z).max().orElse(0) + room.centerZ();
+            int x = location.getBlockX(), y = location.getBlockY(), z = location.getBlockZ();
+            return x >= minX && x <= maxX && y >= minY && y <= maxY + 2 && z >= minZ && z <= maxZ;
+        }
+    }
     private static final class DungeonRunOptions { private String level; private final boolean[] party; private final String[] difficulty; private DungeonRunOptions(String level, boolean[] party, String[] difficulty){this.level=level;this.party=party;this.difficulty=difficulty;} private String level(){return level;} private void level(String level){this.level=level;} private boolean[] party(){return party;} private String[] difficulty(){return difficulty;} }
     private record DungeonHolder(String context) implements InventoryHolder { @Override public Inventory getInventory(){ return null; } }
     private static final class VoidChunkGenerator extends ChunkGenerator {}

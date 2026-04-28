@@ -38,6 +38,10 @@ duels:
     seconds: 5
     freeze-during-countdown: true
 
+  tab:
+    team-red-commands: []
+    team-blue-commands: []
+
   world-instances:
     enabled: true
     # When enabled, each match copies the configured arena world into a temporary world.

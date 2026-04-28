@@ -62,11 +62,14 @@ markers:
   bounds: WHITE_SHULKER_BOX
   entrances: YELLOW_SHULKER_BOX
   connectors: ORANGE_SHULKER_BOX
+  vertical-up: MAGENTA_SHULKER_BOX
+  vertical-down: BROWN_SHULKER_BOX
   enemy-spawns: LIGHT_BLUE_SHULKER_BOX
   exits: RED_SHULKER_BOX
   triggers: PURPLE_SHULKER_BOX
   player-spawn: GREEN_SHULKER_BOX
   boss: BLACK_SHULKER_BOX
+  boss-spawner: CRYING_OBSIDIAN
 future-drops:
   custom-gems: true
   sapphire-items-very-rare: true
@@ -95,8 +98,12 @@ world-generation:
   generator: VoidGen
   disable-mob-spawning: true
   disable-weather: true
+  disable-random-ticks: true
   allowed-spawn-reasons:
     - CUSTOM
+boss:
+  mythicmob: DungeonBoss
+  spawn-command: "mm mobs spawn %mob% 1 %world%,%x%,%y%,%z%"
 debug:
   enabled: true
 
