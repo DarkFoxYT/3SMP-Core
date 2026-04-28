@@ -117,7 +117,12 @@ public final class FishingRewardManager {
 
     public boolean handleClick(Player player, int rawSlot) {
         FishingSession session = sessions.get(player.getUniqueId());
-        if (session == null) return false;
+        if (session == null) {
+            if (rawSlot == 20) { open(player); return true; }
+            if (rawSlot == 22) { sellFish(player); return true; }
+            if (rawSlot == 24) { sendStats(player); return true; }
+            return true;
+        }
         if (rawSlot == 22) {
             close(player);
             player.closeInventory();
@@ -246,6 +251,70 @@ public final class FishingRewardManager {
         Text.send(player, "<gray>Fish count:</gray> <white>" + session.fishCount() + "</white>");
     }
 
+    public void handleCommand(org.bukkit.command.CommandSender sender, String[] args) {
+        if (!(sender instanceof Player player)) {
+            Text.send(sender, "<red>Players only.</red>");
+            return;
+        }
+        if (args.length == 0) {
+            openHub(player);
+            return;
+        }
+        switch (args[0].toLowerCase(Locale.ROOT)) {
+            case "sell" -> sellFish(player);
+            case "stats" -> sendStats(player);
+            case "play", "start" -> open(player);
+            default -> openHub(player);
+        }
+    }
+
+    public List<String> complete(String[] args) {
+        return args.length <= 1 ? List.of("sell", "stats", "play") : List.of();
+    }
+
+    public void openHub(Player player) {
+        org.bukkit.inventory.Inventory inv = Bukkit.createInventory(new net.dark.threecore.gui.menu.CoreMenuHolder(net.dark.threecore.gui.menu.CoreMenuType.FISHING_MAIN, "hub"), 45, config().getString("hub.title", "3SMP Fishing"));
+        ItemStack frame = frameItem();
+        for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, frame);
+        FishingStats stats = storage.load(player.getUniqueId());
+        inv.setItem(4, menuItem(Material.FISHING_ROD, "<gradient:#38bdf8:#22c55e>Fishing Dock</gradient>", List.of("<gray>Animated fishing, sellable catches, treasure rolls.</gray>", "<gray>Points:</gray> <white>" + stats.fishingPoints() + "</white>")));
+        inv.setItem(20, menuItem(Material.COD, "<gradient:#38bdf8:#F8FBFF>Start Fishing</gradient>", List.of("<gray>Open the animated catch minigame.</gray>", "<yellow>Click to play.</yellow>")));
+        inv.setItem(22, menuItem(Material.EMERALD, "<gradient:#22c55e:#facc15>Sell Fish</gradient>", List.of("<gray>Sell all tagged custom fish in your inventory.</gray>", "<yellow>Click to cash out.</yellow>")));
+        inv.setItem(24, menuItem(Material.BOOK, "<gradient:#5B8DD9:#F8FBFF>Your Stats</gradient>", List.of("<gray>Fish caught:</gray> <white>" + stats.fishCaught() + "</white>", "<gray>Rare catches:</gray> <white>" + stats.rareCatches() + "</white>", "<gray>Fishing points:</gray> <white>" + stats.fishingPoints() + "</white>")));
+        menuService.open(player, inv);
+    }
+
+    public void sendStats(Player player) {
+        FishingStats stats = storage.load(player.getUniqueId());
+        Text.send(player, "<gradient:#38bdf8:#22c55e>Fishing Stats</gradient>");
+        Text.send(player, "<gray>Fish caught:</gray> <white>" + stats.fishCaught() + "</white>");
+        Text.send(player, "<gray>Rare catches:</gray> <white>" + stats.rareCatches() + "</white>");
+        Text.send(player, "<gray>Fishing points:</gray> <white>" + stats.fishingPoints() + "</white>");
+    }
+
+    public void sellFish(Player player) {
+        long total = 0L;
+        int sold = 0;
+        ItemStack[] contents = player.getInventory().getContents();
+        for (int i = 0; i < contents.length; i++) {
+            ItemStack item = contents[i];
+            long each = sellValue(item);
+            if (each <= 0L) continue;
+            int amount = item.getAmount();
+            total += each * amount;
+            sold += amount;
+            contents[i] = null;
+        }
+        player.getInventory().setContents(contents);
+        if (total <= 0L) {
+            Text.send(player, "<red>You do not have any sellable custom fish.</red>");
+            return;
+        }
+        moneyService.give(player.getUniqueId(), total);
+        Text.send(player, "<green>Sold <white>" + sold + "</white> fish for <gold>$" + total + "</gold>.</green>");
+        player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.35f);
+    }
+
     public FishingStats stats(UUID uuid) {
         return storage.load(uuid);
     }
@@ -313,7 +382,8 @@ public final class FishingRewardManager {
         long waitSeconds = sessionWaitSeconds(player);
         long now = System.currentTimeMillis();
         int fishCount = fishCountFor(player);
-        return new FishingSession(player.getUniqueId(), now, now + waitSeconds * 1000L, now + waitSeconds * 1000L + 1000L, fishCount, rarity, this);
+        long catchWindow = Math.max(2L, config().getLong("session.catch-window-seconds", 5L));
+        return new FishingSession(player.getUniqueId(), now, now + waitSeconds * 1000L, now + waitSeconds * 1000L + catchWindow * 1000L, fishCount, rarity, this);
     }
 
     private void startTask() {
@@ -402,12 +472,85 @@ public final class FishingRewardManager {
             ItemStack custom = customItem(itemId, Material.COD);
             player.getInventory().addItem(custom);
         }
+        player.getInventory().addItem(caughtFishItem(rarity));
         for (String materialName : sec.getStringList("items")) {
             Material material = parseMaterial(materialName);
             player.getInventory().addItem(new ItemStack(material));
         }
+        rollBonusLoot(player, rarity);
         player.sendActionBar(Text.mm("<green>Fishing reward: <white>" + rarity + "</white> (+<white>" + points + "</white> points)</green>"));
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.2f);
+    }
+
+    private void rollBonusLoot(Player player, String rarity) {
+        ConfigurationSection section = config().getConfigurationSection("bonus-loot");
+        if (section == null) return;
+        for (String id : section.getKeys(false)) {
+            ConfigurationSection loot = section.getConfigurationSection(id);
+            if (loot == null) continue;
+            List<String> allowed = loot.getStringList("rarities").stream().map(s -> s.toLowerCase(Locale.ROOT)).toList();
+            if (!allowed.isEmpty() && !allowed.contains(rarity.toLowerCase(Locale.ROOT))) continue;
+            double chance = loot.getDouble("chance", 0.0D);
+            if (ThreadLocalRandom.current().nextDouble() > chance) continue;
+            ItemStack item = loot.getString("itemsadder", "").isBlank()
+                    ? new ItemStack(parseMaterial(loot.getString("material", "SADDLE")), Math.max(1, loot.getInt("amount", 1)))
+                    : customItem(loot.getString("itemsadder", ""), parseMaterial(loot.getString("material", "SADDLE")));
+            ItemMeta meta = item.getItemMeta();
+            if (meta != null && !loot.getString("display-name", "").isBlank()) {
+                meta.displayName(Text.mm(loot.getString("display-name")));
+                meta.lore(loot.getStringList("lore").stream().map(Text::mm).toList());
+                item.setItemMeta(meta);
+            }
+            player.getInventory().addItem(item);
+            String message = loot.getString("message", "<gradient:#f59e0b:#fb7185>Bonus catch!</gradient>");
+            Text.send(player, message);
+            player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.2f);
+        }
+    }
+
+    private ItemStack caughtFishItem(String rarity) {
+        ConfigurationSection sec = randomFishItemSection(rarity);
+        Material fallback = parseMaterial(sec == null ? "COD" : sec.getString("material", "COD"));
+        ItemStack item = sec == null || sec.getString("itemsadder", "").isBlank() ? new ItemStack(fallback) : customItem(sec.getString("itemsadder", ""), fallback);
+        ItemMeta meta = item.getItemMeta();
+        long value = sec == null ? pointsFor(rarity) * 25L : sec.getLong("sell-value", pointsFor(rarity) * 25L);
+        if (meta != null) {
+            meta.displayName(Text.mm(sec == null ? "<white>" + rarity + " Fish</white>" : sec.getString("display-name", "<white>" + rarity + " Fish</white>")));
+            List<String> lore = new ArrayList<>(sec == null ? List.of() : sec.getStringList("lore"));
+            lore.add("<gray>Sell value:</gray> <gold>$" + value + "</gold>");
+            lore.add("<dark_gray>Use /fishing sell to cash out.</dark_gray>");
+            meta.lore(lore.stream().map(Text::mm).toList());
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, FISH_KEY), PersistentDataType.STRING, rarity.toLowerCase(Locale.ROOT));
+            meta.getPersistentDataContainer().set(new NamespacedKey(plugin, FISH_KEY + "_value"), PersistentDataType.LONG, value);
+            meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+            item.setItemMeta(meta);
+        }
+        return item;
+    }
+
+    private ConfigurationSection randomFishItemSection(String rarity) {
+        String normalized = rarity.toLowerCase(Locale.ROOT);
+        ConfigurationSection catalog = config().getConfigurationSection("fish-catalog." + normalized);
+        if (catalog != null && !catalog.getKeys(false).isEmpty()) {
+            List<String> keys = new ArrayList<>(catalog.getKeys(false));
+            return catalog.getConfigurationSection(keys.get(ThreadLocalRandom.current().nextInt(keys.size())));
+        }
+        return config().getConfigurationSection("fish-items." + normalized);
+    }
+
+    private long sellValue(ItemStack item) {
+        if (item == null || !item.hasItemMeta()) return 0L;
+        return item.getItemMeta().getPersistentDataContainer().getOrDefault(new NamespacedKey(plugin, FISH_KEY + "_value"), PersistentDataType.LONG, 0L);
+    }
+
+    private ItemStack menuItem(Material material, String name, List<String> lore) {
+        ItemStack item = new ItemStack(material);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(Text.mm(name));
+        meta.lore(lore.stream().map(Text::mm).toList());
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+        item.setItemMeta(meta);
+        return item;
     }
 
     private ItemStack customItem(String id, Material fallback) {

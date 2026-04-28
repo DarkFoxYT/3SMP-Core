@@ -5,7 +5,7 @@ main: net.dark.threecore.ThreeSMPCorePlugin
 api-version: '1.21'
 load: POSTWORLD
 authors: [ DarkFox ]
-softdepend: [ ItemsAdder, PlaceholderAPI, PlayerPoints, Multiverse-Core, WorldGuard, WorldEdit ]
+softdepend: [ ItemsAdder, PlaceholderAPI, PlayerPoints, Multiverse-Core, WorldGuard, WorldEdit, TAB, DecentHolograms ]
 commands:
   help:
     description: Custom 3SMP help command
@@ -94,6 +94,8 @@ commands:
     description: Show fishing debug information
   fishingdebug:
     description: Show fishing debug information
+  fishing:
+    description: Open the fishing hub
   market:
     description: Market district commands
   speed:
@@ -116,6 +118,8 @@ commands:
     description: Set world time
   gamerule:
     description: Change a gamerule
+  rank:
+    description: Give configured rank packages
 permissions:
   3smpcore.admin:
     default: op
@@ -178,6 +182,12 @@ permissions:
   3smpcore.afk.bypass:
     default: op
   3smpcore.afkzone.admin:
+    default: op
+  3smpcore.hologram.admin:
+    default: op
+  3smpcore.rankperms.admin:
+    default: op
+  3smpcore.rank.admin:
     default: op
   3smpcore.daily.use:
     default: true

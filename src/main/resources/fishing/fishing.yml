@@ -8,8 +8,12 @@ menu:
 session:
   wait-seconds:
     min: 0
-    max: 120
+    max: 32
+  catch-window-seconds: 6
   base-fish-per-cast: 1
+
+hub:
+  title: "<gradient:#38bdf8:#22c55e>3SMP Fishing Dock</gradient>"
 
 enchantments:
   lure:
@@ -64,3 +68,276 @@ rarities:
     coins-max: 2500
     fishing-points: 15
     items: [ "PUFFERFISH" ]
+
+fish-items:
+  common:
+    material: COD
+    itemsadder: "3smp:common_fish"
+    display-name: "<white>Dock Minnow</white>"
+    sell-value: 45
+    lore:
+      - "<gray>Tier 1 fish.</gray>"
+      - "<dark_gray>A small but reliable catch.</dark_gray>"
+  uncommon:
+    material: SALMON
+    itemsadder: "3smp:uncommon_fish"
+    display-name: "<green>Silverfin Salmon</green>"
+    sell-value: 140
+    lore:
+      - "<gray>Tier 2 fish.</gray>"
+      - "<dark_gray>Popular with market cooks.</dark_gray>"
+  rare:
+    material: TROPICAL_FISH
+    itemsadder: "3smp:rare_fish"
+    display-name: "<aqua>Crystal Reef Fish</aqua>"
+    sell-value: 525
+    lore:
+      - "<gray>Tier 3 fish.</gray>"
+      - "<dark_gray>Bright scales shimmer with value.</dark_gray>"
+  legendary:
+    material: PUFFERFISH
+    itemsadder: "3smp:legendary_fish"
+    display-name: "<gradient:#f59e0b:#fb7185>Abyss Crownfish</gradient>"
+    sell-value: 2500
+    lore:
+      - "<gray>Tier 4 fish.</gray>"
+      - "<dark_gray>Collectors pay absurd money for this.</dark_gray>"
+
+fish-catalog:
+  common:
+    minnow:
+      material: COD
+      itemsadder: "3smp:fish_minnow"
+      display-name: "<white>Dock Minnow</white>"
+      sell-value: 35
+      lore: [ "<gray>Common fish 1/8.</gray>" ]
+    pond_perch:
+      material: COD
+      itemsadder: "3smp:fish_pond_perch"
+      display-name: "<white>Pond Perch</white>"
+      sell-value: 45
+      lore: [ "<gray>Common fish 2/8.</gray>" ]
+    river_cod:
+      material: COD
+      itemsadder: "3smp:fish_river_cod"
+      display-name: "<white>River Cod</white>"
+      sell-value: 55
+      lore: [ "<gray>Common fish 3/8.</gray>" ]
+    bluegill:
+      material: COD
+      itemsadder: "3smp:fish_bluegill"
+      display-name: "<white>Bluegill</white>"
+      sell-value: 65
+      lore: [ "<gray>Common fish 4/8.</gray>" ]
+    mud_snapper:
+      material: COD
+      itemsadder: "3smp:fish_mud_snapper"
+      display-name: "<white>Mud Snapper</white>"
+      sell-value: 75
+      lore: [ "<gray>Common fish 5/8.</gray>" ]
+    reef_sprat:
+      material: COD
+      itemsadder: "3smp:fish_reef_sprat"
+      display-name: "<white>Reef Sprat</white>"
+      sell-value: 85
+      lore: [ "<gray>Common fish 6/8.</gray>" ]
+    pale_tuna:
+      material: COD
+      itemsadder: "3smp:fish_pale_tuna"
+      display-name: "<white>Pale Tuna</white>"
+      sell-value: 95
+      lore: [ "<gray>Common fish 7/8.</gray>" ]
+    kelp_bass:
+      material: COD
+      itemsadder: "3smp:fish_kelp_bass"
+      display-name: "<white>Kelp Bass</white>"
+      sell-value: 110
+      lore: [ "<gray>Common fish 8/8.</gray>" ]
+  uncommon:
+    silverfin_salmon:
+      material: SALMON
+      itemsadder: "3smp:fish_silverfin_salmon"
+      display-name: "<green>Silverfin Salmon</green>"
+      sell-value: 140
+      lore: [ "<gray>Uncommon fish 1/8.</gray>" ]
+    amber_trout:
+      material: SALMON
+      itemsadder: "3smp:fish_amber_trout"
+      display-name: "<green>Amber Trout</green>"
+      sell-value: 160
+      lore: [ "<gray>Uncommon fish 2/8.</gray>" ]
+    mossy_catfish:
+      material: SALMON
+      itemsadder: "3smp:fish_mossy_catfish"
+      display-name: "<green>Mossy Catfish</green>"
+      sell-value: 180
+      lore: [ "<gray>Uncommon fish 3/8.</gray>" ]
+    dusk_mackerel:
+      material: SALMON
+      itemsadder: "3smp:fish_dusk_mackerel"
+      display-name: "<green>Dusk Mackerel</green>"
+      sell-value: 205
+      lore: [ "<gray>Uncommon fish 4/8.</gray>" ]
+    coral_darter:
+      material: SALMON
+      itemsadder: "3smp:fish_coral_darter"
+      display-name: "<green>Coral Darter</green>"
+      sell-value: 230
+      lore: [ "<gray>Uncommon fish 5/8.</gray>" ]
+    glass_herring:
+      material: SALMON
+      itemsadder: "3smp:fish_glass_herring"
+      display-name: "<green>Glass Herring</green>"
+      sell-value: 255
+      lore: [ "<gray>Uncommon fish 6/8.</gray>" ]
+    stripefin:
+      material: SALMON
+      itemsadder: "3smp:fish_stripefin"
+      display-name: "<green>Stripefin</green>"
+      sell-value: 280
+      lore: [ "<gray>Uncommon fish 7/8.</gray>" ]
+    lagoon_eel:
+      material: SALMON
+      itemsadder: "3smp:fish_lagoon_eel"
+      display-name: "<green>Lagoon Eel</green>"
+      sell-value: 320
+      lore: [ "<gray>Uncommon fish 8/8.</gray>" ]
+  rare:
+    crystal_reef:
+      material: TROPICAL_FISH
+      itemsadder: "3smp:fish_crystal_reef"
+      display-name: "<aqua>Crystal Reef Fish</aqua>"
+      sell-value: 525
+      lore: [ "<gray>Rare fish 1/8.</gray>" ]
+    moon_jellyfish:
+      material: TROPICAL_FISH
+      itemsadder: "3smp:fish_moon_jellyfish"
+      display-name: "<aqua>Moon Jellyfish</aqua>"
+      sell-value: 600
+      lore: [ "<gray>Rare fish 2/8.</gray>" ]
+    prism_carp:
+      material: TROPICAL_FISH
+      itemsadder: "3smp:fish_prism_carp"
+      display-name: "<aqua>Prism Carp</aqua>"
+      sell-value: 675
+      lore: [ "<gray>Rare fish 3/8.</gray>" ]
+    storm_pike:
+      material: TROPICAL_FISH
+      itemsadder: "3smp:fish_storm_pike"
+      display-name: "<aqua>Storm Pike</aqua>"
+      sell-value: 750
+      lore: [ "<gray>Rare fish 4/8.</gray>" ]
+    royal_seahorse:
+      material: TROPICAL_FISH
+      itemsadder: "3smp:fish_royal_seahorse"
+      display-name: "<aqua>Royal Seahorse</aqua>"
+      sell-value: 850
+      lore: [ "<gray>Rare fish 5/8.</gray>" ]
+    velvet_ray:
+      material: TROPICAL_FISH
+      itemsadder: "3smp:fish_velvet_ray"
+      display-name: "<aqua>Velvet Ray</aqua>"
+      sell-value: 950
+      lore: [ "<gray>Rare fish 6/8.</gray>" ]
+    frostfin:
+      material: TROPICAL_FISH
+      itemsadder: "3smp:fish_frostfin"
+      display-name: "<aqua>Frostfin</aqua>"
+      sell-value: 1100
+      lore: [ "<gray>Rare fish 7/8.</gray>" ]
+    jeweled_squid:
+      material: TROPICAL_FISH
+      itemsadder: "3smp:fish_jeweled_squid"
+      display-name: "<aqua>Jeweled Squid</aqua>"
+      sell-value: 1300
+      lore: [ "<gray>Rare fish 8/8.</gray>" ]
+  legendary:
+    abyss_crownfish:
+      material: PUFFERFISH
+      itemsadder: "3smp:fish_abyss_crownfish"
+      display-name: "<gradient:#f59e0b:#fb7185>Abyss Crownfish</gradient>"
+      sell-value: 2500
+      lore: [ "<gray>Legendary fish 1/8.</gray>" ]
+    sunken_leviathan_scale:
+      material: PUFFERFISH
+      itemsadder: "3smp:fish_leviathan_scale"
+      display-name: "<gradient:#f59e0b:#fb7185>Leviathan Scale</gradient>"
+      sell-value: 3250
+      lore: [ "<gray>Legendary fish 2/8.</gray>" ]
+    golden_kraken:
+      material: PUFFERFISH
+      itemsadder: "3smp:fish_golden_kraken"
+      display-name: "<gradient:#f59e0b:#fb7185>Golden Kraken</gradient>"
+      sell-value: 4000
+      lore: [ "<gray>Legendary fish 3/8.</gray>" ]
+    phantom_marlin:
+      material: PUFFERFISH
+      itemsadder: "3smp:fish_phantom_marlin"
+      display-name: "<gradient:#f59e0b:#fb7185>Phantom Marlin</gradient>"
+      sell-value: 4750
+      lore: [ "<gray>Legendary fish 4/8.</gray>" ]
+    starlit_manta:
+      material: PUFFERFISH
+      itemsadder: "3smp:fish_starlit_manta"
+      display-name: "<gradient:#f59e0b:#fb7185>Starlit Manta</gradient>"
+      sell-value: 5500
+      lore: [ "<gray>Legendary fish 5/8.</gray>" ]
+    void_nautilus:
+      material: PUFFERFISH
+      itemsadder: "3smp:fish_void_nautilus"
+      display-name: "<gradient:#f59e0b:#fb7185>Void Nautilus</gradient>"
+      sell-value: 6500
+      lore: [ "<gray>Legendary fish 6/8.</gray>" ]
+    sapphire_shark:
+      material: PUFFERFISH
+      itemsadder: "3smp:fish_sapphire_shark"
+      display-name: "<gradient:#f59e0b:#fb7185>Sapphire Shark</gradient>"
+      sell-value: 8000
+      lore: [ "<gray>Legendary fish 7/8.</gray>" ]
+    mythic_whale:
+      material: PUFFERFISH
+      itemsadder: "3smp:fish_mythic_whale"
+      display-name: "<gradient:#f59e0b:#fb7185>Mythic Whale</gradient>"
+      sell-value: 12000
+      lore: [ "<gray>Legendary fish 8/8.</gray>", "<gold>The big one.</gold>" ]
+
+bonus-loot:
+  saddle:
+    rarities: [ uncommon, rare, legendary ]
+    chance: 0.08
+    material: SADDLE
+    amount: 1
+    display-name: "<gold>Recovered Saddle</gold>"
+    lore:
+      - "<gray>Dragged up from deep water.</gray>"
+    message: "<gold>Bonus catch:</gold> <white>Recovered Saddle</white>"
+  nautilus_shell:
+    rarities: [ rare, legendary ]
+    chance: 0.05
+    material: NAUTILUS_SHELL
+    amount: 1
+    display-name: "<aqua>Nautilus Shell</aqua>"
+    lore:
+      - "<gray>A clean rare treasure catch.</gray>"
+    message: "<aqua>Treasure catch!</aqua> <white>Nautilus Shell</white>"
+  sunken_key:
+    rarities: [ rare, legendary ]
+    chance: 0.025
+    material: TRIPWIRE_HOOK
+    itemsadder: "3smp:sunken_key"
+    amount: 1
+    display-name: "<gradient:#38bdf8:#f59e0b>Sunken Crate Key</gradient>"
+    lore:
+      - "<gray>A valuable crate key from the ocean floor.</gray>"
+    message: "<gradient:#38bdf8:#f59e0b>Insane catch:</gradient> <white>Sunken Crate Key</white>"
+  ocean_relic:
+    rarities: [ legendary ]
+    chance: 0.01
+    material: HEART_OF_THE_SEA
+    itemsadder: "3smp:ocean_relic"
+    amount: 1
+    display-name: "<gradient:#22d3ee:#a855f7>Ocean Relic</gradient>"
+    lore:
+      - "<gray>Extremely valuable jackpot loot.</gray>"
+      - "<gold>Worth a lot. Show it off.</gold>"
+    message: "<gradient:#22d3ee:#a855f7><bold>JACKPOT!</bold></gradient> <white>You pulled an Ocean Relic!</white>"

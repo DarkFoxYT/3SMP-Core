@@ -50,6 +50,7 @@ public final class CommandRegistrar {
     private void registerHelp() {
         var command = plugin.getCommand("help");
         if (command == null) return;
+        plugin.getServer().getPluginManager().registerEvents(helpService, plugin);
         command.setExecutor((sender, command1, label, args) -> {
             helpService.handle(sender, args);
             return true;

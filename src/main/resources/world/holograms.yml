@@ -1,4 +1,106 @@
 holograms:
+  leaderboard_wall_title:
+    enabled: false
+    type: static
+    location:
+      world: spawn
+      x: 0.5
+      y: 82.8
+      z: 0.5
+      yaw: 0.0
+      pitch: 0.0
+    line-spacing: 0.30
+    lines:
+      - "<gradient:#5B8DD9:#F8FBFF><bold>3SMP Leaderboards</bold></gradient>"
+      - "<gray>Souls • Fishing • Votes • Kills • Playtime • Coins</gray>"
+      - "<dark_gray>Use /3smpcore hologram place id to position each panel.</dark_gray>"
+  souls_top:
+    enabled: false
+    type: souls
+    location:
+      world: spawn
+      x: -5.5
+      y: 82.0
+      z: 0.5
+      yaw: 0.0
+      pitch: 0.0
+    line-spacing: 0.28
+    lines:
+      - "<gradient:#6b7280:#f3f4f6>Souls Leaderboard</gradient>"
+      - "<gray>No soul data yet.</gray>"
+  fishing_points_top:
+    enabled: false
+    type: fishing_points
+    location:
+      world: spawn
+      x: -2.5
+      y: 82.0
+      z: 0.5
+      yaw: 0.0
+      pitch: 0.0
+    line-spacing: 0.28
+    lines:
+      - "<gradient:#38bdf8:#22c55e>Fishing Points</gradient>"
+      - "<gray>No fishing point data yet.</gray>"
+  fish_caught_top:
+    enabled: false
+    type: fish_caught
+    location:
+      world: spawn
+      x: 0.5
+      y: 82.0
+      z: 0.5
+      yaw: 0.0
+      pitch: 0.0
+    line-spacing: 0.28
+    lines:
+      - "<gradient:#38bdf8:#22c55e>Fish Caught</gradient>"
+      - "<gray>No fishing data yet.</gray>"
+  votes_top:
+    enabled: false
+    type: static
+    location:
+      world: spawn
+      x: 3.5
+      y: 82.0
+      z: 0.5
+      yaw: 0.0
+      pitch: 0.0
+    line-spacing: 0.28
+    lines:
+      - "<gradient:#f59e0b:#fbbf24>Votes Leaderboard</gradient>"
+      - "<white>#1</white> <gray>%VotingPlugin_top_all_1%</gray>"
+      - "<white>#2</white> <gray>%VotingPlugin_top_all_2%</gray>"
+      - "<white>#3</white> <gray>%VotingPlugin_top_all_3%</gray>"
+      - "<dark_gray>Install VotingPlugin placeholders for live vote data.</dark_gray>"
+  kills_top:
+    enabled: false
+    type: kills
+    location:
+      world: spawn
+      x: 6.5
+      y: 82.0
+      z: 0.5
+      yaw: 0.0
+      pitch: 0.0
+    line-spacing: 0.28
+    lines:
+      - "<gradient:#ef4444:#f97316>Kills Leaderboard</gradient>"
+      - "<gray>No kill data yet.</gray>"
+  playtime_top:
+    enabled: false
+    type: playtime
+    location:
+      world: spawn
+      x: 9.5
+      y: 82.0
+      z: 0.5
+      yaw: 0.0
+      pitch: 0.0
+    line-spacing: 0.28
+    lines:
+      - "<gradient:#5B8DD9:#F8FBFF>Online Playtime</gradient>"
+      - "<gray>Online playtime displays here.</gray>"
   duel_top:
     enabled: false
     type: duels

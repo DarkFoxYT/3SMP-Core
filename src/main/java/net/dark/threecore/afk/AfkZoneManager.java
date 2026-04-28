@@ -18,6 +18,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.player.*;
+import org.bukkit.generator.ChunkGenerator;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
@@ -36,6 +37,10 @@ public final class AfkZoneManager implements Listener {
     private final Map<UUID, AfkPlayerState> states = new HashMap<>();
     private final Map<String, AfkZone> zones = new LinkedHashMap<>();
     private final Map<UUID, Location> returnLocations = new HashMap<>();
+    private final Map<UUID, GameMode> returnGameModes = new HashMap<>();
+    private final Map<UUID, Boolean> returnAllowFlight = new HashMap<>();
+    private final Map<UUID, Boolean> returnFlying = new HashMap<>();
+    private final Map<UUID, Long> inputGraceUntil = new HashMap<>();
     private final Map<UUID, Integer> taskIds = new HashMap<>();
     private BukkitTask task;
 
@@ -59,6 +64,10 @@ public final class AfkZoneManager implements Listener {
         task = null;
         states.clear();
         returnLocations.clear();
+        returnGameModes.clear();
+        returnAllowFlight.clear();
+        returnFlying.clear();
+        inputGraceUntil.clear();
         taskIds.clear();
     }
 
@@ -96,12 +105,19 @@ public final class AfkZoneManager implements Listener {
         if (player == null) return false;
         if (DuelService.isDuelPlayer(player)) return true;
         if (DungeonService.isDungeonPlayer(player)) return true;
+        if (returnLocations.containsKey(player.getUniqueId())) return false;
         if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) return true;
         return !isInAfkZone(player);
     }
 
     public void touch(Player player) {
         if (player == null || isZoneBlocked(player)) return;
+        Long graceUntil = inputGraceUntil.get(player.getUniqueId());
+        if (graceUntil != null && System.currentTimeMillis() < graceUntil) return;
+        if (returnLocations.containsKey(player.getUniqueId())) {
+            exitZone(player);
+            return;
+        }
         AfkZone zone = zoneAt(player.getLocation());
         if (zone == null) {
             exitZone(player);
@@ -151,7 +167,7 @@ public final class AfkZoneManager implements Listener {
                 Text.send(player, config("messages.afk", "<yellow>You are now AFK.</yellow>"));
             }
             if (!state.afk()) continue;
-            if (player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR) continue;
+            if (player.getGameMode() == GameMode.CREATIVE && !returnLocations.containsKey(player.getUniqueId())) continue;
             if (System.currentTimeMillis() - state.lastRewardAt() >= rewardEvery) {
                 long payouts = Math.max(1L, (System.currentTimeMillis() - state.lastRewardAt()) / rewardEvery);
                 for (long i = 0; i < payouts; i++) rewardService.reward(player, rewardAmount);
@@ -167,8 +183,24 @@ public final class AfkZoneManager implements Listener {
             Text.send(player, "<red>No AFK zone is configured.</red>");
             return;
         }
+        World world = ensureZoneWorld(zone);
+        if (world == null) {
+            Text.send(player, "<red>AFK void world could not be loaded.</red>");
+            return;
+        }
         returnLocations.put(player.getUniqueId(), player.getLocation().clone());
-        player.teleport(zone.center().clone().add(0.5, 1.0, 0.5));
+        returnGameModes.put(player.getUniqueId(), player.getGameMode());
+        returnAllowFlight.put(player.getUniqueId(), player.getAllowFlight());
+        returnFlying.put(player.getUniqueId(), player.isFlying());
+        inputGraceUntil.put(player.getUniqueId(), System.currentTimeMillis() + 1000L);
+        Location target = zone.center(world).clone().add(0.5, 1.0, 0.5);
+        player.teleport(target);
+        player.setGameMode(GameMode.SPECTATOR);
+        AfkPlayerState state = state(player.getUniqueId());
+        state.zoneId(zone.id());
+        state.afk(true);
+        state.lastRealMovementAt(System.currentTimeMillis());
+        state.lastRewardAt(System.currentTimeMillis());
         Text.send(player, config("messages.entering", "<gradient:#1A2A4A:#D6E8F7>Entered AFK zone.</gradient>"));
     }
 
@@ -177,8 +209,17 @@ public final class AfkZoneManager implements Listener {
         if (removed == null) return;
         Text.send(player, config("messages.leaving", "<gray>You left the AFK zone.</gray>"));
         Location back = returnLocations.remove(player.getUniqueId());
+        inputGraceUntil.remove(player.getUniqueId());
+        GameMode gameMode = returnGameModes.remove(player.getUniqueId());
+        Boolean allowFlight = returnAllowFlight.remove(player.getUniqueId());
+        Boolean flying = returnFlying.remove(player.getUniqueId());
         if (back != null && back.getWorld() != null) {
-            Bukkit.getScheduler().runTask(plugin, () -> player.teleport(back));
+            Bukkit.getScheduler().runTask(plugin, () -> {
+                if (gameMode != null) player.setGameMode(gameMode);
+                if (allowFlight != null) player.setAllowFlight(allowFlight);
+                if (flying != null && player.getAllowFlight()) player.setFlying(flying);
+                player.teleport(back);
+            });
         }
     }
 
@@ -268,6 +309,36 @@ public final class AfkZoneManager implements Listener {
         return zones.values().stream().findFirst().orElse(null);
     }
 
+    private World ensureZoneWorld(AfkZone zone) {
+        World existing = Bukkit.getWorld(zone.world());
+        if (existing != null) return existing;
+        WorldCreator creator = new WorldCreator(zone.world());
+        creator.environment(World.Environment.NORMAL);
+        creator.generateStructures(false);
+        String generator = configs.get("world/afk.yml").getString("zone.generator", "");
+        if (generator != null && !generator.isBlank() && Bukkit.getPluginManager().getPlugin(generator) != null) {
+            creator.generator(generator);
+        } else {
+            creator.generator(new VoidChunkGenerator());
+        }
+        World created = Bukkit.createWorld(creator);
+        if (created != null) {
+            created.setPVP(false);
+            created.setAutoSave(false);
+            Location spawn = zone.center(created);
+            created.setSpawnLocation(spawn.getBlockX(), spawn.getBlockY(), spawn.getBlockZ());
+            if (configs.get("world/afk.yml").getBoolean("zone.import-to-multiverse", true)
+                    && Bukkit.getPluginManager().getPlugin("Multiverse-Core") != null) {
+                Bukkit.getScheduler().runTask(plugin, () -> {
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mv import " + created.getName() + " normal");
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mv modify " + created.getName() + " set hidden true");
+                    Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mv modify " + created.getName() + " set pvp false");
+                });
+            }
+        }
+        return created;
+    }
+
     private AfkZone zoneAt(Location location) {
         if (location == null || location.getWorld() == null) return null;
         for (AfkZone zone : zones.values()) {
@@ -313,6 +384,26 @@ public final class AfkZoneManager implements Listener {
     }
 
     @EventHandler(ignoreCancelled = true)
+    public void onDrop(PlayerDropItemEvent event) {
+        touch(event.getPlayer());
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onSwap(PlayerSwapHandItemsEvent event) {
+        touch(event.getPlayer());
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onHeldSlot(PlayerItemHeldEvent event) {
+        touch(event.getPlayer());
+    }
+
+    @EventHandler(ignoreCancelled = true)
+    public void onAnimation(PlayerAnimationEvent event) {
+        touch(event.getPlayer());
+    }
+
+    @EventHandler(ignoreCancelled = true)
     public void onInteract(PlayerInteractEvent event) {
         if (event.getAction() == Action.RIGHT_CLICK_AIR || event.getAction() == Action.RIGHT_CLICK_BLOCK) touch(event.getPlayer());
     }
@@ -336,13 +427,19 @@ public final class AfkZoneManager implements Listener {
     public void onQuit(PlayerQuitEvent event) {
         states.remove(event.getPlayer().getUniqueId());
         returnLocations.remove(event.getPlayer().getUniqueId());
+        returnGameModes.remove(event.getPlayer().getUniqueId());
+        returnAllowFlight.remove(event.getPlayer().getUniqueId());
+        returnFlying.remove(event.getPlayer().getUniqueId());
+        inputGraceUntil.remove(event.getPlayer().getUniqueId());
     }
 
     private record AfkZone(String id, String world, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
-        Location center() {
-            World w = Bukkit.getWorld(world);
-            if (w == null) return new Location(Bukkit.getWorlds().get(0), 0, 0, 0);
+        Location center(World loadedWorld) {
+            World w = loadedWorld != null ? loadedWorld : Bukkit.getWorld(world);
+            if (w == null) w = Bukkit.getWorlds().get(0);
             return new Location(w, (minX + maxX) / 2.0, (minY + maxY) / 2.0, (minZ + maxZ) / 2.0);
         }
     }
+
+    private static final class VoidChunkGenerator extends ChunkGenerator {}
 }

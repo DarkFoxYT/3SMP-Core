@@ -72,15 +72,15 @@ public final class SapphireService {
 
     public void handleMenuClick(Player player, int slot) {
         switch (slot) {
-            case 7 -> sendShopSummary(player);
-            case 11 -> sendBalance(player);
-            case 13 -> openShopLink(player);
-            case 15 -> sendCommandHelp(player);
-            case 19 -> purchase(player, "crate_keys");
-            case 20 -> purchase(player, "gem_extractor");
-            case 21 -> purchase(player, "gem_capsule");
-            case 22 -> purchase(player, "cosmetics");
-            case 23 -> purchase(player, "donor_rank");
+            case 4, 16 -> sendShopSummary(player);
+            case 10 -> sendBalance(player);
+            case 12 -> openShopLink(player);
+            case 14 -> sendCommandHelp(player);
+            case 28 -> purchase(player, "crate_keys");
+            case 30 -> purchase(player, "gem_extractor");
+            case 32 -> purchase(player, "gem_capsule");
+            case 34 -> purchase(player, "cosmetics");
+            case 40 -> purchase(player, "donor_rank");
             default -> { }
         }
     }

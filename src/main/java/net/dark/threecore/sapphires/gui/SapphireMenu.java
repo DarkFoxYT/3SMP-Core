@@ -20,28 +20,35 @@ public final class SapphireMenu {
     }
 
     public Inventory build(Player player) {
-        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.SAPPHIRES_MAIN, "main"), 27, "3SMP Sapphire Shop");
-        fill(inv, Material.LIGHT_BLUE_STAINED_GLASS_PANE);
-        inv.setItem(7, button(Material.BOOK, "<gradient:#1A2A4A:#D6E8F7>Summary</gradient>", List.of("<gray>View your balance and configured shop link.</gray>")));
-        inv.setItem(11, button(Material.EMERALD, "<gradient:#38bdf8:#8b5cf6>Balance</gradient>", List.of(
-                "<gray>View your current sapphire balance.</gray>",
-                "<white>Balance:</white> <gradient:#22d3ee:#a78bfa>" + service.balance(player.getUniqueId()) + "</gradient>"
+        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.SAPPHIRES_MAIN, "main"), 54, "3SMP Sapphire Vault");
+        fill(inv, Material.BLACK_STAINED_GLASS_PANE);
+        inv.setItem(4, button(Material.NETHER_STAR, "<gradient:#5B8DD9:#F8FBFF>Sapphire Vault</gradient>", List.of(
+                "<gray>Premium currency, crate keys, gem tools, and cosmetics.</gray>",
+                "<gray>Balance:</gray> <gradient:#22d3ee:#a78bfa>" + service.balance(player.getUniqueId()) + " Sapphires</gradient>"
         )));
-        inv.setItem(13, button(Material.CHEST, "<gradient:#34d399:#22c55e>Shop</gradient>", List.of(
-                "<gray>Click to get the configured sapphire shop link.</gray>",
-                "<gray>This redirects to the server shop website.</gray>"
+        inv.setItem(10, button(Material.EMERALD, "<gradient:#38bdf8:#8b5cf6>Balance</gradient>", List.of(
+                "<gray>Your current sapphire balance.</gray>",
+                "<white>" + service.balance(player.getUniqueId()) + "</white> <#D6E8F7>Sapphires</#D6E8F7>"
         )));
-        inv.setItem(15, button(Material.PAPER, "<gradient:#f59e0b:#f97316>Commands</gradient>", List.of(
+        inv.setItem(12, button(Material.CHEST, "<gradient:#34d399:#22c55e>Store Link</gradient>", List.of(
+                "<gray>Open the configured shop website.</gray>",
+                "<white>" + service.shopUrl() + "</white>"
+        )));
+        inv.setItem(14, button(Material.PAPER, "<gradient:#f59e0b:#f97316>Commands</gradient>", List.of(
                 "<gray>Available player commands:</gray>",
                 "<white>/sapphire bal</white>",
                 "<white>/sapphire ballance</white>",
                 "<white>/sapphire shop</white>"
         )));
-        inv.setItem(19, button(Material.TRIPWIRE_HOOK, "<gradient:#f59e0b:#f97316>Crate Keys</gradient>", List.of("<gray>Spend sapphires on crate keys.</gray>")));
-        inv.setItem(20, button(Material.PRISMARINE_SHARD, "<gradient:#06b6d4:#8b5cf6>Gem Extractor</gradient>", List.of("<gray>Buy a gem extractor.</gray>")));
-        inv.setItem(21, button(Material.AMETHYST_SHARD, "<gradient:#a855f7:#ec4899>Gem Capsules</gradient>", List.of("<gray>Buy gem capsules.</gray>")));
-        inv.setItem(22, button(Material.ENDER_EYE, "<gradient:#f472b6:#f59e0b>Cosmetics</gradient>", List.of("<gray>Spend sapphires on cosmetics.</gray>")));
-        inv.setItem(23, button(Material.NETHER_STAR, "<gradient:#facc15:#fb7185>Donor Ranks</gradient>", List.of("<gray>Browse rank unlocks.</gray>")));
+        inv.setItem(16, button(Material.AMETHYST_CLUSTER, "<gradient:#22d3ee:#a78bfa>What Are Sapphires?</gradient>", List.of(
+                "<gray>Earn or buy Sapphires and spend them here.</gray>",
+                "<gray>Purchases run instantly from this menu.</gray>"
+        )));
+        inv.setItem(28, button(Material.TRIPWIRE_HOOK, "<gradient:#f59e0b:#f97316>Crate Keys</gradient>", List.of("<gray>Buy crate keys with Sapphires.</gray>", "<yellow>Click to purchase.</yellow>")));
+        inv.setItem(30, button(Material.PRISMARINE_SHARD, "<gradient:#06b6d4:#8b5cf6>Gem Extractor</gradient>", List.of("<gray>Remove gems from socketed gear.</gray>", "<yellow>Click to purchase.</yellow>")));
+        inv.setItem(32, button(Material.ENDER_CHEST, "<gradient:#a855f7:#ec4899>Gem Capsules</gradient>", List.of("<gray>Buy random gem capsules.</gray>", "<red>Prismatic gems are excluded.</red>", "<yellow>Click to purchase.</yellow>")));
+        inv.setItem(34, button(Material.ENDER_EYE, "<gradient:#f472b6:#f59e0b>Cosmetics</gradient>", List.of("<gray>Unlock cosmetic content.</gray>", "<yellow>Click to purchase.</yellow>")));
+        inv.setItem(40, button(Material.NETHER_STAR, "<gradient:#facc15:#fb7185>Donor Ranks</gradient>", List.of("<gray>Spend Sapphires toward donor perks.</gray>", "<yellow>Click to purchase.</yellow>")));
         return inv;
     }
 
@@ -61,15 +68,14 @@ public final class SapphireMenu {
 
     public void handleClick(Player player, int slot) {
         switch (slot) {
-            case 7 -> service.openSummary(player);
-            case 11 -> service.sendBalance(player);
-            case 13 -> service.openShopLink(player);
-            case 15 -> service.sendCommandHelp(player);
-            case 19 -> service.purchase(player, "crate_keys");
-            case 20 -> service.purchase(player, "gem_extractor");
-            case 21 -> service.purchase(player, "gem_capsule");
-            case 22 -> service.purchase(player, "cosmetics");
-            case 23 -> service.purchase(player, "donor_rank");
+            case 10 -> service.sendBalance(player);
+            case 12 -> service.openShopLink(player);
+            case 14 -> service.sendCommandHelp(player);
+            case 28 -> service.purchase(player, "crate_keys");
+            case 30 -> service.purchase(player, "gem_extractor");
+            case 32 -> service.purchase(player, "gem_capsule");
+            case 34 -> service.purchase(player, "cosmetics");
+            case 40 -> service.purchase(player, "donor_rank");
             default -> { }
         }
     }

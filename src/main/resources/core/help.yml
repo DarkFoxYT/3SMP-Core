@@ -22,6 +22,139 @@ messages:
   unknown-page: "<red>That help page does not exist.</red>"
   no-permission: "<red>You cannot view that help page.</red>"
 
+menu:
+  enabled: true
+  title: "3SMP Help"
+  size: 54
+  header-slot: 4
+  fill:
+    material: "BLACK_STAINED_GLASS_PANE"
+    name: " "
+  pages:
+    main:
+      header:
+        material: "NETHER_STAR"
+        itemsadder: "3smp:help_logo"
+        name: "<gradient:#1A2A4A:#f59e0b><bold>{server} Help</bold></gradient>"
+        lore:
+          - "<gray>Everything useful in one place.</gray>"
+          - "<dark_gray>Click a category below.</dark_gray>"
+  buttons:
+    commands:
+      slot: 10
+      material: "BOOK"
+      itemsadder: "3smp:help_commands"
+      name: "<#D6E8F7><bold>Command Help</bold></#D6E8F7>"
+      lore:
+        - "<gray>Spawn, RTP, warps, money, shop, perks.</gray>"
+        - "<yellow>Click to print the command list.</yellow>"
+      action: "message"
+      messages:
+        - "<gradient:#1A2A4A:#f59e0b><bold>Useful Commands</bold></gradient>"
+        - "<#D6E8F7>/spawn</#D6E8F7> <gray>Return to spawn.</gray>"
+        - "<#D6E8F7>/rtp</#D6E8F7> <gray>Random teleport.</gray>"
+        - "<#D6E8F7>/warp</#D6E8F7> <gray>Open warps.</gray>"
+        - "<#D6E8F7>/shop</#D6E8F7> <gray>Open the shop.</gray>"
+        - "<#D6E8F7>/ah</#D6E8F7> <gray>Auction house.</gray>"
+        - "<#D6E8F7>/perks</#D6E8F7> <gray>Cosmetics and chat colors.</gray>"
+    duels:
+      slot: 12
+      material: "DIAMOND_SWORD"
+      itemsadder: "3smp:help_duels"
+      name: "<gradient:#60a5fa:#c084fc><bold>Duels</bold></gradient>"
+      lore:
+        - "<gray>Queues, kits, spectating, parties.</gray>"
+        - "<yellow>Click to open /duel.</yellow>"
+      action: "command"
+      value: "duel"
+    dungeons:
+      slot: 14
+      material: "ENDER_EYE"
+      itemsadder: "3smp:help_dungeons"
+      name: "<gradient:#4c1d95:#a78bfa><bold>Dungeons</bold></gradient>"
+      lore:
+        - "<gray>Dungeon runs, bosses, difficulties.</gray>"
+        - "<yellow>Click to open /dungeon.</yellow>"
+      action: "command"
+      value: "dungeon"
+    economy:
+      slot: 16
+      material: "EMERALD"
+      itemsadder: "3smp:help_economy"
+      name: "<gradient:#16a34a:#facc15><bold>Economy</bold></gradient>"
+      lore:
+        - "<gray>Money, sapphires, gems, souls, market.</gray>"
+        - "<yellow>Click for economy commands.</yellow>"
+      action: "message"
+      messages:
+        - "<gradient:#16a34a:#facc15><bold>Economy Help</bold></gradient>"
+        - "<#D6E8F7>/bal</#D6E8F7> <gray>Check money.</gray>"
+        - "<#D6E8F7>/pay player amount</#D6E8F7> <gray>Pay another player.</gray>"
+        - "<#D6E8F7>/sapphires</#D6E8F7> <gray>Open Sapphire balance/shop.</gray>"
+        - "<#D6E8F7>/gems</#D6E8F7> <gray>Gem menu and capsules.</gray>"
+        - "<#D6E8F7>/souls</#D6E8F7> <gray>Souls menu.</gray>"
+        - "<#D6E8F7>/market</#D6E8F7> <gray>Market district.</gray>"
+    discord:
+      slot: 28
+      material: "AMETHYST_SHARD"
+      itemsadder: "3smp:help_discord"
+      name: "<#5865F2><bold>Discord</bold></#5865F2>"
+      lore:
+        - "<gray>Updates, support, giveaways.</gray>"
+        - "<yellow>Click to get the link.</yellow>"
+      action: "message"
+      messages:
+        - "<#5865F2><bold>Discord:</bold></#5865F2> <click:open_url:'https://discord.gg/3smp'><underlined>https://discord.gg/3smp</underlined></click>"
+    website:
+      slot: 30
+      material: "COMPASS"
+      itemsadder: "3smp:help_website"
+      name: "<gradient:#38bdf8:#f59e0b><bold>Website</bold></gradient>"
+      lore:
+        - "<gray>Store, rules, and server info.</gray>"
+        - "<yellow>Click to get the link.</yellow>"
+      action: "message"
+      messages:
+        - "<gradient:#38bdf8:#f59e0b><bold>Website:</bold></gradient> <click:open_url:'https://3smp.net'><underlined>https://3smp.net</underlined></click>"
+    socials:
+      slot: 32
+      material: "PLAYER_HEAD"
+      itemsadder: "3smp:help_socials"
+      name: "<gradient:#f97316:#ec4899><bold>Socials</bold></gradient>"
+      lore:
+        - "<gray>TikTok, YouTube, and community links.</gray>"
+        - "<yellow>Click to show links.</yellow>"
+      action: "message"
+      messages:
+        - "<gradient:#f97316:#ec4899><bold>3SMP Socials</bold></gradient>"
+        - "<gray>TikTok:</gray> <white>Update in core/help.yml</white>"
+        - "<gray>YouTube:</gray> <white>Update in core/help.yml</white>"
+        - "<gray>Store:</gray> <white>Update in core/help.yml</white>"
+    admin:
+      slot: 34
+      material: "COMMAND_BLOCK"
+      itemsadder: "3smp:help_admin"
+      name: "<red><bold>Admin Help</bold></red>"
+      permission: "3smpcore.admin"
+      lore:
+        - "<gray>Reloads, ranks, zones, debug tools.</gray>"
+        - "<yellow>Click for admin commands.</yellow>"
+      action: "message"
+      messages:
+        - "<red><bold>Admin Help</bold></red>"
+        - "<#D6E8F7>/3smpcore reload</#D6E8F7> <gray>Reload configs.</gray>"
+        - "<#D6E8F7>/rank give player rank</#D6E8F7> <gray>Give a permanent rank package.</gray>"
+        - "<#D6E8F7>/rank sub player rank</#D6E8F7> <gray>Give a monthly rank package.</gray>"
+        - "<#D6E8F7>/3smpcore afkzone</#D6E8F7> <gray>AFK zone tools.</gray>"
+        - "<#D6E8F7>/fishdebug</#D6E8F7> <gray>Fishing debug info.</gray>"
+    close:
+      slot: 49
+      material: "BARRIER"
+      name: "<red>Close</red>"
+      lore:
+        - "<gray>Close this menu.</gray>"
+      action: "close"
+
 pages:
   main:
     permission: ""
@@ -64,6 +197,6 @@ pages:
       - "<#D6E8F7>/3smpcore reload</#D6E8F7> <gray>Reload configs and managers.</gray>"
       - "<#D6E8F7>/3smpcore devpanel</#D6E8F7> <gray>Open developer tools.</gray>"
       - "<#D6E8F7>/launchpad menu</#D6E8F7> <gray>Edit placed launchpads.</gray>"
-      - "<#D6E8F7>/sapphire give <player> <amount></#D6E8F7> <gray>Give Sapphires.</gray>"
+      - "<#D6E8F7>/sapphire give player amount</#D6E8F7> <gray>Give Sapphires.</gray>"
       - "<#FF5555>Keep admin pages permission-gated in this file.</#FF5555>"
       - ""

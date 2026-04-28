@@ -2,6 +2,8 @@ package net.dark.threecore.social;
 
 import net.dark.threecore.dungeons.DungeonService;
 import net.dark.threecore.party.PartyService;
+import net.dark.threecore.text.Text;
+import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
@@ -58,14 +60,22 @@ public final class SocialTabService implements Listener {
     }
 
     public void refresh(Player viewer) {
+        if (!isTabPluginPresent()) {
+            viewer.sendPlayerListHeaderAndFooter(
+                    Text.mm("<gradient:#5B8DD9:#F8FBFF><bold>3SMP</bold></gradient>\n<gray>" + title(viewer.getUniqueId()) + "</gray>"),
+                    Text.mm("<#D6E8F7>Discord</#D6E8F7> <dark_gray>|</dark_gray> <#F8FBFF>Store</#F8FBFF> <dark_gray>|</dark_gray> <#D6E8F7>/help</#D6E8F7>")
+            );
+        }
         for (Player target : Bukkit.getOnlinePlayers()) {
             if (viewer.equals(target)) continue;
             if (shouldShow(viewer, target)) viewer.showPlayer(plugin, target);
             else viewer.hidePlayer(plugin, target);
         }
+        if (!isTabPluginPresent()) updateNames();
     }
 
     public void refreshAll() {
+        if (!isTabPluginPresent()) updateNames();
         for (Player viewer : Bukkit.getOnlinePlayers()) refresh(viewer);
     }
 
@@ -141,6 +151,49 @@ public final class SocialTabService implements Listener {
             case PARTY -> partyService != null && partyService.isInParty(viewer.getUniqueId()) && partyService.partyMembers(viewer.getUniqueId()).contains(target.getUniqueId());
             case DUNGEON -> dungeonService != null && dungeonService.isInActiveDungeon(viewer.getUniqueId()) && dungeonService.isInActiveDungeon(target.getUniqueId());
         };
+    }
+
+    private void updateNames() {
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            player.playerListName(Component.text()
+                    .append(rankDot(player))
+                    .append(Component.text(" " + player.getName()))
+                    .build());
+        }
+    }
+
+    private Component rankDot(Player player) {
+        String group = primaryGroup(player);
+        return switch (group.toLowerCase(Locale.ROOT)) {
+            case "owner", "admin" -> Text.mm("<#F87171>●</#F87171>");
+            case "ultra" -> Text.mm("<#F59E0B>●</#F59E0B>");
+            case "mvp" -> Text.mm("<#C084FC>●</#C084FC>");
+            case "pro" -> Text.mm("<#5B8DD9>●</#5B8DD9>");
+            case "vip", "3rank" -> Text.mm("<#D6E8F7>●</#D6E8F7>");
+            default -> Text.mm("<#F8FBFF>●</#F8FBFF>");
+        };
+    }
+
+    private String primaryGroup(Player player) {
+        try {
+            org.bukkit.plugin.Plugin luckPerms = Bukkit.getPluginManager().getPlugin("LuckPerms");
+            if (luckPerms == null || !luckPerms.isEnabled()) return "member";
+            Object api = luckPerms.getClass().getMethod("getApi").invoke(luckPerms);
+            Object userManager = api.getClass().getMethod("getUserManager").invoke(api);
+            Object user = userManager.getClass().getMethod("getUser", UUID.class).invoke(userManager, player.getUniqueId());
+            if (user == null) return "member";
+            Object cachedData = user.getClass().getMethod("getCachedData").invoke(user);
+            Object metaData = cachedData.getClass().getMethod("getMetaData").invoke(cachedData);
+            Object group = metaData.getClass().getMethod("getPrimaryGroup").invoke(metaData);
+            return group == null ? "member" : group.toString();
+        } catch (Throwable ignored) {
+            return "member";
+        }
+    }
+
+    private boolean isTabPluginPresent() {
+        org.bukkit.plugin.Plugin tab = Bukkit.getPluginManager().getPlugin("TAB");
+        return tab != null && tab.isEnabled();
     }
 
     private String nameOf(UUID uuid) {

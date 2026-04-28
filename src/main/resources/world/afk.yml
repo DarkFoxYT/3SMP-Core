@@ -6,6 +6,10 @@ payout-every-minutes: 30
 payout-amount: 1000
 kick-message: "<red>You were kicked for being AFK too long.</red>"
 
+zone:
+  generator: ""
+  import-to-multiverse: true
+
 messages:
   entering: "<gradient:#1A2A4A:#D6E8F7>Entered AFK zone.</gradient>"
   afk: "<yellow>You are now AFK.</yellow>"

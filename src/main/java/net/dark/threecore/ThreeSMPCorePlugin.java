@@ -203,7 +203,7 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         this.glowManager = new GlowManager();
         this.hologramManager = new HologramManager(this, configs, repository);
         if (hologramManager != null) hologramManager.reload();
-        this.commandManager = new CoreCommandManager(this, configs, perkService, sapphireService, gemService, chatFormatService, spawnService, launchpadService, commandSpyManager, warpManager, moneyService, clearLagManager, duelService, afkZoneManager, dailyRewardManager, soulManager, marketPlotManager);
+        this.commandManager = new CoreCommandManager(this, configs, perkService, sapphireService, gemService, chatFormatService, spawnService, launchpadService, commandSpyManager, warpManager, moneyService, clearLagManager, duelService, afkZoneManager, dailyRewardManager, soulManager, marketPlotManager, hologramManager);
         duelService.addPostMatchItemRefresher(perkService::giveCosmeticsItem);
         duelService.addPostMatchItemRefresher(dungeonService::giveItem);
         this.particleManager.reload();
@@ -290,6 +290,7 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
                 net.dark.threecore.text.Text.send(context.sender(), "<red>Players only.</red>");
             }
         }, context -> List.of());
+        registerDirectCommand("fishing", context -> fishingRewardManager.handleCommand(context.sender(), context.args()), context -> fishingRewardManager.complete(context.args()));
         registerDirectCommand("market", context -> marketPlotManager.handle(context.sender(), context.args()), context -> marketPlotManager.complete(context.args()));
         registerDirectCommand("warp", context -> {
             if (context.sender() instanceof org.bukkit.entity.Player player) {

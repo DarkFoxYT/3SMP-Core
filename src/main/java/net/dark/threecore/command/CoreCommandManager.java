@@ -20,6 +20,7 @@ import net.dark.threecore.warp.WarpManager;
 import net.dark.threecore.money.MoneyService;
 import net.dark.threecore.clearlag.ClearLagManager;
 import net.dark.threecore.afk.AfkZoneManager;
+import net.dark.threecore.hologram.HologramManager;
 import net.dark.threecore.text.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -53,17 +54,19 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
     private final DailyRewardManager dailyRewardManager;
     private final SoulManager soulManager;
     private final MarketPlotManager marketPlotManager;
+    private final HologramManager hologramManager;
     private CommandTree root;
 
-    public CoreCommandManager(ThreeSMPCorePlugin plugin, ConfigFiles configs, PerkService perkService, SapphireService sapphireService, GemService gemService, ChatFormatService chatFormatService, SpawnService spawnService, LaunchpadService launchpadService, CommandSpyManager commandSpyManager, WarpManager warpManager, MoneyService moneyService, ClearLagManager clearLagManager, DuelService duelService, AfkZoneManager afkZoneManager, DailyRewardManager dailyRewardManager, SoulManager soulManager, MarketPlotManager marketPlotManager) {
-        this.plugin = plugin; this.configs = configs; this.perkService = perkService; this.sapphireService = sapphireService; this.gemService = gemService; this.chatFormatService = chatFormatService; this.spawnService = spawnService; this.launchpadService = launchpadService; this.commandSpyManager = commandSpyManager; this.warpManager = warpManager; this.moneyService = moneyService; this.clearLagManager = clearLagManager; this.duelService = duelService; this.afkZoneManager = afkZoneManager; this.dailyRewardManager = dailyRewardManager; this.soulManager = soulManager; this.marketPlotManager = marketPlotManager;
+    public CoreCommandManager(ThreeSMPCorePlugin plugin, ConfigFiles configs, PerkService perkService, SapphireService sapphireService, GemService gemService, ChatFormatService chatFormatService, SpawnService spawnService, LaunchpadService launchpadService, CommandSpyManager commandSpyManager, WarpManager warpManager, MoneyService moneyService, ClearLagManager clearLagManager, DuelService duelService, AfkZoneManager afkZoneManager, DailyRewardManager dailyRewardManager, SoulManager soulManager, MarketPlotManager marketPlotManager, HologramManager hologramManager) {
+        this.plugin = plugin; this.configs = configs; this.perkService = perkService; this.sapphireService = sapphireService; this.gemService = gemService; this.chatFormatService = chatFormatService; this.spawnService = spawnService; this.launchpadService = launchpadService; this.commandSpyManager = commandSpyManager; this.warpManager = warpManager; this.moneyService = moneyService; this.clearLagManager = clearLagManager; this.duelService = duelService; this.afkZoneManager = afkZoneManager; this.dailyRewardManager = dailyRewardManager; this.soulManager = soulManager; this.marketPlotManager = marketPlotManager; this.hologramManager = hologramManager;
     }
 
     public void register() {
         root = new CommandTree("3smpcore", "3smpcore.admin", "Main command hub");
-        root.add(new ReloadCommand()); root.add(new InfoCommand()); root.add(new AdminCommand()); root.add(new DevPanelCommand()); root.add(new DebugCommand()); root.add(new SapphireRootCommand()); root.add(new SpawnRootCommand()); root.add(new GiveRootCommand()); root.add(new LicenseCommand()); root.add(new AfkZoneCommand()); root.add(new DailyRootCommand()); root.add(new SoulsRootCommand()); root.add(new MarketRootCommand());
+        root.add(new ReloadCommand()); root.add(new InfoCommand()); root.add(new AdminCommand()); root.add(new DevPanelCommand()); root.add(new DebugCommand()); root.add(new SapphireRootCommand()); root.add(new SpawnRootCommand()); root.add(new GiveRootCommand()); root.add(new LicenseCommand()); root.add(new AfkZoneCommand()); root.add(new HologramCommand()); root.add(new RankPermsCommand()); root.add(new DailyRootCommand()); root.add(new SoulsRootCommand()); root.add(new MarketRootCommand());
         PluginCommand command = plugin.getCommand("3smpcore"); if (command != null) { command.setExecutor(this); command.setTabCompleter(this); }
         PluginCommand launchpadCommand = plugin.getCommand("launchpad"); if (launchpadCommand != null) { launchpadCommand.setExecutor(this::handleLaunchpad); launchpadCommand.setTabCompleter((sender, cmd, alias, args) -> args.length == 1 ? List.of("give", "menu", "settarget") : List.of()); }
+        PluginCommand rankCommand = plugin.getCommand("rank"); if (rankCommand != null) { rankCommand.setExecutor(this::handleRank); rankCommand.setTabCompleter(this::completeRank); }
     }
 
     private boolean handleLaunchpad(CommandSender sender, Command command, String label, String[] args) {
@@ -71,6 +74,58 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
         if (args[0].equalsIgnoreCase("give")) { if (!sender.hasPermission("3smpcore.launchpad.admin")) { Text.send(sender, "<red>No permission.</red>"); return true; } if (args.length < 3) { Text.send(sender, "<red>Usage: /launchpad give <player> <id></red>"); return true; } Player target = plugin.getServer().getPlayerExact(args[1]); if (target == null) { Text.send(sender, "<red>Player not found.</red>"); return true; } launchpadService.give(target, args[2]); Text.send(sender, "<green>Given launchpad to " + target.getName() + ".</green>"); return true; }
         if (args[0].equalsIgnoreCase("settarget")) { if (!sender.hasPermission("3smpcore.launchpad.admin")) { Text.send(sender, "<red>No permission.</red>"); return true; } if (!(sender instanceof Player player)) { Text.send(sender, "<red>Players only.</red>"); return true; } if (args.length < 5) { Text.send(sender, "<red>Usage: /launchpad settarget <id> <x> <y> <z> [world]</red>"); return true; } String worldName = args.length >= 6 ? args[5] : player.getWorld().getName(); var world = Bukkit.getWorld(worldName); if (world == null) { Text.send(sender, "<red>World not found.</red>"); return true; } try { double x = Double.parseDouble(args[2]); double y = Double.parseDouble(args[3]); double z = Double.parseDouble(args[4]); Location target = new Location(world, x, y, z, player.getYaw(), player.getPitch()); launchpadService.setTarget(args[1], target); Text.send(sender, "<green>Launchpad target saved.</green>"); } catch (NumberFormatException ex) { Text.send(sender, "<red>Invalid coordinates.</red>"); } return true; }
         Text.send(sender, "<yellow>Use /launchpad menu, /launchpad give <player> <id>, or /launchpad settarget <id> <x> <y> <z> [world]</yellow>"); return true;
+    }
+
+    private boolean handleRank(CommandSender sender, Command command, String label, String[] args) {
+        if (!sender.hasPermission("3smpcore.rank.admin")) {
+            Text.send(sender, "<red>No permission.</red>");
+            return true;
+        }
+        if (args.length < 3) {
+            Text.send(sender, "<yellow>Use /rank give <player> <rank> or /rank sub <player> <rank></yellow>");
+            return true;
+        }
+        String mode = args[0].toLowerCase(Locale.ROOT);
+        if (!mode.equals("give") && !mode.equals("sub")) {
+            Text.send(sender, "<yellow>Use /rank give <player> <rank> or /rank sub <player> <rank></yellow>");
+            return true;
+        }
+        String playerName = args[1];
+        String rank = args[2].toLowerCase(Locale.ROOT);
+        var config = configs.get("admin/permissions.yml");
+        String path = "rank-packages." + (mode.equals("sub") ? "subscriptions" : "permanent") + "." + rank;
+        if (!config.isConfigurationSection(path)) {
+            Text.send(sender, "<red>Unknown " + (mode.equals("sub") ? "subscription" : "permanent") + " rank package.</red>");
+            return true;
+        }
+        org.bukkit.OfflinePlayer target = Bukkit.getOfflinePlayer(playerName);
+        String group = config.getString(path + ".luckperms-group", rank);
+        int ran = 0;
+        for (String configured : config.getStringList(path + ".commands")) {
+            String parsed = configured
+                    .replace("{player}", playerName)
+                    .replace("{uuid}", target.getUniqueId().toString())
+                    .replace("{rank}", rank)
+                    .replace("{group}", group);
+            if (!parsed.isBlank()) {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parsed);
+                ran++;
+            }
+        }
+        Text.send(sender, "<green>Applied " + (mode.equals("sub") ? "subscription" : "rank") + " package:</green> <white>" + rank + "</white> <gray>to</gray> <white>" + playerName + "</white> <dark_gray>(" + ran + " commands)</dark_gray>");
+        return true;
+    }
+
+    private List<String> completeRank(CommandSender sender, Command command, String alias, String[] args) {
+        if (!sender.hasPermission("3smpcore.rank.admin")) return List.of();
+        if (args.length == 1) return List.of("give", "sub");
+        if (args.length == 2) return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
+        if (args.length == 3) {
+            String mode = args[0].equalsIgnoreCase("sub") ? "subscriptions" : "permanent";
+            var section = configs.get("admin/permissions.yml").getConfigurationSection("rank-packages." + mode);
+            return section == null ? List.of() : new ArrayList<>(section.getKeys(false));
+        }
+        return List.of();
     }
 
     public void reload() { sapphireService.reload(); launchpadService.reload(); commandSpyManager.reload(); }
@@ -155,6 +210,47 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
         public String description() { return "AFK zone tools"; }
         public void execute(CommandContext context) { afkZoneManager.handle(context.sender(), context.args()); }
         public List<String> tabComplete(CommandContext context) { return afkZoneManager.complete(context.args()); }
+    }
+    private final class HologramCommand implements SubCommand {
+        public String name() { return "hologram"; }
+        public String permission() { return "3smpcore.hologram.admin"; }
+        public String description() { return "Hologram placement tools"; }
+        public void execute(CommandContext context) { hologramManager.handle(context.sender(), context.args()); }
+        public List<String> tabComplete(CommandContext context) { return hologramManager.complete(context.args()); }
+    }
+    private final class RankPermsCommand implements SubCommand {
+        public String name() { return "rankperms"; }
+        public String permission() { return "3smpcore.rankperms.admin"; }
+        public String description() { return "Apply configured LuckPerms rank bundles"; }
+        public void execute(CommandContext context) {
+            if (context.args().length < 2 || !context.arg(0).equalsIgnoreCase("apply")) {
+                Text.send(context.sender(), "<yellow>Use /3smpcore rankperms apply <rank></yellow>");
+                return;
+            }
+            String rank = context.arg(1).toLowerCase(Locale.ROOT);
+            var config = configs.get("admin/permissions.yml");
+            String path = "rank-presets." + rank;
+            if (!config.isConfigurationSection(path)) {
+                Text.send(context.sender(), "<red>Unknown rank preset.</red>");
+                return;
+            }
+            String lpGroup = config.getString(path + ".luckperms-group", rank);
+            for (String permission : config.getStringList(path + ".permissions")) {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp group " + lpGroup + " permission set " + permission + " true");
+            }
+            for (String command : config.getStringList(path + ".commands")) {
+                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("{group}", lpGroup).replace("{rank}", rank));
+            }
+            Text.send(context.sender(), "<green>Applied rank permission preset:</green> <white>" + rank + "</white>");
+        }
+        public List<String> tabComplete(CommandContext context) {
+            if (context.args().length <= 1) return List.of("apply");
+            if (context.args().length == 2 && context.arg(0).equalsIgnoreCase("apply")) {
+                var section = configs.get("admin/permissions.yml").getConfigurationSection("rank-presets");
+                return section == null ? List.of() : new ArrayList<>(section.getKeys(false));
+            }
+            return List.of();
+        }
     }
     private final class DailyRootCommand implements SubCommand {
         public String name() { return "daily"; }

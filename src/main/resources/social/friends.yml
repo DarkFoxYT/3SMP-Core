@@ -6,6 +6,11 @@ friends:
     timeout-seconds: 120
   tab:
     sneak-cycle-enabled: true
+    tab-plugin-compatible: true
+    placeholders:
+      mode: "%3smpcore_tab_mode%"
+      title: "%3smpcore_tab_title%"
+      members: "%3smpcore_tab_members%"
     modes:
       - global
       - party
