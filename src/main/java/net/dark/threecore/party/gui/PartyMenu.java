@@ -44,8 +44,12 @@ public final class PartyMenu {
         inv.setItem(15, button(Material.BOOK, "<gradient:#60a5fa:#c084fc>Members</gradient>", List.of(
                 "<gray>Open the party member list.</gray>"
         )));
-        inv.setItem(22, button(Material.ARROW, "<gray>Back</gray>", List.of("<gray>Return to party menu.</gray>")));
+        inv.setItem(22, backButton("party menu"));
         return inv;
+    }
+
+    private ItemStack backButton(String destination) {
+        return button(Material.ARROW, "<gradient:#D6E8F7:#FFFFFF>Back</gradient>", List.of("<gray>Return to " + destination + ".</gray>"));
     }
 
     private ItemStack button(Material material, String name, List<String> lore) {

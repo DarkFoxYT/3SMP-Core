@@ -1,6 +1,7 @@
 groups:
   core:
     - "3smpcore.admin"
+    - "3smpcore.admin.wipe"
     - "3smpcore.reload"
     - "3smpcore.dev"
     - "3smpcore.debug"

@@ -45,7 +45,7 @@ public final class DuelGuiManager {
         for (DuelKit kit : service.kits()) {
             if (!kit.enabled()) continue;
             if (index >= slots.length) break;
-            inv.setItem(slots[index++], button(kit.icon(), kit.displayName(), kit.lore()));
+            inv.setItem(slots[index++], button(kit.icon(), kit.displayName(), kitSelectorLore(kit)));
         }
         inv.setItem(49, button(Material.ARROW, "<gray>Back</gray>", List.of("<gray>Return to duel menu.</gray>")));
         return inv;
@@ -81,6 +81,23 @@ public final class DuelGuiManager {
 
     private void fill(Inventory inv, Material material) {
         for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, button(material, " ", List.of()));
+    }
+
+    private List<String> kitSelectorLore(DuelKit kit) {
+        List<String> lore = new ArrayList<>();
+        List<String> description = new ArrayList<>();
+        for (String line : kit.lore()) {
+            String plain = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText().serialize(net.dark.threecore.text.Text.mm(line)).toLowerCase();
+            if (plain.contains("round") || plain.contains("auto splash") || plain.contains("auto-splash")) continue;
+            description.add(line);
+        }
+        if (!description.isEmpty()) {
+            lore.add("<gray>Description:</gray>");
+            lore.addAll(description);
+        }
+        lore.add("<gray>Queued:</gray> <white>" + service.queuedPlayersForKit(kit.id()) + "</white>");
+        lore.add("<gray>Click to select this kit.</gray>");
+        return lore;
     }
 
     private ItemStack button(Material material, String name, List<String> lore) {

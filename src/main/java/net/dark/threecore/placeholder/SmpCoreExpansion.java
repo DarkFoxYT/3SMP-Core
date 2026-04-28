@@ -1,6 +1,7 @@
 package net.dark.threecore.placeholder;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
+import net.dark.threecore.chat.ChatFormatService;
 import net.dark.threecore.dungeons.DungeonService;
 import net.dark.threecore.money.MoneyService;
 import net.dark.threecore.party.PartyService;
@@ -24,8 +25,9 @@ public class SmpCoreExpansion extends PlaceholderExpansion {
     private final DungeonService dungeonService;
     private final FriendService friendService;
     private final SocialTabService socialTabService;
+    private final ChatFormatService chatFormatService;
 
-    public SmpCoreExpansion(JavaPlugin plugin, PerkService perkService, WarpManager warpManager, SpawnService spawnService, MoneyService moneyService, SapphireService sapphireService, PartyService partyService, DungeonService dungeonService, FriendService friendService, SocialTabService socialTabService) {
+    public SmpCoreExpansion(JavaPlugin plugin, PerkService perkService, WarpManager warpManager, SpawnService spawnService, MoneyService moneyService, SapphireService sapphireService, PartyService partyService, DungeonService dungeonService, FriendService friendService, SocialTabService socialTabService, ChatFormatService chatFormatService) {
         this.plugin = plugin;
         this.perkService = perkService;
         this.warpManager = warpManager;
@@ -36,6 +38,7 @@ public class SmpCoreExpansion extends PlaceholderExpansion {
         this.dungeonService = dungeonService;
         this.friendService = friendService;
         this.socialTabService = socialTabService;
+        this.chatFormatService = chatFormatService;
     }
 
     @Override public String getIdentifier() { return "smpcore"; }
@@ -77,6 +80,10 @@ public class SmpCoreExpansion extends PlaceholderExpansion {
             case "tab_mode" -> socialTabService == null ? "global" : socialTabService.modeName(player.getUniqueId());
             case "tab_title" -> socialTabService == null ? "Global View" : socialTabService.title(player.getUniqueId());
             case "tab_members" -> socialTabService == null ? "" : socialTabService.members(player.getUniqueId());
+            case "chat_prefix", "tab_prefix", "luckperms_prefix" -> player.isOnline() && chatFormatService != null ? chatFormatService.tabPrefix(player.getPlayer()) : "";
+            case "chat_name", "tab_name" -> player.isOnline() && chatFormatService != null ? chatFormatService.tabName(player.getPlayer()) : player.getName() == null ? "" : player.getName();
+            case "chat_tag", "tab_tag" -> player.isOnline() && chatFormatService != null ? chatFormatService.tabTag(player.getPlayer()) : "";
+            case "chat_display", "tab_display" -> player.isOnline() && chatFormatService != null ? chatFormatService.tabDisplay(player.getPlayer()) : player.getName() == null ? "" : player.getName();
             default -> {
                 if (params.startsWith("job_")) yield jobPlaceholder(data, params);
                 yield "";

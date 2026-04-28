@@ -80,7 +80,7 @@ public final class HologramManager {
     private List<String> duelLines(List<String> fallback) {
         List<String> lines = new ArrayList<>();
         lines.add("<gradient:#60a5fa:#c084fc>Duel Leaderboard</gradient>");
-        List<UUID> top = Arrays.stream(Bukkit.getOfflinePlayers()).map(p -> p.getUniqueId()).sorted(Comparator.comparingInt((UUID id) -> repository.load(id).duelRating()).reversed()).limit(5).toList();
+        List<UUID> top = Arrays.stream(Bukkit.getOfflinePlayers()).map(p -> p.getUniqueId()).sorted(Comparator.comparingInt((UUID id) -> repository.load(id).duelRating()).reversed()).limit(10).toList();
         int place = 1;
         for (UUID uuid : top) {
             PlayerProgressionData data = repository.load(uuid);
@@ -107,6 +107,6 @@ public final class HologramManager {
         if (section == null) return null;
         World world = Bukkit.getWorld(section.getString("world", "spawn"));
         if (world == null) return null;
-        return new Location(world, section.getDouble("x"), section.getDouble("y"), section.getDouble("z"), (float) section.getDouble("yaw", 0.0D), (float) section.getDouble("pitch", 0.0D));
+        return new Location(world, section.getDouble("x", 0.0D), section.getDouble("y", 68.0D), section.getDouble("z", 0.0D), (float) section.getDouble("yaw", 0.0D), (float) section.getDouble("pitch", 0.0D));
     }
 }

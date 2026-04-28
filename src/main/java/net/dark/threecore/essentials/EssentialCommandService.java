@@ -27,7 +27,13 @@ public final class EssentialCommandService {
     public void speed(CommandContext context) {
         if (!(context.sender() instanceof Player player)) { Text.send(context.sender(), "<red>Players only.</red>"); return; }
         if (!allowed(player, SPEED_PERMISSION)) return;
-        if (context.args().length == 0) { Text.send(player, "<red>Usage: /speed <0-10></red>"); return; }
+        if (context.args().length == 0) { Text.send(player, "<red>Usage: /speed <0-10|reset></red>"); return; }
+        if (context.arg(0).equalsIgnoreCase("reset")) {
+            if (player.isFlying()) player.setFlySpeed(0.1f);
+            else player.setWalkSpeed(0.2f);
+            Text.send(player, "<green>Speed reset.</green>");
+            return;
+        }
         float speed = Math.max(0f, Math.min(10f, parseFloat(context.arg(0), 1f))) / 10f;
         if (player.isFlying()) player.setFlySpeed(speed); else player.setWalkSpeed(speed == 0f ? 0f : Math.max(0.01f, speed));
         Text.send(player, "<green>Speed set to</green> <white>" + context.arg(0) + "</white><gray>/10.</gray>");

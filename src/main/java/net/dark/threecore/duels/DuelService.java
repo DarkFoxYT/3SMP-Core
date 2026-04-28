@@ -46,11 +46,13 @@ import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
+import org.bukkit.event.player.PlayerItemConsumeEvent;
 import org.bukkit.event.player.PlayerDropItemEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerCommandPreprocessEvent;
+import org.bukkit.event.player.PlayerBucketEmptyEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
 import org.bukkit.inventory.ItemStack;
@@ -62,6 +64,8 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.scoreboard.Scoreboard;
+import org.bukkit.scoreboard.Team;
 import org.bukkit.util.io.BukkitObjectInputStream;
 import org.bukkit.util.io.BukkitObjectOutputStream;
 import net.kyori.adventure.title.Title;
@@ -79,6 +83,15 @@ public final class DuelService implements Listener {
     private static final String QUEUE_ITEM_ID = "queue_sword";
     private static final String EDITOR_TOOL_KEY = "3smpcore_duel_editor_tool";
     private static final Set<UUID> ACTIVE_DUEL_PLAYERS = new HashSet<>();
+    private static final Set<Material> ROUND_RESET_MATERIALS = EnumSet.of(
+            Material.OAK_PLANKS,
+            Material.COBWEB,
+            Material.OBSIDIAN,
+            Material.COBBLESTONE,
+            Material.STONE,
+            Material.LAVA,
+            Material.WATER
+    );
     
     private final JavaPlugin plugin;
     private final ConfigFiles configs;
@@ -91,13 +104,14 @@ public final class DuelService implements Listener {
     private final DuelScoreService scoreService;
     private final DuelQueueManager queueManager;
     private final LaunchpadService launchpadService;
-    private final DungeonService dungeonService;
+    private DungeonService dungeonService;
     private final DuelWorldService worldService;
     private final Map<String, DuelKit> kits = new LinkedHashMap<>();
     private final Map<Integer, String> kitSlots = new HashMap<>();
     private final Map<String, DuelMap> maps = new LinkedHashMap<>();
     private final Map<UUID, QueueUnit> queueByPlayer = new HashMap<>();
     private final Map<UUID, QueueUnit> queueUnits = new HashMap<>();
+    private final Map<UUID, UUID> recentOpponents = new HashMap<>();
     private final Map<String, Deque<UUID>> soloQueues = new HashMap<>();
     private final Map<String, Deque<UUID>> partyQueues = new HashMap<>();
     private final Map<UUID, DuelMatch> matchesByPlayer = new HashMap<>();
@@ -111,6 +125,8 @@ public final class DuelService implements Listener {
     private final Set<UUID> mapEditorMode = new HashSet<>();
     private final Set<UUID> endingMatches = new HashSet<>();
     private final Set<String> placedMatchBlocks = new HashSet<>();
+    private final Map<UUID, MatchTeams> scoreboardTeamsByMatch = new HashMap<>();
+    private final Map<UUID, PlayerNameState> duelNameStates = new HashMap<>();
     private final Map<UUID, ItemStack[]> editorInventorySnapshots = new HashMap<>();
     private final Map<UUID, PendingKitRoundEdit> pendingKitRoundEdits = new HashMap<>();
     private final Map<UUID, DuelChallenge> challengesByTarget = new HashMap<>();
@@ -134,6 +150,7 @@ public final class DuelService implements Listener {
         this.launchpadService = launchpadService;
         this.dungeonService = dungeonService;
         this.worldService = new DuelWorldService(plugin, configs);
+        this.worldService.cleanupStaleMatchWorlds();
         reload();
         startHudTask();
     }
@@ -266,6 +283,11 @@ public final class DuelService implements Listener {
     public void handleMenuClick(Player player, int slot) { handleMainMenuClick(player, slot); }
     public int soloQueueCount() { return soloQueues.values().stream().mapToInt(Deque::size).sum(); }
     public int partyQueueCount() { return partyQueues.values().stream().mapToInt(Deque::size).sum(); }
+    public int queuedPlayersForKit(String kitId) {
+        if (kitId == null || kitId.isBlank()) return 0;
+        String id = kitId.toLowerCase(Locale.ROOT);
+        return (int) queueByPlayer.values().stream().filter(unit -> unit.kitId().equalsIgnoreCase(id)).count();
+    }
     public Collection<DuelKit> kitsView() { return Collections.unmodifiableCollection(kits.values()); }
     public Collection<DuelMap> enabledMapsView() { return maps.values().stream().filter(DuelMap::enabled).toList(); }
     public DuelKit kit(String id) { return id == null ? null : kits.get(id.toLowerCase(Locale.ROOT)); }
@@ -301,9 +323,14 @@ public final class DuelService implements Listener {
                 return false;
             }
         }
+        DuelMap map = mapId == null || mapId.isBlank() ? null : maps.get(mapId.toLowerCase(Locale.ROOT));
+        if (map == null || !map.enabled()) {
+            Text.send(requester, "<red>Select a valid arena first.</red>");
+            return false;
+        }
         QueueUnit first = new QueueUnit(UUID.randomUUID(), DuelMode.PARTY, kit.id(), new LinkedHashSet<>(red), System.currentTimeMillis());
         QueueUnit second = new QueueUnit(UUID.randomUUID(), DuelMode.PARTY, kit.id(), new LinkedHashSet<>(blue), System.currentTimeMillis());
-        startMatch(first, second);
+        startMatch(first, second, map, Math.max(1, rounds));
         return true;
     }
     public int kitCount() { return kits.size(); }
@@ -312,6 +339,7 @@ public final class DuelService implements Listener {
     public boolean isDevEnabled(UUID uuid) { return devMode.contains(uuid); }
     public boolean isMapEditorEnabled(UUID uuid) { return mapEditorMode.contains(uuid); }
     public String selectedEditorMap(UUID uuid) { return selectedEditorMap.getOrDefault(uuid, "none"); }
+    public void setDungeonService(DungeonService dungeonService) { this.dungeonService = dungeonService; }
     public void handleDevMenuClick(Player player, int slot) {
         switch (slot) {
             case 10 -> runTestDuel(player);
@@ -319,7 +347,13 @@ public final class DuelService implements Listener {
             case 14 -> openMapEditor(player);
             case 16 -> openLeaderboard(player);
             case 18 -> openKitEditorSelector(player);
-            case 20 -> dungeonService.openDungeonEditor(player);
+            case 20 -> {
+                if (dungeonService == null) {
+                    Text.send(player, "<red>Dungeon editor is not ready yet.</red>");
+                    return;
+                }
+                dungeonService.openDungeonEditor(player);
+            }
             case 28 -> { reload(); Text.send(player, "<green>Duel configs reloaded.</green>"); openDevMenu(player); }
             case 30 -> { enabled = !enabled; Text.send(player, enabled ? "<green>Duel module enabled.</green>" : "<red>Duel module disabled.</red>"); openDevMenu(player); }
             case 32 -> { if (launchpadService != null) launchpadService.openMenu(player); }
@@ -597,7 +631,6 @@ public final class DuelService implements Listener {
         removeQueueUnit(unit, true);
         if (!silent) Text.actionBar(player, "<gray>Left the duel queue.</gray>");
         giveQueueItem(player);
-        refreshOpenMenus();
     }
 
     public void leaveDuelOrQueue(Player player) {
@@ -605,6 +638,7 @@ public final class DuelService implements Listener {
         DuelMatch match = matchesByPlayer.get(player.getUniqueId());
         if (match != null) {
             Set<UUID> winners = match.teamOne().contains(player.getUniqueId()) ? match.teamTwo() : match.teamOne();
+            announceLeave(player, false);
             endMatch(match, winners, "forfeit");
             return;
         }
@@ -768,7 +802,7 @@ public final class DuelService implements Listener {
         return inv;
     }
     public void giveQueueItem(Player player) {
-        if (net.dark.threecore.zonepvp.ZonePvpService.isZonePlayer(player) || ACTIVE_DUEL_PLAYERS.contains(player.getUniqueId()) || matchesByPlayer.containsKey(player.getUniqueId())) { clearQueueItem(player); return; }
+        if (!isSpawnWorld(player) || net.dark.threecore.zonepvp.ZonePvpService.isZonePlayer(player) || ACTIVE_DUEL_PLAYERS.contains(player.getUniqueId()) || matchesByPlayer.containsKey(player.getUniqueId())) { clearQueueItem(player); return; }
         if (!configs.get("duels/duels.yml").getBoolean("duels.queue-item.enabled", true)) return;
         int slot = configs.get("duels/duels.yml").getInt("duels.queue-item.slot", 0);
         ItemStack item = createTagged(Material.DIAMOND_SWORD, configs.get("duels/duels.yml").getString("duels.queue-item.name", "<gradient:#60a5fa:#c084fc>Duel Queue</gradient>"), QUEUE_ITEM_ID);
@@ -787,6 +821,11 @@ public final class DuelService implements Listener {
 
     public void reloadItems(Player player) {
         giveQueueItem(player);
+    }
+
+    private boolean isSpawnWorld(Player player) {
+        String configured = configs.get("core/config.yml").getString("spawn.world", "spawn");
+        return player.getWorld() != null && (player.getWorld().getName().equalsIgnoreCase(configured) || player.getWorld().getName().equalsIgnoreCase("spawn"));
     }
 
     @EventHandler
@@ -808,12 +847,22 @@ public final class DuelService implements Listener {
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onPlaceInDuel(BlockPlaceEvent event) {
         if (!matchesByPlayer.containsKey(event.getPlayer().getUniqueId())) return;
+        if (!isLiveMatchWorld(event.getBlockPlaced().getWorld())) return;
         placedMatchBlocks.add(blockKey(event.getBlockPlaced().getLocation()));
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onBucketEmptyInDuel(PlayerBucketEmptyEvent event) {
+        if (!matchesByPlayer.containsKey(event.getPlayer().getUniqueId())) return;
+        if (!isLiveMatchWorld(event.getBlock().getWorld())) return;
+        org.bukkit.block.Block placed = event.getBlockClicked().getRelative(event.getBlockFace());
+        placedMatchBlocks.add(blockKey(placed.getLocation()));
     }
 
     @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
     public void onBreakInDuel(BlockBreakEvent event) {
         if (!matchesByPlayer.containsKey(event.getPlayer().getUniqueId())) return;
+        if (!isLiveMatchWorld(event.getBlock().getWorld())) return;
         String key = blockKey(event.getBlock().getLocation());
         if (placedMatchBlocks.remove(key)) return;
         event.setCancelled(true);
@@ -830,6 +879,7 @@ public final class DuelService implements Listener {
             restoreEditorInventory(player);
             Text.send(player, "<yellow>Duel map editor mode disabled because you changed worlds.</yellow>");
         }
+        if (matchesByPlayer.containsKey(player.getUniqueId()) || ACTIVE_DUEL_PLAYERS.contains(player.getUniqueId())) return;
         reloadItems(player);
     }
     @EventHandler
@@ -837,6 +887,14 @@ public final class DuelService implements Listener {
         ItemStack stack = event.getItemDrop().getItemStack();
         String id = itemId(stack);
         if (QUEUE_ITEM_ID.equals(id) || editorToolId(stack) != null) event.setCancelled(true);
+    }
+
+    @EventHandler
+    public void onConsumeInDuel(PlayerItemConsumeEvent event) {
+        if (!matchesByPlayer.containsKey(event.getPlayer().getUniqueId())) return;
+        Material type = event.getItem().getType();
+        if (type != Material.GOLDEN_APPLE && type != Material.ENCHANTED_GOLDEN_APPLE) return;
+        Bukkit.getScheduler().runTaskLater(plugin, event.getPlayer()::updateInventory, 1L);
     }
 
     @EventHandler
@@ -893,11 +951,30 @@ public final class DuelService implements Listener {
         Location from = event.getFrom();
         Location to = event.getTo();
         if (to == null) return;
+        event.getPlayer().setVelocity(new org.bukkit.util.Vector(0, 0, 0));
+        event.getPlayer().setFallDistance(0.0f);
         if (from.getBlockX() == to.getBlockX() && from.getBlockY() == to.getBlockY() && from.getBlockZ() == to.getBlockZ()) return;
         Location locked = from.clone();
         locked.setYaw(to.getYaw());
         locked.setPitch(to.getPitch());
         event.setTo(locked);
+    }
+
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onTeamDamage(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof Player victim)) return;
+        Player attacker = killerFromDamage(event);
+        if (attacker == null) return;
+        DuelMatch attackerMatch = matchesByPlayer.get(attacker.getUniqueId());
+        DuelMatch victimMatch = matchesByPlayer.get(victim.getUniqueId());
+        if (attackerMatch == null || victimMatch == null || !attackerMatch.id().equals(victimMatch.id())) return;
+        if (frozenDuelPlayers.contains(attacker.getUniqueId()) || frozenDuelPlayers.contains(victim.getUniqueId())) {
+            event.setCancelled(true);
+            return;
+        }
+        if (sameTeam(attackerMatch, attacker.getUniqueId(), victim.getUniqueId())) {
+            event.setCancelled(true);
+        }
     }
 
     @EventHandler
@@ -934,7 +1011,11 @@ public final class DuelService implements Listener {
         QueueUnit unit = queueByPlayer.get(event.getPlayer().getUniqueId());
         if (unit != null) removeQueueUnit(unit, false);
         DuelMatch match = matchesByPlayer.get(event.getPlayer().getUniqueId());
-        if (match != null) handleDuelElimination(event.getPlayer(), match, "quit");
+        if (match != null) {
+            announceLeave(event.getPlayer(), true);
+            Set<UUID> winners = match.teamOne().contains(event.getPlayer().getUniqueId()) ? match.teamTwo() : match.teamOne();
+            Bukkit.getScheduler().runTaskLater(plugin, () -> endMatch(match, winners, "quit"), 10L);
+        }
     }
 
     private boolean hasUsableTotem(Player player) {
@@ -957,35 +1038,32 @@ public final class DuelService implements Listener {
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.9f, 1.55f);
     }
     private void handleDuelElimination(Player eliminated, DuelMatch match, String reason) {
-        Set<UUID> winners = match.teamOne().contains(eliminated.getUniqueId()) ? match.teamTwo() : match.teamOne();
+        if (!match.markEliminated(eliminated.getUniqueId())) return;
+        Set<UUID> winners = match.roundWinners();
+        eliminated.setHealth(Math.max(1.0, Math.min(20.0, eliminated.getAttribute(Attribute.MAX_HEALTH) == null ? 20.0 : eliminated.getAttribute(Attribute.MAX_HEALTH).getValue())));
+        eliminated.setFireTicks(0);
+        eliminated.getInventory().clear();
+        eliminated.getInventory().setArmorContents(new ItemStack[4]);
+        eliminated.getInventory().setItemInOffHand(null);
+        eliminated.setGameMode(GameMode.SPECTATOR);
+        Player target = firstOnline(winners.isEmpty() ? opposingTeam(match, eliminated.getUniqueId()) : winners);
+        if (target != null) {
+            try {
+                eliminated.setSpectatorTarget(target);
+            } catch (IllegalArgumentException ignored) {
+            }
+        }
+        if (winners.isEmpty()) return;
         if (match.awardWin(winners) && !match.isComplete()) {
             Set<UUID> all = new LinkedHashSet<>();
             all.addAll(match.teamOne());
             all.addAll(match.teamTwo());
             messageService.roundEnd(all, match.teamOneWins(), match.teamTwoWins());
             titleMembers(all, "<gradient:#60a5fa:#c084fc>Round " + match.totalRoundsPlayed() + " complete</gradient>", "<gray>Next round starting soon</gray>");
-            eliminated.setGameMode(GameMode.SPECTATOR);
-            Player target = firstOnline(winners);
-            if (target != null) {
-                try {
-                    eliminated.setSpectatorTarget(target);
-                } catch (IllegalArgumentException ignored) {
-                }
-            }
             Bukkit.getScheduler().runTaskLater(plugin, () -> resetAndRestartRound(match), 100L);
             return;
         }
         if (!endingMatches.add(match.id())) return;
-        try {
-            eliminated.setHealth(Math.max(1.0, Math.min(20.0, eliminated.getAttribute(Attribute.MAX_HEALTH) == null ? 20.0 : eliminated.getAttribute(Attribute.MAX_HEALTH).getValue())));
-            eliminated.setFireTicks(0);
-            eliminated.getInventory().clear();
-            eliminated.getInventory().setArmorContents(new ItemStack[4]);
-            eliminated.getInventory().setItemInOffHand(null);
-            eliminated.setGameMode(GameMode.SPECTATOR);
-            Player target = firstOnline(winners);
-            if (target != null) eliminated.setSpectatorTarget(target);
-        } catch (Exception ignored) {}
         String winnerNames = names(winners);
         Set<UUID> all = new LinkedHashSet<>();
         all.addAll(match.teamOne());
@@ -1000,10 +1078,13 @@ public final class DuelService implements Listener {
     private void resetAndRestartRound(DuelMatch match) {
         DuelMap map = maps.get(match.mapId());
         if (map == null) return;
+        match.resetRoundState();
+        cleanupRoundArena(match);
         for (UUID uuid : match.teamOne()) resetForNextRound(uuid, map.spawnA());
         for (UUID uuid : match.teamTwo()) resetForNextRound(uuid, map.spawnB());
         notifyMembers(match.teamOne(), "<gray>Next round starting soon...</gray>");
         notifyMembers(match.teamTwo(), "<gray>Next round starting soon...</gray>");
+        prepareMatch(match, map);
         startArenaCountdown(match, map);
     }
 
@@ -1015,12 +1096,16 @@ public final class DuelService implements Listener {
         player.removePotionEffect(org.bukkit.potion.PotionEffectType.DARKNESS);
         player.setFireTicks(0);
         player.setFallDistance(0.0f);
+        if (player.getAttribute(Attribute.MAX_HEALTH) != null) player.setHealth(Math.max(1.0, player.getAttribute(Attribute.MAX_HEALTH).getValue()));
+        else player.setHealth(20.0);
         player.setSaturation(20.0f);
         player.setFoodLevel(20);
+        player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
         player.teleport(spawn);
         stripHubItems(player);
         DuelKit kit = kits.get(matchesByPlayer.get(uuid).kitId().toLowerCase(Locale.ROOT));
         if (kit != null) applyKit(player, kit);
+        player.updateInventory();
     }
 
     private Player firstOnline(Collection<UUID> uuids) {
@@ -1182,7 +1267,10 @@ public final class DuelService implements Listener {
         World editor = worldService.createEditorWorld(mapId, source);
         if (editor == null) { Text.send(player, "<red>Could not create editor world.</red>"); return; }
         selectedEditorMap.put(player.getUniqueId(), mapId);
-        player.teleport(editor.getSpawnLocation());
+        player.teleport(new Location(editor, 0.5, 64.0, 0.5, 0.0f, 0.0f));
+        player.setGameMode(GameMode.CREATIVE);
+        player.setFlying(false);
+        player.setAllowFlight(true);
         mapEditorMode.add(player.getUniqueId());
         giveEditorTools(player);
         Text.send(player, "<green>Editing map " + mapId + " in world " + editor.getName() + ".</green>");
@@ -1273,25 +1361,11 @@ public final class DuelService implements Listener {
         yaml.set(path + ".yaw", location.getYaw());
         yaml.set(path + ".pitch", location.getPitch());
     }
-    private void refreshOpenMenus() {
-        for (Player player : Bukkit.getOnlinePlayers()) {
-            var top = player.getOpenInventory().getTopInventory();
-            if (!(top.getHolder() instanceof CoreMenuHolder holder)) continue;
-            if (holder.type() == CoreMenuType.DUEL_KITS) {
-                menuService.open(player, new DuelMenu(this).buildKitMenu(player));
-            } else if (holder.type() == CoreMenuType.DUEL_MAIN) {
-                menuService.open(player, new DuelMenu(this).buildMain(player));
-            } else if (holder.type() == CoreMenuType.DUEL_DEV) {
-                menuService.open(player, new DuelMenu(this).buildDev(player));
-            }
-        }
-    }
     private void startHudTask() {
         if (hudTask != null) hudTask.cancel();
         hudTask = Bukkit.getScheduler().runTaskTimer(plugin, () -> {
             if (queueUnits.isEmpty()) return;
             tryMatchAll();
-            refreshOpenMenus();
             for (Player player : Bukkit.getOnlinePlayers()) giveQueueItem(player);
             long now = System.currentTimeMillis();
             for (QueueUnit unit : new HashSet<>(queueUnits.values())) {
@@ -1366,16 +1440,40 @@ public final class DuelService implements Listener {
         long waitedMs = System.currentTimeMillis() - anchor.joinedAt();
         if (waitedMs >= 60_000L) return units.get(0);
         int anchorRating = unitRating(anchor);
+        List<QueueUnit> shuffled = new ArrayList<>(units);
+        java.util.Collections.shuffle(shuffled);
         QueueUnit best = null;
         int bestDiff = Integer.MAX_VALUE;
-        for (QueueUnit candidate : units) {
+        for (QueueUnit candidate : shuffled) {
             int diff = Math.abs(anchorRating - unitRating(candidate));
+            if (recentlyMatched(anchor, candidate)) diff += 200;
             if (diff < bestDiff) {
                 bestDiff = diff;
+                best = candidate;
+            } else if (diff == bestDiff && ThreadLocalRandom.current().nextBoolean()) {
                 best = candidate;
             }
         }
         return best;
+    }
+
+    private boolean recentlyMatched(QueueUnit first, QueueUnit second) {
+        if (first == null || second == null) return false;
+        for (UUID firstMember : first.members()) {
+            UUID recent = recentOpponents.get(firstMember);
+            if (recent == null) continue;
+            for (UUID secondMember : second.members()) {
+                if (recent.equals(secondMember)) return true;
+            }
+        }
+        for (UUID secondMember : second.members()) {
+            UUID recent = recentOpponents.get(secondMember);
+            if (recent == null) continue;
+            for (UUID firstMember : first.members()) {
+                if (recent.equals(firstMember)) return true;
+            }
+        }
+        return false;
     }
 
     private int unitRating(QueueUnit unit) {
@@ -1415,15 +1513,18 @@ public final class DuelService implements Listener {
         DuelKit kit = kits.get(first.kitId().toLowerCase(Locale.ROOT));
         roundsToWin = Math.max(1, roundsToWin);
         DuelMatch match = new DuelMatch(matchId, first.mode(), first.kitId(), activeMap.id(), first.members(), second.members(), System.currentTimeMillis(), roundsToWin);
+        match.resetRoundState();
         if (instanced.world() != null) instanceWorldsByMatch.put(matchId, instanced.world());
         first.members().forEach(member -> { matchesByPlayer.put(member, match); ACTIVE_DUEL_PLAYERS.add(member); });
         second.members().forEach(member -> { matchesByPlayer.put(member, match); ACTIVE_DUEL_PLAYERS.add(member); });
         removeQueueUnit(first, false);
         removeQueueUnit(second, false);
+        rememberRecentOpponents(first.members(), second.members());
         notifyMembers(match.teamOne(), "<green>Match found. Starting on " + activeMap.displayName() + "</green>");
         notifyMembers(match.teamTwo(), "<green>Match found. Starting on " + activeMap.displayName() + "</green>");
         applyMatchFoundEffects(match.teamOne());
         applyMatchFoundEffects(match.teamTwo());
+        applyScoreboardTeams(match);
         prepareMatch(match, activeMap);
         startArenaCountdown(match, activeMap);
     }
@@ -1518,7 +1619,11 @@ public final class DuelService implements Listener {
     }
 
     private void resetDuelState(Player player) {
-        for (org.bukkit.potion.PotionEffect effect : new ArrayList<>(player.getActivePotionEffects())) player.removePotionEffect(effect.getType());
+        for (org.bukkit.potion.PotionEffect effect : new ArrayList<>(player.getActivePotionEffects())) {
+            if (effect.getType() == PotionEffectType.SPEED) continue;
+            player.removePotionEffect(effect.getType());
+        }
+        player.removePotionEffect(PotionEffectType.NIGHT_VISION);
         player.setFoodLevel(20);
         player.setSaturation(0.0f);
         player.setExhaustion(0.0f);
@@ -1546,15 +1651,25 @@ public final class DuelService implements Listener {
         for (UUID uuid : members) {
             Player player = Bukkit.getPlayer(uuid);
             if (player == null) continue;
+            player.setGameMode(GameMode.SURVIVAL);
             snapshots.put(uuid, Snapshot.capture(player));
             resetDuelState(player);
             stripHubItems(player);
             if (kit != null) applyKit(player, kit);
             player.teleport(spawn);
+            player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
+            player.setFallDistance(0.0f);
             player.setHealth(20.0);
             player.setFoodLevel(20);
             player.setSaturation(0.0f);
             player.setFireTicks(0);
+            Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                Player online = Bukkit.getPlayer(uuid);
+                if (online == null || !matchesByPlayer.containsKey(uuid)) return;
+                stripHubItems(online);
+                if (kit != null) applyKit(online, kit);
+                online.updateInventory();
+            }, 1L);
         }
     }
 
@@ -1649,6 +1764,8 @@ public final class DuelService implements Listener {
                 player.setFoodLevel(20);
                 player.setSaturation(20.0f);
                 player.setFireTicks(0);
+                player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
+                player.setFallDistance(0.0f);
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
                     refreshPostMatchItems(player);
                     var data = repository.load(uuid);
@@ -1660,6 +1777,7 @@ public final class DuelService implements Listener {
             }
             balanceRatings(match.teamOne(), match.teamTwo(), winners);
         } finally {
+            removeScoreboardTeams(match.id());
             for (UUID uuid : all) {
                 matchesByPlayer.remove(uuid);
                 ACTIVE_DUEL_PLAYERS.remove(uuid);
@@ -1668,9 +1786,33 @@ public final class DuelService implements Listener {
             }
             org.bukkit.World instance = instanceWorldsByMatch.remove(match.id());
             clearPlacedBlocks(instance);
-            if (instance != null) worldService.cleanup(instance);
+            clearResetMaterials(instance);
+            if (instance != null) {
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    worldService.cleanup(instance);
+                    DuelMap baseMap = maps.get(match.mapId());
+                    if (baseMap != null && worldService.enabled()) {
+                        DuelWorldService.InstancedMap refreshed = worldService.create(baseMap, UUID.randomUUID());
+                        if (refreshed.world() != null) worldService.cleanup(refreshed.world());
+                    }
+                }, 40L);
+            }
             endingMatches.remove(match.id());
         }
+    }
+
+    private void announceLeave(Player player, boolean quit) {
+        Set<UUID> others = new LinkedHashSet<>();
+        DuelMatch match = matchesByPlayer.get(player.getUniqueId());
+        if (match != null) {
+            for (UUID uuid : match.teamOne()) if (!uuid.equals(player.getUniqueId())) others.add(uuid);
+            for (UUID uuid : match.teamTwo()) if (!uuid.equals(player.getUniqueId())) others.add(uuid);
+        }
+        String title = quit ? "<red>Player disconnected</red>" : "<yellow>Player left the duel</yellow>";
+        String subtitle = quit ? "<gray>The match will end now.</gray>" : "<gray>Returning everyone to spawn.</gray>";
+        if (!others.isEmpty()) titleMembers(others, title, subtitle);
+        if (!quit) titleMembers(Set.of(player.getUniqueId()), title, subtitle);
+        Text.send(player, quit ? "<red>You disconnected from the duel.</red>" : "<yellow>You left the duel.</yellow>");
     }
 
     private Location spawnLocation() {
@@ -1694,7 +1836,148 @@ public final class DuelService implements Listener {
     private void clearPlacedBlocks(World world) {
         if (world == null) return;
         String worldName = world.getName().toLowerCase(Locale.ROOT);
-        placedMatchBlocks.removeIf(key -> key.startsWith(worldName + ":"));
+        java.util.List<String> toRemove = new java.util.ArrayList<>();
+        for (String key : placedMatchBlocks) {
+            if (!key.startsWith(worldName + ":")) continue;
+            String[] parts = key.split(":");
+            if (parts.length == 4) {
+                try {
+                    world.getBlockAt(Integer.parseInt(parts[1]), Integer.parseInt(parts[2]), Integer.parseInt(parts[3])).setType(Material.AIR, false);
+                } catch (Exception ignored) {}
+            }
+            toRemove.add(key);
+        }
+        placedMatchBlocks.removeAll(toRemove);
+    }
+
+    private void cleanupRoundArena(DuelMatch match) {
+        World world = instanceWorldsByMatch.get(match.id());
+        if (world == null) return;
+        clearPlacedBlocks(world);
+        clearResetMaterials(world);
+        for (Entity entity : new java.util.ArrayList<>(world.getEntities())) {
+            if (entity instanceof Player) continue;
+            switch (entity.getType()) {
+                case ITEM, ARROW, SPECTRAL_ARROW, TRIDENT, SPLASH_POTION, LINGERING_POTION, EXPERIENCE_ORB -> entity.remove();
+                default -> { }
+            }
+        }
+    }
+
+    private boolean isLiveMatchWorld(World world) {
+        if (world == null) return false;
+        return instanceWorldsByMatch.values().stream().anyMatch(active -> active != null && active.getUID().equals(world.getUID()));
+    }
+
+    private void clearResetMaterials(World world) {
+        if (world == null) return;
+        for (org.bukkit.Chunk chunk : world.getLoadedChunks()) {
+            int minY = world.getMinHeight();
+            int maxY = world.getMaxHeight();
+            for (int x = 0; x < 16; x++) {
+                for (int z = 0; z < 16; z++) {
+                    for (int y = minY; y < maxY; y++) {
+                        org.bukkit.block.Block block = chunk.getBlock(x, y, z);
+                        if (ROUND_RESET_MATERIALS.contains(block.getType())) {
+                            block.setType(Material.AIR, false);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    private void rememberNameState(Player player) {
+        duelNameStates.computeIfAbsent(player.getUniqueId(), ignored -> new PlayerNameState(player.displayName(), player.playerListName()));
+    }
+
+    private void applyTeamNameColor(Player player, net.kyori.adventure.text.format.NamedTextColor color) {
+        net.kyori.adventure.text.Component name = net.kyori.adventure.text.Component.text(player.getName(), color);
+        player.displayName(name);
+        player.playerListName(name);
+        player.customName(name);
+        player.setCustomNameVisible(true);
+    }
+
+    private void restorePlayerNameStates() {
+        for (Iterator<Map.Entry<UUID, PlayerNameState>> iterator = duelNameStates.entrySet().iterator(); iterator.hasNext();) {
+            Map.Entry<UUID, PlayerNameState> entry = iterator.next();
+            Player player = Bukkit.getPlayer(entry.getKey());
+            if (player != null) {
+                player.displayName(entry.getValue().displayName());
+                player.playerListName(entry.getValue().playerListName());
+                player.customName(null);
+                player.setCustomNameVisible(false);
+            }
+            iterator.remove();
+        }
+    }
+
+    private Set<UUID> opposingTeam(DuelMatch match, UUID uuid) {
+        if (match.teamOne().contains(uuid)) return match.teamTwo();
+        if (match.teamTwo().contains(uuid)) return match.teamOne();
+        return Set.of();
+    }
+
+    private boolean sameTeam(DuelMatch match, UUID first, UUID second) {
+        return match.teamOne().contains(first) && match.teamOne().contains(second)
+                || match.teamTwo().contains(first) && match.teamTwo().contains(second);
+    }
+
+    private void applyScoreboardTeams(DuelMatch match) {
+        removeScoreboardTeams(match.id());
+        Scoreboard scoreboard = Bukkit.getScoreboardManager() == null
+                ? null
+                : Bukkit.getScoreboardManager().getMainScoreboard();
+        if (scoreboard == null) return;
+        String base = match.id().toString().replace("-", "");
+        String redName = ("duel_r_" + base).substring(0, Math.min(16, ("duel_r_" + base).length()));
+        String blueName = ("duel_b_" + base).substring(0, Math.min(16, ("duel_b_" + base).length()));
+        Team red = scoreboard.getTeam(redName);
+        if (red != null) red.unregister();
+        Team blue = scoreboard.getTeam(blueName);
+        if (blue != null) blue.unregister();
+        red = scoreboard.registerNewTeam(redName);
+        blue = scoreboard.registerNewTeam(blueName);
+        configureMatchTeam(red, net.kyori.adventure.text.format.NamedTextColor.RED);
+        configureMatchTeam(blue, net.kyori.adventure.text.format.NamedTextColor.BLUE);
+        for (UUID uuid : match.teamOne()) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player == null) continue;
+            rememberNameState(player);
+            red.addEntry(player.getName());
+            player.setScoreboard(scoreboard);
+            applyTeamNameColor(player, net.kyori.adventure.text.format.NamedTextColor.RED);
+        }
+        for (UUID uuid : match.teamTwo()) {
+            Player player = Bukkit.getPlayer(uuid);
+            if (player == null) continue;
+            rememberNameState(player);
+            blue.addEntry(player.getName());
+            player.setScoreboard(scoreboard);
+            applyTeamNameColor(player, net.kyori.adventure.text.format.NamedTextColor.BLUE);
+        }
+        scoreboardTeamsByMatch.put(match.id(), new MatchTeams(redName, blueName));
+    }
+
+    private void configureMatchTeam(Team team, net.kyori.adventure.text.format.NamedTextColor color) {
+        team.color(color);
+        team.setCanSeeFriendlyInvisibles(true);
+        team.setAllowFriendlyFire(false);
+        team.setOption(Team.Option.NAME_TAG_VISIBILITY, Team.OptionStatus.ALWAYS);
+    }
+
+    private void removeScoreboardTeams(UUID matchId) {
+        MatchTeams teams = scoreboardTeamsByMatch.remove(matchId);
+        if (Bukkit.getScoreboardManager() == null) return;
+        Scoreboard scoreboard = Bukkit.getScoreboardManager().getMainScoreboard();
+        if (teams != null) {
+            Team red = scoreboard.getTeam(teams.red());
+            if (red != null) red.unregister();
+            Team blue = scoreboard.getTeam(teams.blue());
+            if (blue != null) blue.unregister();
+        }
+        restorePlayerNameStates();
     }
 
     private String blockKey(Location location) {
@@ -1710,9 +1993,19 @@ public final class DuelService implements Listener {
     private void adjustRating(UUID uuid, boolean win) {
         var data = repository.load(uuid);
         data.recordDuel(win);
-        int delta = win ? 15 : -15;
+        int performance = Math.max(0, data.duelKills() - data.duelDeaths());
+        int delta = win ? 10 + Math.min(10, performance * 2) : -(10 + Math.min(8, data.duelDeaths()));
         data.duelRating(data.duelRating() + delta);
         repository.save(data);
+    }
+
+    private void rememberRecentOpponents(Collection<UUID> firstTeam, Collection<UUID> secondTeam) {
+        for (UUID first : firstTeam) {
+            for (UUID second : secondTeam) {
+                recentOpponents.put(first, second);
+                recentOpponents.put(second, first);
+            }
+        }
     }
 
     private void updateDuelStats(UUID uuid, boolean win) {
@@ -1876,6 +2169,8 @@ public final class DuelService implements Listener {
     private record DuelChallenge(UUID challenger, UUID target, Set<UUID> challengers, Set<UUID> targets, String kitId, String mapId, DuelMode mode, long createdAt) {}
     private record SpectatorSnapshot(Location location, GameMode gameMode) { static SpectatorSnapshot capture(Player player) { return new SpectatorSnapshot(player.getLocation(), player.getGameMode()); } }
     private record PendingKitRoundEdit(String kitId, Location location, org.bukkit.block.data.BlockData previous) {}
+    private record MatchTeams(String red, String blue) {}
+    private record PlayerNameState(net.kyori.adventure.text.Component displayName, net.kyori.adventure.text.Component playerListName) {}
 
     private static final class Snapshot {
         private final ItemStack[] contents;

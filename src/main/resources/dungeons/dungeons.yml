@@ -1,6 +1,7 @@
-world: dungeons
+world: dungeons_live
+editor-world: dungeons_editor
 spawn:
-  world: dungeons
+  world: dungeons_spawn
   x: 0.5
   y: 80.0
   z: 0.5
@@ -10,6 +11,7 @@ default-level: jungle
 generation:
   columns: 8
   spacing: 96
+  vertical-shift: 24
   reset-before-paste: true
   rooms:
     easy: 5
@@ -93,6 +95,10 @@ world-generation:
   generator: VoidGen
   disable-mob-spawning: true
   disable-weather: true
+  allowed-spawn-reasons:
+    - CUSTOM
+debug:
+  enabled: true
 
 completion:
   allow-early-exit: true

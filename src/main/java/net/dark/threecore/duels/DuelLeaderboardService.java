@@ -41,7 +41,7 @@ public final class DuelLeaderboardService {
         List<UUID> top = Arrays.stream(Bukkit.getOfflinePlayers())
                 .map(p -> p.getUniqueId())
                 .sorted(Comparator.comparingInt((UUID id) -> repository.load(id).duelRating()).reversed())
-                .limit(5)
+                .limit(10)
                 .toList();
         int slot = 10;
         int place = 1;
@@ -50,6 +50,7 @@ public final class DuelLeaderboardService {
             String name = Bukkit.getOfflinePlayer(uuid).getName();
             inv.setItem(slot++, button(Material.PLAYER_HEAD, "<gradient:#60a5fa:#c084fc>#" + place + " " + (name == null ? uuid.toString().substring(0, 8) : name) + "</gradient>", List.of("<gray>Rating: " + data.duelRating() + "</gray>", "<gray>Wins: " + data.duelWins() + " | Losses: " + data.duelLosses() + "</gray>", "<gray>Streak: " + data.duelWinStreak() + " | Best: " + data.duelBestWinStreak() + "</gray>", "<gray>Prize: " + prize(place) + "</gray>")));
             place++;
+            if (slot > 26) break;
         }
         inv.setItem(22, button(Material.SUNFLOWER, "<gradient:#f59e0b:#fbbf24>Monthly Prizes</gradient>", List.of(
                 "<gray>1st:</gray> <white>" + prize(1) + "</white>",
@@ -65,7 +66,7 @@ public final class DuelLeaderboardService {
     }
 
     private String prize(int place) {
-        return configs.get("duels/duels.yml").getString("duels.leaderboard.prizes." + place + ".display", place <= 3 ? "Configured manually" : "None");
+        return configs.get("duels/duels.yml").getString("duels.leaderboard.prizes." + place + ".display", place <= 10 ? "Configured manually" : "None");
     }
 
     private void fill(Inventory inv, Material material) { for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, button(material, " ", List.of())); }

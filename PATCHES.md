@@ -416,3 +416,45 @@
 - Fishing now only opens the arcade GUI from an actual water cast path instead of non-water rod use.
 - Dungeon editor tools are now hardened against clicks, drags, drops, and slot scrambling, with the main save tool snapping back into its fixed toolbar slot.
 - Gamerule handling now uses the Paper registry-based lookup path instead of deprecated legacy gamerule APIs.
+- Dungeon editor tool now only toggles in the dungeon editor world, and the dungeon editor/live/spawn worlds are separated by default.
+- Dungeon spawn now uses its own void world instead of sharing the live dungeon world.
+- Dungeon room chaining now rejects templates that do not expose compatible markers for connection.
+- Dungeon builder diagnostics now print live debug messages for editor sessions, template saves, room placement, and flexible link checks.
+- Dungeon room placement now uses flexible offsets instead of a rigid grid layout so rooms can connect more naturally across offsets and height changes.
+- Dungeon connection preview now shows a dedicated debug state plus marker counts and size info directly in the dev toolbox.
+- Fixed the duel dev panel dungeon editor handoff by wiring the dungeon service into the duel module after plugin bootstrap, preventing null crashes from the editor shortcut.
+- Duel kit selector now hides rounds and auto-splash details and instead shows kit description plus the current queued player count for that kit.
+- Added a one-time `/dungeon template` initializer that prepares the dungeon spawn world, locks itself after first use, and added nested `/dungeon spawn set` handling for dungeon teleport spawn placement.
+- Dungeon editor now strips spawn/dungeon clutter on entry, keeps the editor tool flow clean, and the connection preview now reports the detected room type using player spawn, entrance, boss, exit, or normal markers.
+- Added `/dungeon editor leave` so devs can exit the dungeon editor cleanly, clear editor clutter, and return to the dungeon spawn flow.
+- Natural mob spawning is now cancelled in dungeon worlds and dungeon spawn, while custom/plugin-spawned dungeon mobs are still allowed through the custom spawn path.
+- Dungeon mob spawning is now controlled by a config whitelist of spawn reasons, defaulting to `CUSTOM` for plugin-spawned mobs only.
+- `/leave` now exits dungeon runs back to dungeon spawn instead of routing players to the main spawn world.
+- Duel live/editor arena worlds now force a flat, no-structures bootstrap so the copied arena stays isolated from extra terrain generation outside the arena copy.
+- Duel leave/disconnect handling now announces the exit on-screen first and delays arena cleanup slightly so the instance world is not torn down while players are still being transferred out.
+- Dungeon room saving now persists full block data strings alongside materials so stateful blocks keep their orientation and blockstate when templates are pasted back in.
+- Duel start now re-applies the selected kit one tick after teleport and skips hub-item refreshes for active duel players, preventing the cosmetics item from overwriting the round kit during arena entry.
+- Duel state reset now preserves SPEED potion effects instead of stripping them, so arena buffs and kit-applied speed are not wiped during duel setup.
+- Spawn/dungeon-spawn speed handling is now limited to managed spawn worlds only, and duel round resets now fully heal players while clearing placed blocks and dropped round items between rounds.
+- Team duels now use proper red/blue temporary scoreboard teams, block friendly fire, and only award a round when every player on one team has been eliminated.
+- Duel countdown freeze now zeroes player velocity as well as movement position, making the 5-second round-start lock feel solid instead of letting players slide.
+- Duel live-world cleanup now also tracks bucket-placed fluids and only records/removes player-placed blocks inside active duel instance worlds, keeping every placed block from the match cleared out reliably.
+- Duel round cleanup now hard-removes common temporary arena materials like oak planks, cobwebs, obsidian, cobblestone, stone, lava, and water from loaded duel instance chunks, both between rounds and before match-world teardown.
+- Duel players now get explicit red/blue name coloring during team matches, and name/list names are restored cleanly after the duel ends.
+- Added a duel-side golden-apple inventory resync after consumption to reduce ghost-gap desyncs during matches.
+- Chat formatting now resolves LuckPerms prefixes as the always-on prefix source, then applies configurable rank chat styles for player name color, tag color, and fallback message color using `chat.rank-styles` in `core/config.yml`.
+- Added configurable rank-based chat styling examples for owner, admin, dev, mvp, and vip so LuckPerms primary groups can drive visible chat theming without turning prefixes into cosmetics.
+- Removed prefix selection from the cosmetics/perks system so prefixes are no longer treated as a player cosmetic and are now expected to come automatically from LuckPerms only.
+- Chat formatting now runs at MONITOR priority and supports direct rank `name-format` and `tag-format` templates, making gradient player names and tag styling configurable per LuckPerms rank instead of relying only on recolor passes.
+- Added example gradient `name-format` and `tag-format` entries for owner, admin, dev, mvp, and vip in `core/config.yml` so player names no longer stay white when a rank style is configured.
+- Added PlaceholderAPI placeholders for TAB integration so backend-formatted chat visuals can be reused in TAB: `%smpcore_chat_prefix%`, `%smpcore_chat_name%`, `%smpcore_chat_tag%`, `%smpcore_chat_display%` and the same aliases under `%3smpcore_*%`.
+- Placeholder expansions now receive the chat formatter directly, allowing LuckPerms prefix output, rank-based gradient name formats, and styled tags to be exposed consistently to other plugins like TAB.
+- Chat now uses a sturdier LuckPerms provider lookup path instead of the old brittle plugin-reflection API call, so chat prefixes and primary-group based name colors stop falling back to the fake default member prefix.
+- The old `[Member]` chat fallback prefix was removed from default config and plain hex message coloring now renders correctly instead of using malformed MiniMessage hex tags.
+- Duel arena editor worlds now always spawn players at `0,64,0` and switch them into creative mode on entry.
+- Duel world service now performs a stale match-world cleanup sweep for old `arena_*_match_*` worlds so leftover instance folders do not break future arena matches.
+- Party duel start now uses the selected arena and selected round count directly instead of falling back to random arena selection or the kit default rounds.
+- Party duel round restarts now re-run the prepare phase so the freeze timer works on every round, not only the first one.
+- Duel main menu `2v2` button now uses a static shield icon instead of a player head to avoid the weird visual changing/pose behavior in the GUI.
+- Party duel setup now shows the selected arena and round count directly in the main menu, kit picker, and map picker, so the chosen values are visible before starting.
+- Party duel map selection cards now show the current arena selection and kit cards now show the current kit selection, making the setup UI easier to trust and less twitchy.

@@ -95,11 +95,23 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
                 case "clearlag" -> { int removed = clearLagManager.clear(); Text.send(context.sender(), "<green>ClearLag removed " + removed + " entities. Console logged it too.</green>"); }
                 case "pvp" -> toggleSpawnPvp(context);
                 case "money" -> moneyService.handle(context.sender(), "money", Arrays.copyOfRange(context.args(), 1, context.args().length));
+                case "wipeplayer" -> wipePlayer(context);
                 case "tag" -> tag(context);
                 case "cosmetics" -> cosmetics(context);
                 case "jobs" -> jobs(context);
                 default -> help(context.sender());
             }
+        }
+        private void wipePlayer(CommandContext context) {
+            if (context.args().length < 2) { Text.send(context.sender(), "<red>Usage: /3smpcore admin wipeplayer <player></red>"); return; }
+            if (!context.sender().hasPermission("3smpcore.admin.wipe")) { Text.send(context.sender(), "<red>No permission.</red>"); return; }
+            org.bukkit.OfflinePlayer target = Bukkit.getOfflinePlayer(context.arg(1));
+            if (target == null || target.getUniqueId() == null) { Text.send(context.sender(), "<red>Player not found.</red>"); return; }
+            if (context.sender() instanceof Player player && player.getUniqueId().equals(target.getUniqueId())) {
+                Text.send(context.sender(), "<yellow>You are wiping your own data. This is permanent.</yellow>");
+            }
+            plugin.getRepository().wipePlayerData(target.getUniqueId());
+            Text.send(context.sender(), "<green>Wiped all stored plugin data for " + target.getName() + ".</green>");
         }
         private void tag(CommandContext context) {
             if (context.args().length < 2) { Text.send(context.sender(), "<yellow>/3smpcore admin tag set|remove|info|list ...</yellow>"); return; }
@@ -130,13 +142,13 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
         private void jobs(CommandContext context) { Text.send(context.sender(), "<yellow>Jobs admin command is reserved here; the jobs module data layer is not active in this build yet.</yellow>"); }
         private void help(CommandSender sender) {
             Text.send(sender, "<gradient:#1A2A4A:#f59e0b>Admin Commands</gradient>");
-            Text.send(sender, "<gray>/3smpcore admin setspawn | spy | setwarp <id> | clearlag | pvp <on|off></gray>");
+            Text.send(sender, "<gray>/3smpcore admin setspawn | spy | setwarp <id> | clearlag | pvp <on|off> | wipeplayer <player></gray>");
             Text.send(sender, "<gray>/3smpcore admin tag set/remove/info/list ...</gray>");
             Text.send(sender, "<gray>/3smpcore admin cosmetics info/set/reset ...</gray>");
             Text.send(sender, "<gray>/3smpcore admin money give|remove|set|reset <player> [amount]</gray>");
         }
         public List<String> tabComplete(CommandContext context) {
-            if (context.args().length <= 1) return List.of("setspawn", "spy", "tag", "jobs", "cosmetics", "setwarp", "clearlag", "pvp", "money");
+            if (context.args().length <= 1) return List.of("setspawn", "spy", "tag", "jobs", "cosmetics", "setwarp", "clearlag", "pvp", "money", "wipeplayer");
             if (context.arg(0).equalsIgnoreCase("tag")) return List.of("set", "remove", "info", "list");
             if (context.arg(0).equalsIgnoreCase("cosmetics")) return List.of("info", "set", "reset");
             if (context.arg(0).equalsIgnoreCase("jobs")) return List.of("info", "reset", "setlevel", "addxp", "give", "kick");

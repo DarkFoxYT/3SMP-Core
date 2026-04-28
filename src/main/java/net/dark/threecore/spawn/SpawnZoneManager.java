@@ -50,6 +50,7 @@ public final class SpawnZoneManager implements Listener {
     }
 
     public void refresh(Player player) {
+        if (!isManagedWorld(player.getWorld())) return;
         if (zonePvpService != null && zonePvpService.isActive(player)) {
             player.removePotionEffect(PotionEffectType.SPEED);
             player.removePotionEffect(PotionEffectType.SATURATION);
@@ -65,6 +66,14 @@ public final class SpawnZoneManager implements Listener {
             if (effect != null && effect.getDuration() > 20 * 30) player.removePotionEffect(PotionEffectType.SPEED);
             player.removePotionEffect(PotionEffectType.SATURATION);
         }
+    }
+
+    private boolean isManagedWorld(World world) {
+        if (world == null) return false;
+        var yaml = configs.get("core/config.yml");
+        String spawnWorld = yaml.getString("spawn.zone.world", yaml.getString("spawn.world", "spawn"));
+        String dungeonSpawnWorld = configs.get("dungeons/dungeons.yml").getString("spawn.world", "dungeons_spawn");
+        return world.getName().equalsIgnoreCase(spawnWorld) || world.getName().equalsIgnoreCase(dungeonSpawnWorld);
     }
 
     @EventHandler public void onMove(PlayerMoveEvent event) {

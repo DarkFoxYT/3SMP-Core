@@ -1,6 +1,10 @@
 package net.dark.threecore.spawn;
 
 import net.dark.threecore.config.ConfigFiles;
+import net.dark.threecore.duels.DuelService;
+import net.dark.threecore.dungeons.DungeonService;
+import net.dark.threecore.party.PartyService;
+import net.dark.threecore.perks.PerkService;
 import net.dark.threecore.survival.SurvivalService;
 import net.dark.threecore.text.Text;
 import org.bukkit.Bukkit;
@@ -22,6 +26,10 @@ import java.io.File;
 public final class SpawnService implements Listener {
     private net.dark.threecore.welcome.WelcomeService welcomeService;
     private SurvivalService survivalService;
+    private PerkService perkService;
+    private DuelService duelService;
+    private PartyService partyService;
+    private DungeonService dungeonService;
     private final JavaPlugin plugin;
     private final ConfigFiles configs;
 
@@ -32,6 +40,10 @@ public final class SpawnService implements Listener {
 
     public void setWelcomeService(net.dark.threecore.welcome.WelcomeService welcomeService) { this.welcomeService = welcomeService; }
     public void setSurvivalService(SurvivalService survivalService) { this.survivalService = survivalService; }
+    public void setPerkService(PerkService perkService) { this.perkService = perkService; }
+    public void setDuelService(DuelService duelService) { this.duelService = duelService; }
+    public void setPartyService(PartyService partyService) { this.partyService = partyService; }
+    public void setDungeonService(DungeonService dungeonService) { this.dungeonService = dungeonService; }
 
     public void setSpawnLocation(CommandSender sender, Location location) {
         var yaml = configs.get("core/config.yml");
@@ -64,6 +76,7 @@ public final class SpawnService implements Listener {
         player.teleport(spawn);
         if (survivalService != null) survivalService.loadProfile(player, "spawn");
         applySpawnEffects(player);
+        refreshSpawnHubItems(player);
         if (welcomeService != null) welcomeService.send(player);
         Text.send(player, "<green>Teleported to spawn.</green>");
     }
@@ -100,12 +113,33 @@ public final class SpawnService implements Listener {
 
     @EventHandler
     public void onJoin(PlayerJoinEvent event) {
+        if (survivalService != null && isSpawnWorld(event.getPlayer().getWorld())) {
+            survivalService.loadProfile(event.getPlayer(), "spawn");
+        }
         applySpawnEffects(event.getPlayer());
+        refreshSpawnHubItems(event.getPlayer());
     }
 
     @EventHandler
     public void onWorldChange(PlayerChangedWorldEvent event) {
+        if (survivalService != null && isSpawnWorld(event.getPlayer().getWorld())) {
+            survivalService.loadProfile(event.getPlayer(), "spawn");
+        }
         applySpawnEffects(event.getPlayer());
+        refreshSpawnHubItems(event.getPlayer());
+    }
+
+    public void refreshSpawnHubItems(Player player) {
+        if (!isSpawnWorld(player.getWorld())) return;
+        player.setItemOnCursor(null);
+        for (int slot = 0; slot <= 8; slot++) {
+            player.getInventory().setItem(slot, null);
+        }
+        if (perkService != null) perkService.giveCosmeticsItem(player);
+        if (duelService != null) duelService.reloadItems(player);
+        if (partyService != null) partyService.givePartyItems(player);
+        if (dungeonService != null) dungeonService.giveItem(player);
+        player.updateInventory();
     }
 }
 

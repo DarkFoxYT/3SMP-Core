@@ -19,11 +19,13 @@ import org.bukkit.event.Listener;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Locale;
 import java.util.UUID;
 
 public final class ChatFormatService implements Listener {
+    private static final LegacyComponentSerializer LEGACY_AMP = LegacyComponentSerializer.legacyAmpersand();
     private final ConfigFiles configs;
     private final PerkService perkService;
 
@@ -32,14 +34,45 @@ public final class ChatFormatService implements Listener {
         this.perkService = perkService;
     }
 
-    @EventHandler(priority = EventPriority.HIGHEST)
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
         var data = perkService.data(player.getUniqueId());
+        RankChatStyle style = resolveRankStyle(player);
         Component prefix = resolvePrefix(player);
-        Component tag = display(player, "cosmetics/tags.yml", "tags", data.activeTag());
-        Component name = Component.text(player.getName(), TextColor.fromHexString("#FFFFFF"));
-        event.renderer((source, sourceDisplayName, chatMessage, viewer) -> joinChatParts(prefix, name, tag, colorize(resolveMessageColor(player, data.activeMessageColor()), chatMessage)));
+        Component tag = styledTag(player, data.activeTag(), style);
+        Component name = styledPlayerName(player, style);
+        event.renderer((source, sourceDisplayName, chatMessage, viewer) -> joinChatParts(prefix, name, tag, colorize(resolveMessageColor(player, data.activeMessageColor(), style), chatMessage)));
+    }
+
+    public String tabPrefix(Player player) {
+        return serializeForPlaceholder(resolvePrefix(player));
+    }
+
+    public String tabName(Player player) {
+        return serializeForPlaceholder(styledPlayerName(player, resolveRankStyle(player)));
+    }
+
+    public String tabTag(Player player) {
+        var data = perkService.data(player.getUniqueId());
+        return serializeForPlaceholder(styledTag(player, data.activeTag(), resolveRankStyle(player)));
+    }
+
+    public String tabDisplay(Player player) {
+        String prefix = tabPrefix(player);
+        String name = tabName(player);
+        String tag = tabTag(player);
+        StringBuilder builder = new StringBuilder();
+        if (!prefix.isBlank()) builder.append(prefix);
+        if (!name.isBlank()) {
+            if (!builder.isEmpty()) builder.append(" ");
+            builder.append(name);
+        }
+        if (!tag.isBlank()) {
+            if (!builder.isEmpty()) builder.append(" ");
+            builder.append(tag);
+        }
+        return builder.toString();
     }
 
     private Component joinChatParts(Component prefix, Component name, Component tag, Component message) {
@@ -71,15 +104,19 @@ public final class ChatFormatService implements Listener {
             if ("none".equals(type)) return message;
             String hex = sec.getString("hex", null);
             if (hex == null || hex.isBlank()) return message;
-            return Text.mm("<" + hex + ">" + escapeMini(content) + "</" + hex + ">");
+            TextColor color = TextColor.fromHexString(hex);
+            return color == null ? message : Component.text(content, color);
         } catch (Exception ignored) {
             return message;
         }
     }
 
-    private String resolveMessageColor(Player player, String selected) {
+    private String resolveMessageColor(Player player, String selected, RankChatStyle style) {
         if (selected != null && !selected.isBlank() && !selected.equalsIgnoreCase("default") && canUseSelectedColor(player, selected)) {
             return selected;
+        }
+        if (style.messageColorId() != null && !style.messageColorId().isBlank()) {
+            return style.messageColorId();
         }
         ConfigurationSection ranks = configs.get("cosmetics/colors.yml").getConfigurationSection("rank-colors");
         if (ranks == null) return "default";
@@ -138,11 +175,7 @@ public final class ChatFormatService implements Listener {
 
     private String luckPermsPrefixString(UUID uuid) {
         try {
-            org.bukkit.plugin.Plugin plugin = Bukkit.getPluginManager().getPlugin("LuckPerms");
-            if (plugin == null || !plugin.isEnabled()) return "";
-            Object api = plugin.getClass().getMethod("getApi").invoke(plugin);
-            Object userManager = api.getClass().getMethod("getUserManager").invoke(api);
-            Object user = userManager.getClass().getMethod("getUser", UUID.class).invoke(userManager, uuid);
+            Object user = luckPermsUser(uuid);
             if (user == null) return "";
             Object cachedData = user.getClass().getMethod("getCachedData").invoke(user);
             Object metaData = cachedData.getClass().getMethod("getMetaData").invoke(cachedData);
@@ -155,16 +188,28 @@ public final class ChatFormatService implements Listener {
 
     private String luckPermsPrimaryGroup(UUID uuid) {
         try {
-            org.bukkit.plugin.Plugin plugin = Bukkit.getPluginManager().getPlugin("LuckPerms");
-            if (plugin == null || !plugin.isEnabled()) return null;
-            Object api = plugin.getClass().getMethod("getApi").invoke(plugin);
+            Object user = luckPermsUser(uuid);
+            if (user == null) return null;
+            Object group = user.getClass().getMethod("getPrimaryGroup").invoke(user);
+            return group == null ? null : group.toString();
+        } catch (Throwable ignored) {
+            return null;
+        }
+    }
+
+    private Object luckPermsUser(UUID uuid) {
+        try {
+            Class<?> providerClass = Class.forName("net.luckperms.api.LuckPermsProvider");
+            Object api = providerClass.getMethod("get").invoke(null);
             Object userManager = api.getClass().getMethod("getUserManager").invoke(api);
             Object user = userManager.getClass().getMethod("getUser", UUID.class).invoke(userManager, uuid);
-            if (user == null) return null;
-            Object cachedData = user.getClass().getMethod("getCachedData").invoke(user);
-            Object metaData = cachedData.getClass().getMethod("getMetaData").invoke(cachedData);
-            Object group = metaData.getClass().getMethod("getPrimaryGroup").invoke(metaData);
-            return group == null ? null : group.toString();
+            if (user != null) return user;
+            try {
+                return userManager.getClass().getMethod("loadUser", UUID.class).invoke(userManager, uuid)
+                        .getClass().getMethod("join").invoke(userManager.getClass().getMethod("loadUser", UUID.class).invoke(userManager, uuid));
+            } catch (Throwable ignored) {
+                return null;
+            }
         } catch (Throwable ignored) {
             return null;
         }
@@ -197,6 +242,94 @@ public final class ChatFormatService implements Listener {
             return (String) placeholderApi.getMethod("setPlaceholders", org.bukkit.OfflinePlayer.class, String.class).invoke(null, player, input);
         } catch (Throwable ignored) {
             return input;
+        }
+    }
+
+    private String serializeForPlaceholder(Component component) {
+        if (component == null || component.equals(Component.empty())) return "";
+        return LEGACY_AMP.serialize(component);
+    }
+
+    private Component styledPlayerName(Player player, RankChatStyle style) {
+        String playerName = applyPlayerPlaceholders(player, player.getName());
+        if (style.nameFormat() != null && !style.nameFormat().isBlank()) {
+            return deserializeDecoration(style.nameFormat().replace("<player>", escapeMini(playerName)));
+        }
+        Component base = deserializeDecoration(applyPlayerPlaceholders(player, player.getName()));
+        return colorComponent(base, style.nameColorId());
+    }
+
+    private Component styledTag(Player player, String activeTag, RankChatStyle style) {
+        Component base = display(player, "cosmetics/tags.yml", "tags", activeTag);
+        if (base.equals(Component.empty())) return base;
+        if (style.tagFormat() != null && !style.tagFormat().isBlank()) {
+            String plain = PlainTextComponentSerializer.plainText().serialize(base);
+            return deserializeDecoration(style.tagFormat().replace("<tag>", escapeMini(plain)));
+        }
+        return colorComponent(base, style.tagColorId());
+    }
+
+    private Component colorComponent(Component component, String colorId) {
+        if (component == null || component.equals(Component.empty())) return Component.empty();
+        if (colorId == null || colorId.isBlank() || colorId.equalsIgnoreCase("default")) return component;
+        ConfigurationSection sec = configs.get("cosmetics/colors.yml").getConfigurationSection("colors." + colorId.toLowerCase(Locale.ROOT));
+        if (sec == null) return component;
+        String type = sec.getString("type", "hex").toLowerCase(Locale.ROOT);
+        String content = PlainTextComponentSerializer.plainText().serialize(component);
+        if (content.isBlank()) return component;
+        try {
+            if ("gradient".equals(type)) {
+                String from = sec.getString("from", sec.getString("hex", "#FFFFFF"));
+                String to = sec.getString("to", sec.getString("hex", "#FFFFFF"));
+                return Text.mm("<gradient:" + from + ":" + to + ">" + escapeMini(content) + "</gradient>");
+            }
+            if ("none".equals(type)) return component;
+            String hex = sec.getString("hex", null);
+            if (hex == null || hex.isBlank()) return component;
+            TextColor color = TextColor.fromHexString(hex);
+            return color == null ? component : Component.text(content, color);
+        } catch (Exception ignored) {
+            return component;
+        }
+    }
+
+    private RankChatStyle resolveRankStyle(Player player) {
+        ConfigurationSection styles = configs.get("core/config.yml").getConfigurationSection("chat.rank-styles");
+        if (styles == null) return RankChatStyle.none();
+        String primaryGroup = luckPermsPrimaryGroup(player.getUniqueId());
+        return styles.getKeys(false).stream()
+                .map(key -> createStyle(styles.getConfigurationSection(key), key))
+                .filter(style -> style != null && style.matches(player, primaryGroup))
+                .max(Comparator.comparingInt(RankChatStyle::priority))
+                .orElse(RankChatStyle.none());
+    }
+
+    private RankChatStyle createStyle(ConfigurationSection section, String key) {
+        if (section == null) return null;
+        return new RankChatStyle(
+                key,
+                section.getInt("priority", 0),
+                section.getString("primary-group", section.getString("group", "")),
+                section.getString("permission", ""),
+                section.getString("name-format", ""),
+                section.getString("name-color", ""),
+                section.getString("tag-format", ""),
+                section.getString("tag-color", ""),
+                section.getString("message-color", "")
+        );
+    }
+
+    private record RankChatStyle(String key, int priority, String primaryGroup, String permission, String nameFormat,
+                                 String nameColorId, String tagFormat, String tagColorId, String messageColorId) {
+        static RankChatStyle none() {
+            return new RankChatStyle("default", Integer.MIN_VALUE, "", "", "", "", "", "", "");
+        }
+
+        boolean matches(Player player, String activePrimaryGroup) {
+            boolean groupMatches = primaryGroup == null || primaryGroup.isBlank()
+                    || (activePrimaryGroup != null && activePrimaryGroup.equalsIgnoreCase(primaryGroup));
+            boolean permissionMatches = permission == null || permission.isBlank() || player.hasPermission(permission);
+            return groupMatches && permissionMatches;
         }
     }
 }

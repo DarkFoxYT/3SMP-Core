@@ -7,6 +7,7 @@ import net.dark.threecore.zonepvp.worldguard.WorldGuardZoneHook;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
 import org.bukkit.Material;
+import org.bukkit.GameMode;
 import org.bukkit.World;
 import org.bukkit.Sound;
 import org.bukkit.command.CommandSender;
@@ -98,6 +99,7 @@ public final class ZonePvpService implements Listener {
     private void enter(Player player) {
         ACTIVE_ZONE_PLAYERS.add(player.getUniqueId());
         snapshots.put(player.getUniqueId(), Snapshot.capture(player));
+        player.setGameMode(GameMode.SURVIVAL);
         clearSpawnBuffs(player);
         streaks.put(player.getUniqueId(), 0);
         upgradedPieces.put(player.getUniqueId(), new HashSet<>());
@@ -109,6 +111,7 @@ public final class ZonePvpService implements Listener {
         Snapshot snap = snapshots.remove(player.getUniqueId());
         streaks.remove(player.getUniqueId());
         upgradedPieces.remove(player.getUniqueId());
+        player.setGameMode(GameMode.SURVIVAL);
         if (restore && snap != null) snap.restoreInventory(player); else player.getInventory().clear();
         restoreSpawnStateIfNeeded(player);
         cosmeticsItemRefresher.accept(player);

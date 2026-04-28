@@ -5,8 +5,54 @@ chat:
   allow-gradient: true
   allow-hex: true
   max-message-length: 256
-  default-prefix: "<gray>[<white>Member</white>]</gray>"
+  default-prefix: ""
   format: "<prefix><tag><name-color><player></name-color><message-color>: <message>"
+  rank-styles:
+    owner:
+      priority: 300
+      primary-group: "owner"
+      permission: ""
+      name-format: "<gradient:#f59e0b:#ef4444><player></gradient>"
+      name-color: "ember"
+      tag-format: "<gradient:#f59e0b:#fbbf24><tag></gradient>"
+      tag-color: "gold"
+      message-color: "gold"
+    admin:
+      priority: 250
+      primary-group: "admin"
+      permission: ""
+      name-format: "<gradient:#ef4444:#f59e0b><player></gradient>"
+      name-color: "lava"
+      tag-format: "<gradient:#f59e0b:#fbbf24><tag></gradient>"
+      tag-color: "gold"
+      message-color: "white"
+    dev:
+      priority: 240
+      primary-group: "dev"
+      permission: ""
+      name-format: "<gradient:#7c3aed:#c084fc><player></gradient>"
+      name-color: "amethyst"
+      tag-format: "<gradient:#7c3aed:#c084fc><tag></gradient>"
+      tag-color: "violet"
+      message-color: "white"
+    mvp:
+      priority: 200
+      primary-group: "mvp"
+      permission: ""
+      name-format: "<gradient:#22d3ee:#f59e0b><player></gradient>"
+      name-color: "aqua_gold"
+      tag-format: "<gradient:#22d3ee:#f59e0b><tag></gradient>"
+      tag-color: "aqua_gold"
+      message-color: "aqua"
+    vip:
+      priority: 150
+      primary-group: "vip"
+      permission: ""
+      name-format: "<gradient:#f59e0b:#fbbf24><player></gradient>"
+      name-color: "gold"
+      tag-format: "<gradient:#f59e0b:#fbbf24><tag></gradient>"
+      tag-color: "gold"
+      message-color: "white"
 
 hooks:
   itemsadder: true
