@@ -15,7 +15,7 @@ public final class PlayerProgressionData {
     private String activeCosmetic = "";
     private String activeParticle = "";
     private String activeEffect = "";
-    private int duelRating = 1000;
+    private int duelRating = 0;
     private int duelWins;
     private int duelLosses;
     private int duelWinStreak;

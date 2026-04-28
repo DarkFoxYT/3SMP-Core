@@ -12,6 +12,8 @@ public final class DuelMatch {
     private final Set<UUID> teamTwo;
     private final long startedAt;
     private final int roundsToWin;
+    private final Set<UUID> teamOneEliminated;
+    private final Set<UUID> teamTwoEliminated;
     private int teamOneWins;
     private int teamTwoWins;
 
@@ -24,6 +26,8 @@ public final class DuelMatch {
         this.teamTwo = teamTwo;
         this.startedAt = startedAt;
         this.roundsToWin = Math.max(1, roundsToWin);
+        this.teamOneEliminated = new java.util.HashSet<>();
+        this.teamTwoEliminated = new java.util.HashSet<>();
     }
 
     public UUID id() { return id; }
@@ -38,12 +42,40 @@ public final class DuelMatch {
     public int teamTwoWins() { return teamTwoWins; }
     public int totalRoundsPlayed() { return teamOneWins + teamTwoWins; }
     public int winningThreshold() { return roundsToWin; }
+    public Set<UUID> teamOneEliminated() { return java.util.Set.copyOf(teamOneEliminated); }
+    public Set<UUID> teamTwoEliminated() { return java.util.Set.copyOf(teamTwoEliminated); }
 
     public boolean awardWin(Set<UUID> winners) {
         if (winners == null || winners.isEmpty()) return false;
-        if (teamOne.contains(winners.iterator().next())) teamOneWins++;
+        boolean teamOneWon = winners.stream().anyMatch(teamOne::contains);
+        boolean teamTwoWon = winners.stream().anyMatch(teamTwo::contains);
+        if (teamOneWon == teamTwoWon) return false;
+        if (teamOneWon) teamOneWins++;
         else teamTwoWins++;
         return true;
+    }
+
+    public boolean markEliminated(UUID uuid) {
+        if (uuid == null) return false;
+        if (teamOne.contains(uuid)) return teamOneEliminated.add(uuid);
+        if (teamTwo.contains(uuid)) return teamTwoEliminated.add(uuid);
+        return false;
+    }
+
+    public boolean isRoundComplete() {
+        return !teamOne.isEmpty() && teamOneEliminated.containsAll(teamOne)
+                || !teamTwo.isEmpty() && teamTwoEliminated.containsAll(teamTwo);
+    }
+
+    public Set<UUID> roundWinners() {
+        if (!teamOne.isEmpty() && teamOneEliminated.containsAll(teamOne)) return teamTwo;
+        if (!teamTwo.isEmpty() && teamTwoEliminated.containsAll(teamTwo)) return teamOne;
+        return java.util.Set.of();
+    }
+
+    public void resetRoundState() {
+        teamOneEliminated.clear();
+        teamTwoEliminated.clear();
     }
 
     public boolean isMatchPoint() {

@@ -182,6 +182,7 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         this.shopChestManager = new ShopChestManager(this, marketPlotManager, marketStorage, shopChestStorage, shopStockService, shopTransactionService, moneyService);
         this.clearLagManager = new ClearLagManager(this, configs);
         this.dungeonService = new DungeonService(this, configs, menuService, repository, partyService, survivalService);
+        this.duelService.setDungeonService(dungeonService);
         this.fishingListener = new FishingListener(fishingRewardManager, duelService, dungeonService);
         this.socialTabService = new SocialTabService(this);
         this.partyService.setDungeonService(dungeonService);
@@ -192,6 +193,10 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         this.welcomeService = new WelcomeService(this, configs);
         this.spawnService.setWelcomeService(welcomeService);
         this.spawnService.setSurvivalService(survivalService);
+        this.spawnService.setPerkService(perkService);
+        this.spawnService.setDuelService(duelService);
+        this.spawnService.setPartyService(partyService);
+        this.spawnService.setDungeonService(dungeonService);
         this.survivalService.setSpawnService(spawnService);
         this.joinQueueService = new JoinQueueService(this, configs, spawnService, welcomeService);
         this.essentialCommandService = new EssentialCommandService();
@@ -354,7 +359,7 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(soulManager, this);
 
         getServer().getPluginManager().registerEvents(zonePvpService, this);
-        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) { new SmpCoreExpansion(this, perkService, warpManager, spawnService, moneyService, sapphireService, partyService, dungeonService, friendService, socialTabService).register(); new ThreeSmpCoreExpansion(this, perkService, warpManager, spawnService, moneyService, sapphireService, partyService, dungeonService, friendService, socialTabService).register(); }
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) { new SmpCoreExpansion(this, perkService, warpManager, spawnService, moneyService, sapphireService, partyService, dungeonService, friendService, socialTabService, chatFormatService).register(); new ThreeSmpCoreExpansion(this, perkService, warpManager, spawnService, moneyService, sapphireService, partyService, dungeonService, friendService, socialTabService, chatFormatService).register(); }
     }
 
     @Override
@@ -400,6 +405,10 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         return database;
     }
 
+    public PlayerDataRepository getRepository() {
+        return repository;
+    }
+
     private void registerDirectCommand(String name, CommandExecutorBridge executor, CommandCompleterBridge completer) {
         PluginCommand command = getCommand(name);
         if (command == null) return;
@@ -417,6 +426,7 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
     }
 
     private void saveDefaultFiles() {
+        preserveExistingDuelMaps();
         for (String file : new String[]{
                 "core/config.yml", "core/messages.yml", "core/help.yml", "core/join-queue.yml", "cosmetics/perks.yml", "cosmetics/prefixes.yml", "cosmetics/tags.yml", "cosmetics/colors.yml", "cosmetics/cosmetics.yml", "cosmetics/effects.yml",
                 "economy/sapphires.yml", "economy/souls.yml", "gems/gems.yml", "gems/capsules.yml", "duels/duels.yml", "duels/kits.yml", "duels/maps.yml", "social/party.yml", "cosmetics/trims.yml",
@@ -425,6 +435,17 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
                 , "fishing/fishing.yml", "menus/fishing.yml", "menus/souls.yml", "world/market.yml", "menus/market.yml", "config.yml", "messages.yml", "gui.yml", "rewards.yml", "fishing.yml", "souls.yml", "market.yml"
         }) {
             saveResource(file, false);
+        }
+    }
+
+    private void preserveExistingDuelMaps() {
+        java.nio.file.Path mapsFile = new java.io.File(getDataFolder(), "duels/maps.yml").toPath();
+        if (!java.nio.file.Files.exists(mapsFile)) return;
+        java.nio.file.Path backup = mapsFile.resolveSibling("maps.yml.backup");
+        try {
+            java.nio.file.Files.createDirectories(backup.getParent());
+            java.nio.file.Files.copy(mapsFile, backup, java.nio.file.StandardCopyOption.REPLACE_EXISTING, java.nio.file.StandardCopyOption.COPY_ATTRIBUTES);
+        } catch (Exception ignored) {
         }
     }
 

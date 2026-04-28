@@ -14,6 +14,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -62,6 +63,7 @@ public final class JoinQueueService implements Listener {
     public void onJoin(PlayerJoinEvent event) {
         if (!configs.get("core/join-queue.yml").getBoolean("enabled", true)) return;
         Player player = event.getPlayer();
+        clearQueueEffects(player);
         if (player.hasPermission(configs.get("core/join-queue.yml").getString("bypass-permission", "3smpcore.queue.bypass"))) {
             Bukkit.getScheduler().runTaskLater(plugin, () -> releaseDirect(player), 2L);
             return;
@@ -74,6 +76,12 @@ public final class JoinQueueService implements Listener {
     }
 
     @EventHandler public void onQuit(PlayerQuitEvent event) { queue.remove(event.getPlayer().getUniqueId()); QUEUED.remove(event.getPlayer().getUniqueId()); }
+
+    @EventHandler
+    public void onWorldChange(PlayerChangedWorldEvent event) {
+        if (!configs.get("core/join-queue.yml").getBoolean("enabled", true)) return;
+        if (!QUEUED.contains(event.getPlayer().getUniqueId())) clearQueueEffects(event.getPlayer());
+    }
 
     @EventHandler public void onMove(PlayerMoveEvent event) {
         if (!QUEUED.contains(event.getPlayer().getUniqueId()) || event.getTo() == null) return;
@@ -97,8 +105,8 @@ public final class JoinQueueService implements Listener {
         updateActionBars();
     }
 
-    private void releaseDirect(Player player) { spawnService.sendToSpawn(player); welcomeService.send(player); }
-    private void release(Player player) { QUEUED.remove(player.getUniqueId()); spawnService.sendToSpawn(player); welcomeService.send(player); }
+    private void releaseDirect(Player player) { clearQueueEffects(player); spawnService.sendToSpawn(player); welcomeService.send(player); }
+    private void release(Player player) { QUEUED.remove(player.getUniqueId()); clearQueueEffects(player); spawnService.sendToSpawn(player); welcomeService.send(player); }
 
     private void sendToQueueWorld(Player player) {
         World world = queueWorld();
@@ -108,6 +116,11 @@ public final class JoinQueueService implements Listener {
         player.setGameMode(GameMode.ADVENTURE);
         player.addPotionEffect(new PotionEffect(PotionEffectType.BLINDNESS, PotionEffect.INFINITE_DURATION, 0, true, false, false));
         player.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, PotionEffect.INFINITE_DURATION, 255, true, false, false));
+    }
+
+    private void clearQueueEffects(Player player) {
+        player.removePotionEffect(PotionEffectType.BLINDNESS);
+        player.removePotionEffect(PotionEffectType.SLOWNESS);
     }
 
     private World queueWorld() {

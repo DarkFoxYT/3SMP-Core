@@ -1,6 +1,7 @@
-world: dungeons
+world: dungeons_live
+editor-world: dungeons_editor
 spawn:
-  world: dungeons
+  world: dungeons_spawn
   x: 0.5
   y: 80.0
   z: 0.5
@@ -10,12 +11,16 @@ default-level: jungle
 generation:
   columns: 8
   spacing: 96
+  vertical-shift: 24
+  collision-search-attempts: 48
+  cancel-physics-in-runs: true
   reset-before-paste: true
   rooms:
-    easy: 5
-    normal: 8
-    hard: 12
-    nightmare: 18
+    easy: 30
+    normal: 50
+    medium: 50
+    hard: 70
+    nightmare: 100
   room-pool:
     entrance-required: true
     boss-required: true
@@ -60,11 +65,14 @@ markers:
   bounds: WHITE_SHULKER_BOX
   entrances: YELLOW_SHULKER_BOX
   connectors: ORANGE_SHULKER_BOX
+  vertical-up: MAGENTA_SHULKER_BOX
+  vertical-down: BROWN_SHULKER_BOX
   enemy-spawns: LIGHT_BLUE_SHULKER_BOX
   exits: RED_SHULKER_BOX
   triggers: PURPLE_SHULKER_BOX
   player-spawn: GREEN_SHULKER_BOX
   boss: BLACK_SHULKER_BOX
+  boss-spawner: CRYING_OBSIDIAN
 future-drops:
   custom-gems: true
   sapphire-items-very-rare: true
@@ -90,9 +98,18 @@ base-kit:
 world-generation:
   void-world: true
   multiverse: true
+  instance-prefix: dungeon_run_
   generator: VoidGen
   disable-mob-spawning: true
   disable-weather: true
+  disable-random-ticks: true
+  allowed-spawn-reasons:
+    - CUSTOM
+boss:
+  mythicmob: DungeonBoss
+  spawn-command: "mm mobs spawn %mob% 1 %world%,%x%,%y%,%z%"
+debug:
+  enabled: true
 
 completion:
   allow-early-exit: true

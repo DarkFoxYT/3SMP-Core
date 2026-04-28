@@ -299,7 +299,7 @@ public final class PartyService implements Listener {
     public void givePartyItem(Player player) { givePartyItems(player); }
 
     public void givePartyItems(Player player) {
-        if (net.dark.threecore.zonepvp.ZonePvpService.isZonePlayer(player) || net.dark.threecore.duels.DuelService.isDuelPlayer(player)) { removePartyItems(player); return; }
+        if (!isSpawnWorld(player) || net.dark.threecore.zonepvp.ZonePvpService.isZonePlayer(player) || net.dark.threecore.duels.DuelService.isDuelPlayer(player) || (dungeonService != null && dungeonService.isDungeonWorld(player.getWorld()))) { removePartyItems(player); return; }
         if (!configs.get("social/party.yml").getBoolean("party.item.enabled", true)) return;
         int hubSlot = Math.max(0, Math.min(8, configs.get("social/party.yml").getInt("party.item.slot", 8)));
         clearTaggedItem(player, HUB_ITEM_ID);
@@ -324,6 +324,11 @@ public final class PartyService implements Listener {
         clearTaggedItem(player, HUB_ITEM_ID);
         clearTaggedItem(player, CREATE_ITEM_ID);
         clearTaggedItem(player, DISBAND_ITEM_ID);
+    }
+
+    private boolean isSpawnWorld(Player player) {
+        String configured = configs.get("core/config.yml").getString("spawn.world", "spawn");
+        return player.getWorld() != null && (player.getWorld().getName().equalsIgnoreCase(configured) || player.getWorld().getName().equalsIgnoreCase("spawn"));
     }
 
     public void openInvitePicker(Player player, int page) {
@@ -409,9 +414,18 @@ public final class PartyService implements Listener {
         PartyDuelSetup setup = setup(player);
         inv.setItem(10, createPlain(Material.RED_WOOL, "<red>Red Team</red><gray>: </gray><white>" + teamNames(setup.red()) + "</white>"));
         inv.setItem(16, createPlain(Material.BLUE_WOOL, "<blue>Blue Team</blue><gray>: </gray><white>" + teamNames(setup.blue()) + "</white>"));
-        inv.setItem(20, createPlain(selectedKitMaterial(setup), "<gradient:#60a5fa:#c084fc>Kit</gradient><gray>: </gray><white>" + selectedKitName(setup) + "</white>"));
-        inv.setItem(22, createPlain(Material.CLOCK, "<gradient:#f59e0b:#f97316>Rounds</gradient><gray>: " + setup.rounds()[0] + "</gray>"));
-        inv.setItem(24, createPlain(Material.MAP, "<gradient:#34d399:#22c55e>Map</gradient><gray>: </gray><white>" + selectedMapName(setup) + "</white>"));
+        inv.setItem(20, createPlain(selectedKitMaterial(setup), "<gradient:#60a5fa:#c084fc>Kit</gradient><gray>: </gray><white>" + selectedKitName(setup) + "</white>", List.of(
+                "<gray>Click to change the duel kit.</gray>",
+                "<gray>Selected kit:</gray> <white>" + selectedKitName(setup) + "</white>"
+        )));
+        inv.setItem(22, createPlain(Material.CLOCK, "<gradient:#f59e0b:#f97316>Rounds</gradient><gray>: " + setup.rounds()[0] + "</gray>", List.of(
+                "<gray>Click to edit rounds via sign input.</gray>",
+                "<gray>Selected rounds:</gray> <white>" + setup.rounds()[0] + "</white>"
+        )));
+        inv.setItem(24, createPlain(Material.MAP, "<gradient:#34d399:#22c55e>Map</gradient><gray>: </gray><white>" + selectedMapName(setup) + "</white>", List.of(
+                "<gray>Click to choose a specific arena.</gray>",
+                "<gray>Selected arena:</gray> <white>" + selectedMapName(setup) + "</white>"
+        )));
         inv.setItem(40, createPlain(Material.LIME_DYE, "<green>Start Party Duel</green>"));
         inv.setItem(44, createPlain(Material.ARROW, "<gray>Back</gray>"));
         player.openInventory(inv);
@@ -446,7 +460,10 @@ public final class PartyService implements Listener {
         for (DuelKit kit : duelService.kitsView()) {
             if (!kit.enabled() || index >= slots.length) continue;
             boolean selected = kit.id().equalsIgnoreCase(setup.kitId()[0]);
-            inv.setItem(slots[index++], createPlain(selected ? Material.LIME_DYE : kit.icon(), (selected ? "<green>Selected: </green>" : "") + kit.displayName()));
+            inv.setItem(slots[index++], createPlain(selected ? Material.LIME_DYE : kit.icon(), (selected ? "<green>Selected: </green>" : "") + kit.displayName(), List.of(
+                    "<gray>Click to set this kit for the party duel.</gray>",
+                    "<gray>Current selection:</gray> <white>" + selectedKitName(setup) + "</white>"
+            )));
         }
         inv.setItem(49, createPlain(Material.ARROW, "<gray>Back</gray>"));
         player.openInventory(inv);
@@ -462,7 +479,10 @@ public final class PartyService implements Listener {
         for (var map : duelService.enabledMapsView()) {
             if (index >= slots.length) break;
             boolean selected = map.id().equalsIgnoreCase(setup.mapId()[0]);
-            inv.setItem(slots[index++], createPlain(selected ? Material.LIME_DYE : Material.MAP, (selected ? "<green>Selected: </green>" : "") + map.displayName()));
+            inv.setItem(slots[index++], createPlain(selected ? Material.LIME_DYE : Material.MAP, (selected ? "<green>Selected: </green>" : "") + map.displayName(), List.of(
+                    "<gray>Click to set this arena for the party duel.</gray>",
+                    "<gray>Current selection:</gray> <white>" + selectedMapName(setup) + "</white>"
+            )));
         }
         inv.setItem(49, createPlain(Material.ARROW, "<gray>Back</gray>"));
         player.openInventory(inv);
@@ -662,7 +682,16 @@ public final class PartyService implements Listener {
     }
 
     private ItemStack createPlain(Material material, String name) {
-        ItemStack stack = new ItemStack(material); ItemMeta meta = stack.getItemMeta(); meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(name)); stack.setItemMeta(meta); return stack;
+        return createPlain(material, name, List.of());
+    }
+
+    private ItemStack createPlain(Material material, String name, List<String> lore) {
+        ItemStack stack = new ItemStack(material);
+        ItemMeta meta = stack.getItemMeta();
+        meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(name));
+        meta.lore(lore.stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(s)).toList());
+        stack.setItemMeta(meta);
+        return stack;
     }
 
     private void queueParty(Player player) {

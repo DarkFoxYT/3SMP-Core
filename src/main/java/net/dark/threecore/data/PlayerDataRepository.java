@@ -149,6 +149,25 @@ public final class PlayerDataRepository {
         }
     }
 
+    public void wipePlayerData(UUID uuid) {
+        try {
+            deleteWhere("DELETE FROM player_perks WHERE uuid = ?", uuid);
+            deleteWhere("DELETE FROM player_sapphires WHERE uuid = ?", uuid);
+            deleteWhere("DELETE FROM player_gems WHERE uuid = ?", uuid);
+            deleteWhere("DELETE FROM player_money WHERE uuid = ?", uuid);
+            deleteWhere("DELETE FROM player_dungeon_completions WHERE uuid = ?", uuid);
+            deleteWhere("DELETE FROM player_friends WHERE owner = ? OR friend = ?", uuid);
+            deleteWhere("DELETE FROM player_daily_rewards WHERE uuid = ?", uuid);
+            deleteWhere("DELETE FROM player_fishing_stats WHERE uuid = ?", uuid);
+            deleteWhere("DELETE FROM player_souls WHERE uuid = ?", uuid);
+            deleteWhere("DELETE FROM player_inventory_profiles WHERE uuid = ?", uuid);
+            deleteWhere("DELETE FROM market_plot_trust WHERE player_uuid = ?", uuid);
+            deleteWhere("DELETE FROM market_plots WHERE owner = ?", uuid);
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to wipe player data", e);
+        }
+    }
+
     public void saveInventoryProfile(UUID uuid, String profile, ItemStack[] contents, ItemStack[] armor, ItemStack offhand) {
         try (PreparedStatement ps = database.connection().prepareStatement("INSERT INTO player_inventory_profiles(uuid, profile, contents, armor, offhand) VALUES(?, ?, ?, ?, ?) ON CONFLICT(uuid, profile) DO UPDATE SET contents = excluded.contents, armor = excluded.armor, offhand = excluded.offhand")) {
             ps.setString(1, uuid.toString());
@@ -196,7 +215,7 @@ public final class PlayerDataRepository {
         data.activeCosmetic(values.getOrDefault("activeCosmetic", ""));
         data.activeParticle(values.getOrDefault("activeParticle", ""));
         data.activeEffect(values.getOrDefault("activeEffect", ""));
-        data.duelRating(parseInt(values.getOrDefault("duelRating", "1000")));
+        data.duelRating(parseInt(values.getOrDefault("duelRating", "0")));
         data.duelWins(parseInt(values.getOrDefault("duelWins", "0")));
         data.duelLosses(parseInt(values.getOrDefault("duelLosses", "0")));
         data.duelWinStreak(parseInt(values.getOrDefault("duelWinStreak", "0")));
@@ -226,6 +245,14 @@ public final class PlayerDataRepository {
 
     private int parseInt(String input) { try { return Integer.parseInt(input); } catch (NumberFormatException ex) { return 0; } }
     private String clean(String value) { return value == null ? "" : value.replace(";", "").replace("=", "").replace(",", ""); }
+
+    private void deleteWhere(String sql, UUID uuid) throws SQLException {
+        try (PreparedStatement ps = database.connection().prepareStatement(sql)) {
+            ps.setString(1, uuid.toString());
+            if (sql.contains("owner = ? OR friend = ?")) ps.setString(2, uuid.toString());
+            ps.executeUpdate();
+        }
+    }
 
     private String encode(ItemStack[] items) {
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream(); BukkitObjectOutputStream oos = new BukkitObjectOutputStream(baos)) {

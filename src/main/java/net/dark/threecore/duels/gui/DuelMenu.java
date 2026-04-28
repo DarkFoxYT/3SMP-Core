@@ -29,7 +29,7 @@ public final class DuelMenu {
                 "<gray>Queued mode:</gray> <white>" + service.queueModeName(player.getUniqueId()) + "</white>",
                 "<gray>Queued kit:</gray> <white>" + service.queueKitName(player.getUniqueId()) + "</white>"
         )));
-        inv.setItem(15, button(Material.PLAYER_HEAD, "<gradient:#34d399:#22c55e>2v2 Duels</gradient>", List.of(
+        inv.setItem(15, button(Material.SHIELD, "<gradient:#34d399:#22c55e>2v2 Duels</gradient>", List.of(
                 "<gray>Queue with a party or as a solo fill.</gray>",
                 "<gray>Queued units:</gray> <white>" + service.partyQueueCount() + "</white>",
                 "<gray>Queued mode:</gray> <white>" + service.queueModeName(player.getUniqueId()) + "</white>",
@@ -51,14 +51,13 @@ public final class DuelMenu {
             if (!kit.enabled()) continue;
             boolean queued = service.isQueuedForKit(player.getUniqueId(), kit.id());
             List<String> lore = new java.util.ArrayList<>(kit.lore());
-            lore.add("<gray>Rounds:</gray> <white>" + kit.rounds() + "</white>");
-            lore.add(kit.autoApplyPotions() ? "<light_purple>Auto-potion splash enabled.</light_purple>" : "<dark_gray>Auto-potion splash disabled.</dark_gray>");
+            lore.add("<gray>Queued players:</gray> <white>" + service.queuedPlayersForKit(kit.id()) + "</white>");
             lore.add(queued ? "<green>Click to leave queue.</green>" : "<aqua>Click to select this kit.</aqua>");
             if (pos >= slots.length) break;
             int slot = slots[pos++];
             inv.setItem(slot, button(queued ? Material.LIME_DYE : kit.icon(), queued ? "<green>Queued: " + kit.displayName() + "</green>" : kit.displayName(), lore));
         }
-        inv.setItem(45, button(Material.ARROW, "<gray>Back</gray>", List.of("<gray>Return to duel menu.</gray>")));
+        inv.setItem(45, backButton("duel menu"));
         
         return inv;
     }
@@ -98,8 +97,12 @@ public final class DuelMenu {
                 "<gray>Loaded maps:</gray> <white>" + service.mapCount() + "</white>",
                 "<gray>Dev mode:</gray> <white>" + service.isDevEnabled(player.getUniqueId()) + "</white>"
         )));
-        inv.setItem(22, button(Material.ARROW, "<gray>Back</gray>", List.of("<gray>Return to duel menu.</gray>")));
+        inv.setItem(22, backButton("duel menu"));
         return inv;
+    }
+
+    private ItemStack backButton(String destination) {
+        return button(Material.ARROW, "<gradient:#D6E8F7:#FFFFFF>Back</gradient>", List.of("<gray>Return to " + destination + ".</gray>"));
     }
 
     private void fill(Inventory inv, Material material) { for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, button(material, " ", List.of())); }
