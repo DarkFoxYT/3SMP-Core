@@ -12,12 +12,15 @@ generation:
   columns: 8
   spacing: 96
   vertical-shift: 24
+  collision-search-attempts: 48
+  cancel-physics-in-runs: true
   reset-before-paste: true
   rooms:
-    easy: 5
-    normal: 8
-    hard: 12
-    nightmare: 18
+    easy: 30
+    normal: 50
+    medium: 50
+    hard: 70
+    nightmare: 100
   room-pool:
     entrance-required: true
     boss-required: true
@@ -95,6 +98,7 @@ base-kit:
 world-generation:
   void-world: true
   multiverse: true
+  instance-prefix: dungeon_run_
   generator: VoidGen
   disable-mob-spawning: true
   disable-weather: true

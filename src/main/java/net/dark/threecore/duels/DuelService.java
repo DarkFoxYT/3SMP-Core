@@ -1882,11 +1882,6 @@ public final class DuelService implements Listener {
             if (instance != null) {
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
                     worldService.cleanup(instance);
-                    DuelMap baseMap = maps.get(match.mapId());
-                    if (baseMap != null && worldService.enabled()) {
-                        DuelWorldService.InstancedMap refreshed = worldService.create(baseMap, UUID.randomUUID());
-                        if (refreshed.world() != null) worldService.cleanup(refreshed.world());
-                    }
                 }, 40L);
             }
             endingMatches.remove(match.id());
