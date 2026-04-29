@@ -12,6 +12,7 @@ import net.dark.threecore.daily.DailyRewardManager;
 import net.dark.threecore.launchpads.LaunchpadService;
 import net.dark.threecore.souls.SoulManager;
 import net.dark.threecore.market.MarketPlotManager;
+import net.dark.threecore.npc.CitizensNpcPresetManager;
 import net.dark.threecore.commandspy.CommandSpyManager;
 import net.dark.threecore.perks.PerkService;
 import net.dark.threecore.sapphires.SapphireService;
@@ -55,15 +56,17 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
     private final SoulManager soulManager;
     private final MarketPlotManager marketPlotManager;
     private final HologramManager hologramManager;
+    private final CitizensNpcPresetManager npcPresetManager;
     private CommandTree root;
 
     public CoreCommandManager(ThreeSMPCorePlugin plugin, ConfigFiles configs, PerkService perkService, SapphireService sapphireService, GemService gemService, ChatFormatService chatFormatService, SpawnService spawnService, LaunchpadService launchpadService, CommandSpyManager commandSpyManager, WarpManager warpManager, MoneyService moneyService, ClearLagManager clearLagManager, DuelService duelService, AfkZoneManager afkZoneManager, DailyRewardManager dailyRewardManager, SoulManager soulManager, MarketPlotManager marketPlotManager, HologramManager hologramManager) {
         this.plugin = plugin; this.configs = configs; this.perkService = perkService; this.sapphireService = sapphireService; this.gemService = gemService; this.chatFormatService = chatFormatService; this.spawnService = spawnService; this.launchpadService = launchpadService; this.commandSpyManager = commandSpyManager; this.warpManager = warpManager; this.moneyService = moneyService; this.clearLagManager = clearLagManager; this.duelService = duelService; this.afkZoneManager = afkZoneManager; this.dailyRewardManager = dailyRewardManager; this.soulManager = soulManager; this.marketPlotManager = marketPlotManager; this.hologramManager = hologramManager;
+        this.npcPresetManager = new CitizensNpcPresetManager(plugin, configs);
     }
 
     public void register() {
         root = new CommandTree("3smpcore", "3smpcore.admin", "Main command hub");
-        root.add(new ReloadCommand()); root.add(new InfoCommand()); root.add(new AdminCommand()); root.add(new DevPanelCommand()); root.add(new DebugCommand()); root.add(new SapphireRootCommand()); root.add(new SpawnRootCommand()); root.add(new GiveRootCommand()); root.add(new LicenseCommand()); root.add(new AfkZoneCommand()); root.add(new HologramCommand()); root.add(new RankPermsCommand()); root.add(new DailyRootCommand()); root.add(new SoulsRootCommand()); root.add(new MarketRootCommand());
+        root.add(new ReloadCommand()); root.add(new InfoCommand()); root.add(new AdminCommand()); root.add(new DevPanelCommand()); root.add(new DebugCommand()); root.add(new SapphireRootCommand()); root.add(new SpawnRootCommand()); root.add(new GiveRootCommand()); root.add(new LicenseCommand()); root.add(new AfkZoneCommand()); root.add(new HologramCommand()); root.add(new NpcPresetCommand()); root.add(new RankPermsCommand()); root.add(new DailyRootCommand()); root.add(new SoulsRootCommand()); root.add(new MarketRootCommand());
         PluginCommand command = plugin.getCommand("3smpcore"); if (command != null) { command.setExecutor(this); command.setTabCompleter(this); }
         PluginCommand launchpadCommand = plugin.getCommand("launchpad"); if (launchpadCommand != null) { launchpadCommand.setExecutor(this::handleLaunchpad); launchpadCommand.setTabCompleter((sender, cmd, alias, args) -> args.length == 1 ? List.of("give", "menu", "settarget") : List.of()); }
         PluginCommand rankCommand = plugin.getCommand("rank"); if (rankCommand != null) { rankCommand.setExecutor(this::handleRank); rankCommand.setTabCompleter(this::completeRank); }
@@ -229,6 +232,13 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
         public String description() { return "Hologram placement tools"; }
         public void execute(CommandContext context) { hologramManager.handle(context.sender(), context.args()); }
         public List<String> tabComplete(CommandContext context) { return hologramManager.complete(context.args()); }
+    }
+    private final class NpcPresetCommand implements SubCommand {
+        public String name() { return "npc"; }
+        public String permission() { return "3smpcore.npc.admin"; }
+        public String description() { return "Citizens NPC presets"; }
+        public void execute(CommandContext context) { npcPresetManager.handle(context.sender(), context.args()); }
+        public List<String> tabComplete(CommandContext context) { return npcPresetManager.complete(context.args()); }
     }
     private final class RankPermsCommand implements SubCommand {
         public String name() { return "rankperms"; }

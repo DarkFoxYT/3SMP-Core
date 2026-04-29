@@ -44,19 +44,24 @@ public final class FishingListener implements Listener {
     private void watchHookLanding(Player player, org.bukkit.entity.FishHook hook) {
         new BukkitRunnable() {
             private int ticks;
+            private int waterTicks;
 
             @Override
             public void run() {
-                if (!player.isOnline() || hook.isDead() || !hook.isValid()) {
+                if (!player.isOnline() || hook.isDead() || !hook.isValid() || rewardManager.isActive(player)) {
                     cancel();
                     return;
                 }
                 if (isWaterHook(hook)) {
-                    openForCaster(player, hook);
-                    cancel();
-                    return;
+                    if (++waterTicks >= 2) {
+                        openForCaster(player, hook);
+                        cancel();
+                        return;
+                    }
+                } else {
+                    waterTicks = 0;
                 }
-                if (++ticks > 60) cancel();
+                if (++ticks > 100) cancel();
             }
         }.runTaskTimer(rewardManager.plugin(), 1L, 1L);
     }
@@ -69,9 +74,11 @@ public final class FishingListener implements Listener {
     }
 
     private boolean isWaterHook(org.bukkit.entity.FishHook hook) {
-        Material hit = hook.getLocation().getBlock().getType();
-        Material below = hook.getLocation().clone().subtract(0.0D, 0.35D, 0.0D).getBlock().getType();
-        return hit == Material.WATER || below == Material.WATER;
+        var location = hook.getLocation();
+        Material hit = location.getBlock().getType();
+        Material below = location.clone().subtract(0.0D, 0.45D, 0.0D).getBlock().getType();
+        Material deepBelow = location.clone().subtract(0.0D, 1.05D, 0.0D).getBlock().getType();
+        return hit == Material.WATER || below == Material.WATER || deepBelow == Material.WATER || hook.isInWater();
     }
 
     @EventHandler

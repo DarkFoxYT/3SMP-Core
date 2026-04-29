@@ -17,6 +17,7 @@ import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.inventory.ItemStack;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -77,6 +78,7 @@ public final class SpawnService implements Listener {
         if (survivalService != null) survivalService.loadProfile(player, "spawn");
         applySpawnEffects(player);
         refreshSpawnHubItems(player);
+        clearSpawnEquipment(player);
         if (welcomeService != null) welcomeService.send(player);
         Text.send(player, "<green>Teleported to spawn.</green>");
     }
@@ -118,6 +120,7 @@ public final class SpawnService implements Listener {
         }
         applySpawnEffects(event.getPlayer());
         refreshSpawnHubItems(event.getPlayer());
+        clearSpawnEquipment(event.getPlayer());
     }
 
     @EventHandler
@@ -127,6 +130,7 @@ public final class SpawnService implements Listener {
         }
         applySpawnEffects(event.getPlayer());
         refreshSpawnHubItems(event.getPlayer());
+        clearSpawnEquipment(event.getPlayer());
     }
 
     public void refreshSpawnHubItems(Player player) {
@@ -139,6 +143,13 @@ public final class SpawnService implements Listener {
         if (duelService != null) duelService.reloadItems(player);
         if (partyService != null) partyService.givePartyItems(player);
         if (dungeonService != null) dungeonService.giveItem(player);
+        player.updateInventory();
+    }
+
+    private void clearSpawnEquipment(Player player) {
+        if (!isSpawnWorld(player.getWorld())) return;
+        player.getInventory().setArmorContents(new ItemStack[4]);
+        player.getInventory().setItemInOffHand(null);
         player.updateInventory();
     }
 }

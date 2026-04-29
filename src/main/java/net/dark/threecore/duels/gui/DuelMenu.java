@@ -4,6 +4,7 @@ import net.dark.threecore.duels.DuelService;
 import net.dark.threecore.duels.model.DuelKit;
 import net.dark.threecore.gui.menu.CoreMenuHolder;
 import net.dark.threecore.gui.menu.CoreMenuType;
+import net.dark.threecore.text.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -21,15 +22,15 @@ public final class DuelMenu {
     }
 
     public Inventory buildMain(Player player) {
-        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_MAIN, "main"), 27, "3SMP Duels");
-        fill(inv, Material.GRAY_STAINED_GLASS_PANE);
-        inv.setItem(11, button(Material.DIAMOND_SWORD, "<gradient:#60a5fa:#c084fc>1v1 Duels</gradient>", List.of(
+        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_MAIN, "main"), 27, title("menus.duel", "3SMP Duels"));
+        fill(inv, Material.AIR);
+        inv.setItem(11, button("menus.duel.items.solo", Material.DIAMOND_SWORD, "<gradient:#60a5fa:#c084fc>1v1 Duels</gradient>", List.of(
                 "<gray>Pick a kit and queue solo.</gray>",
                 "<gray>Queued players:</gray> <white>" + service.soloQueueCount() + "</white>",
                 "<gray>Queued mode:</gray> <white>" + service.queueModeName(player.getUniqueId()) + "</white>",
                 "<gray>Queued kit:</gray> <white>" + service.queueKitName(player.getUniqueId()) + "</white>"
         )));
-        inv.setItem(15, button(Material.SHIELD, "<gradient:#34d399:#22c55e>2v2 Duels</gradient>", List.of(
+        inv.setItem(15, button("menus.duel.items.party", Material.SHIELD, "<gradient:#34d399:#22c55e>2v2 Duels</gradient>", List.of(
                 "<gray>Queue with a party or as a solo fill.</gray>",
                 "<gray>Queued units:</gray> <white>" + service.partyQueueCount() + "</white>",
                 "<gray>Queued mode:</gray> <white>" + service.queueModeName(player.getUniqueId()) + "</white>",
@@ -43,7 +44,7 @@ public final class DuelMenu {
     }
 
     public Inventory buildKitMenu(Player player, String title) {
-        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_KITS, "kits"), 54, title);
+        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_KITS, "kits"), 54, title("menus.kits", title));
         fill(inv, Material.BLACK_STAINED_GLASS_PANE);
         int[] slots = {10,12,14,16,28,30,32,34};
         int pos = 0;
@@ -55,7 +56,7 @@ public final class DuelMenu {
             lore.add(queued ? "<green>Click to leave queue.</green>" : "<aqua>Click to select this kit.</aqua>");
             if (pos >= slots.length) break;
             int slot = slots[pos++];
-            inv.setItem(slot, button(queued ? Material.LIME_DYE : kit.icon(), queued ? "<green>Queued: " + kit.displayName() + "</green>" : kit.displayName(), lore));
+            inv.setItem(slot, button(queued ? "menus.duel.items.queued-kit" : "menus.duel.items.kit", queued ? Material.LIME_DYE : kit.icon(), queued ? "<green>Queued: " + kit.displayName() + "</green>" : kit.displayName(), lore));
         }
         inv.setItem(45, backButton("duel menu"));
         
@@ -63,37 +64,37 @@ public final class DuelMenu {
     }
 
     public Inventory buildDev(Player player) {
-        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_DEV, "dev"), 54, "3SMP Dev Panel");
+        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_DEV, "dev"), 54, title("menus.dev", "3SMP Dev Panel"));
         fill(inv, Material.BLUE_STAINED_GLASS_PANE);
-        inv.setItem(4, button(Material.NETHER_STAR, "<gradient:#1A2A4A:#f59e0b>3SMP Developer Panel</gradient>", List.of(
+        inv.setItem(4, button("menus.dev.items.header", Material.NETHER_STAR, "<gradient:#1A2A4A:#f59e0b>3SMP Developer Panel</gradient>", List.of(
                 "<gray>Clean admin tools for testing and editing.</gray>",
                 "<gray>Duel enabled:</gray> <white>" + service.isEnabled() + "</white>",
                 "<gray>Selected map:</gray> <white>" + service.selectedEditorMap(player.getUniqueId()) + "</white>",
                 "<gray>Editor opens per selected arena and closes on save.</gray>"
         )));
-        inv.setItem(12, button(Material.MAP, "<gradient:#34d399:#22c55e>Select Arena To Edit</gradient>", List.of("<gray>Pick an arena, teleport to its editor world,</gray>", "<gray>and receive marker tools automatically.</gray>")));
-        inv.setItem(14, button(Material.ARMOR_STAND, "<gradient:#60a5fa:#c084fc>Current Arena Tools</gradient>", List.of("<gray>Open the current arena marker panel.</gray>", "<gray>Save the arena to exit editor mode.</gray>")));
-        inv.setItem(16, button(Material.OAK_SIGN, "<gradient:#f59e0b:#f97316>Leaderboards</gradient>", List.of("<gray>Inspect duel ratings and streaks.</gray>")));
-        inv.setItem(18, button(Material.SMITHING_TABLE, "<gradient:#60a5fa:#f59e0b>Kit Editor</gradient>", List.of("<gray>Edit kit inventory, armor, and offhand in-game.</gray>")));
-        inv.setItem(20, button(Material.STRUCTURE_VOID, "<gradient:#4c1d95:#a78bfa>Dungeon Editor</gradient>", List.of("<gray>Teleport into the dungeon editor world.</gray>", "<gray>Get the dungeon room tools and markers.</gray>")));
-        inv.setItem(30, button(service.isEnabled() ? Material.REDSTONE_BLOCK : Material.EMERALD_BLOCK, service.isEnabled() ? "<red>Disable Duels</red>" : "<green>Enable Duels</green>", List.of("<gray>Toggle matchmaking and challenges.</gray>")));
-        inv.setItem(32, button(Material.SLIME_BLOCK, "<gradient:#f59e0b:#f97316>Launchpads</gradient>", List.of("<gray>Open the launchpad editor.</gray>")));
-        inv.setItem(34, button(Material.STRUCTURE_BLOCK, "<gradient:#22d3ee:#8b5cf6>Save Current Arena</gradient>", List.of("<gray>Save markers, restore your inventory,</gray>", "<gray>and return to spawn.</gray>")));
+        inv.setItem(12, button("menus.dev.items.arena-select", Material.MAP, "<gradient:#34d399:#22c55e>Select Arena To Edit</gradient>", List.of("<gray>Pick an arena, teleport to its editor world,</gray>", "<gray>and receive marker tools automatically.</gray>")));
+        inv.setItem(14, button("menus.dev.items.arena-tools", Material.ARMOR_STAND, "<gradient:#60a5fa:#c084fc>Current Arena Tools</gradient>", List.of("<gray>Open the current arena marker panel.</gray>", "<gray>Save the arena to exit editor mode.</gray>")));
+        inv.setItem(16, button("menus.dev.items.leaderboards", Material.OAK_SIGN, "<gradient:#f59e0b:#f97316>Leaderboards</gradient>", List.of("<gray>Inspect duel ratings and streaks.</gray>")));
+        inv.setItem(18, button("menus.dev.items.kit-editor", Material.SMITHING_TABLE, "<gradient:#60a5fa:#f59e0b>Kit Editor</gradient>", List.of("<gray>Edit kit inventory, armor, and offhand in-game.</gray>")));
+        inv.setItem(20, button("menus.dev.items.dungeon-editor", Material.STRUCTURE_VOID, "<gradient:#4c1d95:#a78bfa>Dungeon Editor</gradient>", List.of("<gray>Teleport into the dungeon editor world.</gray>", "<gray>Get the dungeon room tools and markers.</gray>")));
+        inv.setItem(30, button(service.isEnabled() ? "menus.dev.items.disable-duels" : "menus.dev.items.enable-duels", service.isEnabled() ? Material.REDSTONE_BLOCK : Material.EMERALD_BLOCK, service.isEnabled() ? "<red>Disable Duels</red>" : "<green>Enable Duels</green>", List.of("<gray>Toggle matchmaking and challenges.</gray>")));
+        inv.setItem(32, button("menus.dev.items.launchpads", Material.SLIME_BLOCK, "<gradient:#f59e0b:#f97316>Launchpads</gradient>", List.of("<gray>Open the launchpad editor.</gray>")));
+        inv.setItem(34, button("menus.dev.items.save-arena", Material.STRUCTURE_BLOCK, "<gradient:#22d3ee:#8b5cf6>Save Current Arena</gradient>", List.of("<gray>Save markers, restore your inventory,</gray>", "<gray>and return to spawn.</gray>")));
         return inv;
     }
 
     public Inventory buildSummary(Player player) {
-        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_MAIN, "summary"), 27, "3SMP Duel Summary");
+        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_MAIN, "summary"), 27, title("menus.summary", "3SMP Duel Summary"));
         fill(inv, Material.LIGHT_BLUE_STAINED_GLASS_PANE);
-        inv.setItem(11, button(Material.DIAMOND_SWORD, "<gradient:#60a5fa:#c084fc>Solo Queues</gradient>", List.of(
+        inv.setItem(11, button("menus.duel.items.summary-solo", Material.DIAMOND_SWORD, "<gradient:#60a5fa:#c084fc>Solo Queues</gradient>", List.of(
                 "<gray>Queued players:</gray> <white>" + service.soloQueueCount() + "</white>",
                 "<gray>Available kits:</gray> <white>" + service.kitCount() + "</white>"
         )));
-        inv.setItem(13, button(Material.PLAYER_HEAD, "<gradient:#34d399:#22c55e>Party Queues</gradient>", List.of(
+        inv.setItem(13, button("menus.duel.items.summary-party", Material.PLAYER_HEAD, "<gradient:#34d399:#22c55e>Party Queues</gradient>", List.of(
                 "<gray>Queued parties:</gray> <white>" + service.partyQueueCount() + "</white>",
                 "<gray>Enabled:</gray> <white>" + service.isEnabled() + "</white>"
         )));
-        inv.setItem(15, button(Material.MAP, "<gradient:#f59e0b:#f97316>Maps</gradient>", List.of(
+        inv.setItem(15, button("menus.duel.items.summary-maps", Material.MAP, "<gradient:#f59e0b:#f97316>Maps</gradient>", List.of(
                 "<gray>Loaded maps:</gray> <white>" + service.mapCount() + "</white>",
                 "<gray>Dev mode:</gray> <white>" + service.isDevEnabled(player.getUniqueId()) + "</white>"
         )));
@@ -102,13 +103,30 @@ public final class DuelMenu {
     }
 
     private ItemStack backButton(String destination) {
-        return button(Material.ARROW, "<gradient:#D6E8F7:#FFFFFF>Back</gradient>", List.of("<gray>Return to " + destination + ".</gray>"));
+        return button("menus.duel.items.back", Material.ARROW, "<gradient:#D6E8F7:#FFFFFF>Back</gradient>", List.of("<gray>Return to " + destination + ".</gray>"));
     }
 
-    private void fill(Inventory inv, Material material) { for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, button(material, " ", List.of())); }
+    private net.kyori.adventure.text.Component title(String path, String fallback) {
+        String title = service.guiText(path + ".title", fallback);
+        String background = service.guiText(path + ".background", "");
+        StringBuilder builder = new StringBuilder(background == null ? "" : background);
+        for (String layer : service.guiTextList(path + ".layers")) builder.append(layer);
+        builder.append(title == null ? "" : title);
+        return Text.mm(builder.toString());
+    }
+
+    private void fill(Inventory inv, Material material) { if (material == Material.AIR) return; for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, button(material, " ", List.of())); }
 
     private ItemStack button(Material material, String name, List<String> lore) {
-        ItemStack item = new ItemStack(material);
+        return decorate(new ItemStack(material), name, lore);
+    }
+
+    private ItemStack button(String path, Material fallback, String name, List<String> lore) {
+        return decorate(service.guiIcon(path, fallback), name, lore);
+    }
+
+    private ItemStack decorate(ItemStack item, String name, List<String> lore) {
+        if (item == null || item.getType() == Material.AIR) return item == null ? new ItemStack(Material.AIR) : item;
         ItemMeta meta = item.getItemMeta();
         meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(name));
         meta.lore(lore.stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(s)).toList());

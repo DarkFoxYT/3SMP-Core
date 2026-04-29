@@ -60,7 +60,6 @@ public final class MenuListener implements Listener {
         if (!(event.getWhoClicked() instanceof org.bukkit.entity.Player player)) return;
         if (event.getClickedInventory() == null || event.getClickedInventory() != event.getView().getTopInventory()) return;
         ItemStack item = event.getCurrentItem();
-        if (item == null) return;
         int slot = event.getRawSlot();
         switch (holder.type()) {
             case DUEL_MAIN -> {
@@ -81,6 +80,7 @@ public final class MenuListener implements Listener {
             }
             case DUEL_LEADERBOARD -> leaderboardService.handleClick(player, slot);
             case PARTY_MAIN -> {
+                if (item == null) return;
                 if (holder.context().equalsIgnoreCase("summary")) partyService.handleSummaryClick(player, slot);
                 else if (holder.context().equalsIgnoreCase("party-duel")) partyService.handlePartyDuelClick(player, slot);
                 else if (holder.context().equalsIgnoreCase("party-duel-kits")) partyService.handlePartyDuelKitPickerClick(player, slot);
@@ -90,29 +90,32 @@ public final class MenuListener implements Listener {
                 else if (holder.context().equalsIgnoreCase("members")) partyService.handleMembersClick(player, slot);
                 else partyService.handleMenuClick(player, slot);
             }
-            case PERKS_MAIN -> { if (holder.context().equalsIgnoreCase("summary")) perkService.handleSummaryMenuClick(player, slot); else perkService.handleMenuClick(player, slot); }
-            case PERKS_CATEGORY -> perkService.handleCategoryClick(player, holder.context(), slot);
+            case PERKS_MAIN -> { if (item == null) return; if (holder.context().equalsIgnoreCase("summary")) perkService.handleSummaryMenuClick(player, slot); else perkService.handleMenuClick(player, slot); }
+            case PERKS_CATEGORY -> { if (item == null) return; perkService.handleCategoryClick(player, holder.context(), slot); }
             case GEMS_MAIN -> {
+                if (item == null) return;
                 String ctx = holder.context().toLowerCase(java.util.Locale.ROOT);
                 if (ctx.equals("combine")) gemService.handleCombineClick(player, slot);
                 else if (ctx.equals("browse")) gemService.handleBrowseClick(player, slot);
                 else if (ctx.equals("capsules")) gemService.handleCapsuleClick(player, slot);
                 else gemService.handleMenuClick(player, slot);
             }
-            case GEMS_STATS -> gemService.handleStatsClick(player, slot);
+            case GEMS_STATS -> { if (item == null) return; gemService.handleStatsClick(player, slot); }
             case SAPPHIRES_MAIN -> {
+                if (item == null) return;
                 if (holder.context().equalsIgnoreCase("summary")) sapphireService.handleSummaryClick(player, slot);
                 else sapphireService.handleMenuClick(player, slot);
             }
-            case DAILY_MAIN -> dailyRewardManager.handleClick(player, slot);
-            case FISHING_MAIN -> fishingRewardManager.handleClick(player, slot);
+            case DAILY_MAIN -> { if (item == null) return; dailyRewardManager.handleClick(player, slot); }
+            case FISHING_MAIN -> { if (item == null) return; fishingRewardManager.handleClick(player, slot); }
             case SOULS_MAIN -> {
+                if (item == null) return;
                 String ctx = holder.context().toLowerCase(java.util.Locale.ROOT);
                 if (ctx.equals("souls-forge")) { soulManager.handleForgeClick(event); return; }
                 if (ctx.equals("souls-rewards")) soulManager.handleRewardsClick(player, slot);
                 else soulManager.handleClick(player, slot);
             }
-            case MARKET_MAIN -> marketPlotManager.handle(player, slot);
+            case MARKET_MAIN -> { if (item == null) return; marketPlotManager.handle(player, slot); }
             case SHOP_CHEST -> { }
         }
     }

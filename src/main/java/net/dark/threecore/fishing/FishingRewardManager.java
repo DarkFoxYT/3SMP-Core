@@ -96,9 +96,11 @@ public final class FishingRewardManager {
     }
 
     public void open(Player player) {
-        FishingSession session = createSession(player);
+        FishingSession session = createSession(player, true);
         sessions.put(player.getUniqueId(), session);
         menuService.open(player, gui.build(session));
+        gui.renderFishing(session);
+        player.playSound(player.getLocation(), Sound.ENTITY_FISHING_BOBBER_SPLASH, 0.8f, 1.35f);
     }
 
     public boolean isActive(Player player) {
@@ -170,6 +172,7 @@ public final class FishingRewardManager {
             } else {
                 session.animationFrame(session.animationFrame() + 1);
                 long remaining = Math.max(0L, (session.readyAt() - now) / 1000L);
+                gui.renderWaiting(session);
                 player.sendActionBar(Text.mm("<gray>Waiting for fish: <white>" + remaining + "s</white></gray>"));
                 if (session.animationFrame() % 20 == 0) player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_PLING, 0.08f, 1.8f);
             }
@@ -378,8 +381,12 @@ public final class FishingRewardManager {
     }
 
     private FishingSession createSession(Player player) {
+        return createSession(player, false);
+    }
+
+    private FishingSession createSession(Player player, boolean quickStart) {
         String rarity = rarityFor(player);
-        long waitSeconds = sessionWaitSeconds(player);
+        long waitSeconds = quickStart ? Math.max(0L, config().getLong("session.instant-ready-delay-seconds", 1L)) : sessionWaitSeconds(player);
         long now = System.currentTimeMillis();
         int fishCount = fishCountFor(player);
         long catchWindow = Math.max(2L, config().getLong("session.catch-window-seconds", 5L));

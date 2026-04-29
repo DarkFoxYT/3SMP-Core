@@ -110,8 +110,15 @@ public final class AfkZoneManager implements Listener {
         return !isInAfkZone(player);
     }
 
+    private boolean shouldIgnoreAutoAfk(Player player) {
+        if (player == null) return true;
+        if (DuelService.isDuelPlayer(player) || DungeonService.isDungeonPlayer(player)) return true;
+        if (returnLocations.containsKey(player.getUniqueId())) return false;
+        return player.getGameMode() == GameMode.CREATIVE || player.getGameMode() == GameMode.SPECTATOR;
+    }
+
     public void touch(Player player) {
-        if (player == null || isZoneBlocked(player)) return;
+        if (player == null || shouldIgnoreAutoAfk(player)) return;
         Long graceUntil = inputGraceUntil.get(player.getUniqueId());
         if (graceUntil != null && System.currentTimeMillis() < graceUntil) return;
         if (returnLocations.containsKey(player.getUniqueId())) {
@@ -120,7 +127,10 @@ public final class AfkZoneManager implements Listener {
         }
         AfkZone zone = zoneAt(player.getLocation());
         if (zone == null) {
-            exitZone(player);
+            AfkPlayerState state = state(player.getUniqueId());
+            state.zoneId("");
+            state.afk(false);
+            state.lastRealMovementAt(System.currentTimeMillis());
             return;
         }
         AfkPlayerState state = state(player.getUniqueId());
@@ -144,13 +154,18 @@ public final class AfkZoneManager implements Listener {
         long rewardEvery = Math.max(1L, configs.get("world/afk.yml").getLong("reward.interval-minutes", 30L)) * 60L * 1000L;
         long rewardAmount = Math.max(0L, configs.get("world/afk.yml").getLong("reward.amount", 1000L));
         for (Player player : Bukkit.getOnlinePlayers()) {
-            if (isZoneBlocked(player)) {
+            if (shouldIgnoreAutoAfk(player)) {
                 if (states.containsKey(player.getUniqueId())) exitZone(player);
                 continue;
             }
             AfkZone zone = zoneAt(player.getLocation());
             if (zone == null) {
-                exitZone(player);
+                AfkPlayerState idle = state(player.getUniqueId());
+                if (returnLocations.containsKey(player.getUniqueId())) {
+                    exitZone(player);
+                    continue;
+                }
+                if (System.currentTimeMillis() - idle.lastRealMovementAt() >= afkAfter) enterCommand(player);
                 continue;
             }
             AfkPlayerState state = state(player.getUniqueId());

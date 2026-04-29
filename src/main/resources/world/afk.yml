@@ -1,10 +1,9 @@
 enabled: true
 bypass-permission: 3smpcore.afk.bypass
-kick-after-seconds: 900
 check-interval-seconds: 5
 payout-every-minutes: 30
 payout-amount: 1000
-kick-message: "<red>You were kicked for being AFK too long.</red>"
+afk-after-minutes: 5
 
 zone:
   generator: ""

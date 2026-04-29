@@ -7,6 +7,86 @@ friends:
   tab:
     sneak-cycle-enabled: true
     tab-plugin-compatible: true
+    visuals:
+      enabled: true
+      override-tab-plugin: true
+      force-over-tab-plugin: true
+      refresh-ticks: 20
+    # Shadows are applied by code. Use #RRGGBB:alpha.
+    shadow: "#000000:0.55"
+    # Keep defaults solid royal blue/gold. {grad:id} is still supported if you want it later.
+    header:
+      - ""
+      - "%img_server_logo%"
+      - ""
+      - ""
+      - ""
+      - "&#4169e1&lPLAY.3smp.NET"
+      - "&#f5b82ePlaying on &#4169e1&l3SMP"
+      - ""
+    footer:
+      - ""
+      - "&#f5b82ePlayers: &#4169e1%online%"
+      - "&#f5b82eFriends: &#4169e1%3smpcore_friends_list%"
+      - "&#f5b82eVote: &#4169e1/vote"
+      - "&#f5b82eStore: &#4169e1/store"
+      - ""
+      - "&#4169e1Thanks for playing on &#f5b82e3SMP"
+      - ""
+    player-format: "<rank_image> <rank_name> <tab_tag>"
+    nametag-prefix: "<rank_image> <tab_prefix> "
+    nametag-suffix: " <tab_tag>"
+    nametag-display: "<rank_image> <rank_name>"
+    gradients:
+      default: "#1d4ed8:#38bdf8"
+      server: "#1d4ed8:#38bdf8"
+      soft: "#2563eb:#7dd3fc"
+      gold: "#f59e0b:#fde68a"
+      vote: "#f59e0b:#fde68a"
+      store: "#f59e0b:#fde68a"
+      owner: "#2563eb:#93c5fd"
+      admin: "#f59e0b:#fde68a"
+      dev: "#1d4ed8:#38bdf8"
+      ultra: "#f59e0b:#fde68a"
+      mvp: "#2563eb:#7dd3fc"
+      3smp: "#1d4ed8:#38bdf8"
+    ranks:
+      default:
+        image: ""
+        shadow: "#000000:0.65"
+        name-format: "&#4169e1<player>"
+      owner:
+        image: "%img_owner%"
+        shadow: "#001525:0.9"
+        name-format: "&#4169e1&l<player>"
+      admin:
+        image: "%img_admin%"
+        shadow: "#250000:0.85"
+        name-format: "&#f5b82e&l<player>"
+      dev:
+        image: "%img_dev%"
+        shadow: "#11002a:0.9"
+        name-format: "&#4169e1<player>"
+      ultra:
+        image: "%img_ultra%"
+        shadow: "#2a1600:0.85"
+        name-format: "&#f5b82e<player>"
+      mvp:
+        image: "%img_mvp%"
+        shadow: "#16002a:0.85"
+        name-format: "&#4169e1<player>"
+      3smp:
+        image: "%img_3smp%"
+        shadow: "#001f1f:0.85"
+        name-format: "&#4169e1<player>"
+    rank-dots:
+      owner: ""
+      admin: ""
+      ultra: ""
+      mvp: ""
+      3smp: ""
+      vip: ""
+      member: ""
     placeholders:
       mode: "%3smpcore_tab_mode%"
       title: "%3smpcore_tab_title%"
@@ -15,3 +95,25 @@ friends:
       - global
       - party
       - dungeon
+  scoreboards:
+    enabled: true
+    active: default
+    boards:
+      default:
+        title: "&#4169e1&l3&#f5b82e&lSMP"
+        lines:
+          - "&#1b2d5c&m-----------"
+          - "&#f5b82e&lNAME"
+          - "&#4169e1%player_name%"
+          - "&#f5b82e&lRANK"
+          - "&#4169e1%vault_prefix%"
+          - "&#f5b82e&lWORLD"
+          - "&#4169e1%world%"
+          - "&#f5b82e&lMONEY"
+          - "&#4169e1%smpcore_money_formatted%"
+          - "&#f5b82e&lSAPPHIRES"
+          - "&#4169e1%smpcore_sapphires%"
+          - "&#f5b82e&lPING"
+          - "&#4169e1%ping%ms"
+          - "&#1b2d5c&m-----------"
+          - "&#4169e1PLAY.&#f5b82e3smp.&#4169e1NET"

@@ -38,9 +38,21 @@ duels:
     seconds: 5
     freeze-during-countdown: true
 
+  rounds:
+    # Delay after a round ends before resetting everyone for the next round.
+    next-round-delay-ticks: 40
+
   tab:
     team-red-commands: []
     team-blue-commands: []
+
+  projectiles:
+    # Duel-only assist so wind charges can actually catch nearby ender pearls.
+    wind-charge-pearl-catch-radius: 1.15
+    wind-charge-pearl-high-air-catch-radius: 1.9
+    wind-charge-pearl-high-air-y-difference: 6.0
+    wind-charge-pearl-catch-ticks: 30
+    wind-charge-pearl-teleport-delay-ticks: 0
 
   world-instances:
     enabled: true
@@ -48,6 +60,20 @@ duels:
     # If Multiverse-Core is installed, 3SMPCore imports/registers editor and match worlds with Multiverse.
     # Each fight gets a temporary copied world and that folder is deleted after cleanup.
     prefix: arena_
+    generator: VoidGen
+    full-copy-for-matches: true
+    preload-chunk-radius: 3
+    preload-all-region-chunks: true
+    preload-chunks-per-tick: 96
+    max-preload-region-chunks: 100000
+    player-chunk-ticket-radius: 4
+    start-delay-ticks: 0
+    keep-spawn-loaded-during-match: true
+    fast-copy:
+      skip-player-data: false
+      skip-poi: false
+      skip-entities: false
+      skip-plugin-data: false
     disable-mob-spawning: true
     disable-weather: true
     multiverse:

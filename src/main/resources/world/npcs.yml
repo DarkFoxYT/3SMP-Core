@@ -1,0 +1,90 @@
+presets:
+  sapphires:
+    name: "<gradient:#38bdf8:#1d4ed8>&lSapphires</gradient>"
+    skin: ""
+    hologram:
+      - "<gradient:#38bdf8:#1d4ed8>&lSapphires</gradient>"
+      - "<gray>Spend premium currency</gray>"
+      - "<#D6E8F7>Right-click to open</#D6E8F7>"
+    commands:
+      - "sapphire shop"
+  gems:
+    name: "<gradient:#22c55e:#84cc16>&lGems</gradient>"
+    hologram:
+      - "<gradient:#22c55e:#84cc16>&lGems</gradient>"
+      - "<gray>Seasonal power and capsules</gray>"
+      - "<#D6E8F7>Right-click to open</#D6E8F7>"
+    commands:
+      - "gems"
+  dungeon:
+    name: "<gradient:#4c1d95:#a78bfa>&lDungeons</gradient>"
+    hologram:
+      - "<gradient:#4c1d95:#a78bfa>&lDungeons</gradient>"
+      - "<gray>Random rooms, bosses, loot</gray>"
+      - "<#D6E8F7>Right-click to enter</#D6E8F7>"
+    commands:
+      - "dungeon"
+  duels:
+    name: "<gradient:#60a5fa:#c084fc>&lDuels</gradient>"
+    hologram:
+      - "<gradient:#60a5fa:#c084fc>&lDuels</gradient>"
+      - "<gray>Queue, challenge, and spectate</gray>"
+      - "<#D6E8F7>Right-click to fight</#D6E8F7>"
+    commands:
+      - "duel"
+  fishing:
+    name: "<gradient:#38bdf8:#22c55e>&lFishing</gradient>"
+    hologram:
+      - "<gradient:#38bdf8:#22c55e>&lFishing</gradient>"
+      - "<gray>Rods, rewards, and progress</gray>"
+      - "<#D6E8F7>Right-click to open</#D6E8F7>"
+    commands:
+      - "fishing"
+  shop:
+    name: "<gradient:#f59e0b:#fbbf24>&lShop</gradient>"
+    hologram:
+      - "<gradient:#f59e0b:#fbbf24>&lShop</gradient>"
+      - "<gray>Buy server essentials</gray>"
+      - "<#D6E8F7>Right-click to browse</#D6E8F7>"
+    commands:
+      - "shop"
+  market:
+    name: "<gradient:#14b8a6:#0f766e>&lMarket</gradient>"
+    hologram:
+      - "<gradient:#14b8a6:#0f766e>&lMarket</gradient>"
+      - "<gray>Rent plots and player shops</gray>"
+      - "<#D6E8F7>Right-click to open</#D6E8F7>"
+    commands:
+      - "market"
+  ranks:
+    name: "<gradient:#f472b6:#facc15>&lRanks</gradient>"
+    hologram:
+      - "<gradient:#f472b6:#facc15>&lRanks</gradient>"
+      - "<#60a5fa>&lULTRA</#60a5fa> <gray>|</gray> <#a78bfa>&lMVP</#a78bfa> <gray>|</gray> <#f59e0b>&l3SMP</#f59e0b>"
+      - "<gray>Support us at</gray> <#38bdf8>3smp.paynow.store</#38bdf8>"
+    commands:
+      - "tellraw {player} {\"text\":\"Ranks: ULTRA, MVP, 3SMP - support us at 3smp.paynow.store\",\"color\":\"gold\"}"
+  spawn:
+    name: "<gradient:#5B8DD9:#F8FBFF>&lSpawn</gradient>"
+    hologram:
+      - "<gradient:#5B8DD9:#F8FBFF>&lSpawn</gradient>"
+      - "<gray>Return to the hub</gray>"
+      - "<#D6E8F7>Right-click to teleport</#D6E8F7>"
+    commands:
+      - "spawn"
+  help:
+    name: "<gradient:#94a3b8:#ffffff>&lHelp</gradient>"
+    hologram:
+      - "<gradient:#94a3b8:#ffffff>&lHelp</gradient>"
+      - "<gray>Commands and server info</gray>"
+      - "<#D6E8F7>Right-click for help</#D6E8F7>"
+    commands:
+      - "help"
+  h318:
+    name: "<blue>&lOWNER</blue> <aqua>&lH318</aqua>"
+    hologram:
+      - "<blue>&lOWNER</blue> <aqua>&lH318</aqua><gray>:</gray>"
+      - "<white>Make sure to have fun!</white>"
+      - "<gray>Support us at</gray> <aqua>3smp.paynow.store</aqua>"
+    commands:
+      - "tellraw {player} {\"text\":\"OWNER H318: Make sure to have fun! Support us at 3smp.paynow.store\",\"color\":\"aqua\"}"

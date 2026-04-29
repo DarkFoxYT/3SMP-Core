@@ -1,0 +1,35 @@
+menu_title: ":offset_-8::duels_menu::duels_solo::duels_duo:"
+open_command: []
+size: 27
+update_interval: 20
+
+items:
+  solo:
+    material: "itemsadder-threesmp:gui_clickzone"
+    slot: 10
+    display_name: "&b&lSolo Duel"
+    lore:
+      - "&7Click to pick a kit."
+      - "&7Queued: &f%3smpcore_duel_solo_queue%"
+      - "&7Your queue: &f%3smpcore_duel_queue_summary%"
+    left_click_commands:
+      - "[player] duel deluxe solo"
+
+  duo:
+    material: "itemsadder-threesmp:gui_clickzone"
+    slot: 16
+    display_name: "&6&lParty Duel"
+    lore:
+      - "&7Queue your party for team duels."
+      - "&7Queued: &f%3smpcore_duel_party_queue%"
+    left_click_commands:
+      - "[player] duel deluxe duo"
+
+  close:
+    material: BARRIER
+    slot: 26
+    display_name: "&cClose"
+    lore:
+      - "&7Current: &f%3smpcore_duel_queue_summary%"
+    left_click_commands:
+      - "[close]"

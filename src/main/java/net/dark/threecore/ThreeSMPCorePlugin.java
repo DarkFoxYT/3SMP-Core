@@ -184,7 +184,7 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         this.dungeonService = new DungeonService(this, configs, menuService, repository, partyService, survivalService);
         this.duelService.setDungeonService(dungeonService);
         this.fishingListener = new FishingListener(fishingRewardManager, duelService, dungeonService);
-        this.socialTabService = new SocialTabService(this);
+        this.socialTabService = new SocialTabService(this, configs, chatFormatService);
         this.partyService.setDungeonService(dungeonService);
         this.partyService.setFriendService(friendService);
         this.partyService.setSocialTabService(socialTabService);
@@ -359,7 +359,7 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(soulManager, this);
 
         getServer().getPluginManager().registerEvents(zonePvpService, this);
-        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) { new SmpCoreExpansion(this, perkService, warpManager, spawnService, moneyService, sapphireService, partyService, dungeonService, friendService, socialTabService, chatFormatService).register(); new ThreeSmpCoreExpansion(this, perkService, warpManager, spawnService, moneyService, sapphireService, partyService, dungeonService, friendService, socialTabService, chatFormatService).register(); }
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) { new SmpCoreExpansion(this, perkService, warpManager, spawnService, moneyService, sapphireService, partyService, dungeonService, friendService, socialTabService, chatFormatService, duelService).register(); new ThreeSmpCoreExpansion(this, perkService, warpManager, spawnService, moneyService, sapphireService, partyService, dungeonService, friendService, socialTabService, chatFormatService, duelService).register(); }
     }
 
     @Override
@@ -431,7 +431,7 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
                 "core/config.yml", "core/messages.yml", "core/help.yml", "core/join-queue.yml", "cosmetics/perks.yml", "cosmetics/prefixes.yml", "cosmetics/tags.yml", "cosmetics/colors.yml", "cosmetics/cosmetics.yml", "cosmetics/effects.yml",
                 "economy/sapphires.yml", "economy/souls.yml", "gems/gems.yml", "gems/capsules.yml", "duels/duels.yml", "duels/kits.yml", "duels/maps.yml", "social/party.yml", "cosmetics/trims.yml",
                 "duels/messages.yml", "menus/perks.yml", "menus/gems.yml", "menus/sapphires.yml", "menus/duels.yml", "menus/party.yml", "menus/dev.yml",
-                "world/launchpads.yml", "world/warps.yml", "world/rtp.yml", "core/welcome.yml", "world/zonepvp.yml", "social/friends.yml", "license/license.yml", "dungeons/dungeons.yml", "dungeons/rooms.yml", "dungeons/templates.yml", "dungeons/traps.yml", "world/survival.yml", "economy/money.yml", "economy/sell.yml", "economy/shop.yml", "economy/auction-house.yml", "world/afk.yml", "world/clearlag.yml", "cosmetics/particles.yml", "admin/commandspy.yml", "cosmetics/badges.yml", "cosmetics/glow.yml", "world/holograms.yml", "admin/permissions.yml", "rewards/daily.yml", "menus/daily.yml"
+                "world/launchpads.yml", "world/warps.yml", "world/rtp.yml", "core/welcome.yml", "world/zonepvp.yml", "social/friends.yml", "license/license.yml", "dungeons/dungeons.yml", "dungeons/rooms.yml", "dungeons/templates.yml", "dungeons/traps.yml", "world/survival.yml", "economy/money.yml", "economy/sell.yml", "economy/shop.yml", "economy/auction-house.yml", "world/afk.yml", "world/clearlag.yml", "cosmetics/particles.yml", "admin/commandspy.yml", "cosmetics/badges.yml", "cosmetics/glow.yml", "world/holograms.yml", "world/npcs.yml", "admin/permissions.yml", "rewards/daily.yml", "menus/daily.yml"
                 , "fishing/fishing.yml", "menus/fishing.yml", "menus/souls.yml", "world/market.yml", "menus/market.yml", "config.yml", "messages.yml", "gui.yml", "rewards.yml", "fishing.yml", "souls.yml", "market.yml"
         }) {
             saveResource(file, false);

@@ -112,12 +112,16 @@ public final class FishingGui {
         for (int idx = 0; idx < TRACK.length; idx++) {
             int i = TRACK[idx];
             Material material = idx < completed ? Material.LIME_STAINED_GLASS_PANE : Material.GRAY_STAINED_GLASS_PANE;
-            if (idx == fishPos) material = Material.ORANGE_STAINED_GLASS_PANE;
-            inv.setItem(i, tinted(material, idx == fishPos ? "<yellow>Click here</yellow>" : idx < completed ? "<green>Progress</green>" : "<gray>Wait</gray>", idx == fishPos ? List.of("<gray>Click 3 times before it escapes.</gray>", "<gray>Time left: " + rewardManager.remainingCatchSeconds(session) + "s</gray>") : List.of()));
+            if (active && idx == fishPos) {
+                inv.setItem(i, fishItem(session, "<yellow>Catch me!</yellow>", List.of("<gray>Click this moving fish.</gray>", "<gray>Time left: " + rewardManager.remainingCatchSeconds(session) + "s</gray>")));
+                continue;
+            }
+            if (!active && idx == fishPos) material = Material.LIGHT_BLUE_STAINED_GLASS_PANE;
+            inv.setItem(i, tinted(material, active && idx < completed ? "<green>Hooked</green>" : active ? "<gray>Water</gray>" : "<aqua>Ripples...</aqua>", List.of()));
         }
         session.currentSlot(TRACK[fishPos]);
         int readyTicks = active ? 3 - session.clicks() : 3;
-        inv.setItem(13, fishItem(session, active ? "<yellow>Click the fish!</yellow>" : "<gray>Waiting...</gray>", List.of(
+        inv.setItem(4, fishItem(session, active ? "<yellow>Click the moving fish!</yellow>" : "<gray>Waiting for a bite...</gray>", List.of(
                 "<gray>Progress:</gray> <white>" + session.clicks() + "/3</white>",
                 "<gray>Time left:</gray> <white>" + rewardManager.remainingCatchSeconds(session) + "s</white>",
                 "<gray>Hits left:</gray> <white>" + Math.max(0, readyTicks) + "</white>"

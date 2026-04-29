@@ -1,0 +1,46 @@
+info:
+  namespace: threesmp
+
+font_images:
+  duels_menu:
+    path: gui/duels_menu.png
+    show_in_gui: true
+    suggest_in_command: false
+    scale_ratio: 192
+    y_position: 13
+
+  duels_solo:
+    path: gui/duels_solo.png
+    show_in_gui: true
+    suggest_in_command: false
+    scale_ratio: 48
+    y_position: 13
+
+  duels_duo:
+    path: gui/duels_duo.png
+    show_in_gui: true
+    suggest_in_command: false
+    scale_ratio: 48
+    y_position: 13
+
+  duels_solo_hover:
+    path: gui/duels_solo_hover.png
+    show_in_gui: true
+    suggest_in_command: false
+    scale_ratio: 48
+    y_position: 13
+
+  duels_duo_hover:
+    path: gui/duels_duo_hover.png
+    show_in_gui: true
+    suggest_in_command: false
+    scale_ratio: 48
+    y_position: 13
+
+items:
+  gui_clickzone:
+    display_name: "&r"
+    resource:
+      material: PAPER
+      generate: false
+      model_path: gui/gui_clickzone

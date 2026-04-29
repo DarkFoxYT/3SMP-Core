@@ -1,0 +1,24 @@
+menu_title: ":offset_-8::duels_menu:"
+open_command: []
+size: 54
+update_interval: 20
+
+items:
+  back:
+    material: ARROW
+    slot: 49
+    display_name: "&eBack"
+    left_click_commands:
+      - "[player] duel deluxe menu"
+
+  # The plugin also auto-generates a live duels_kits.yml from your configured kits
+  # when DeluxeMenus has no file yet. Keep this as a simple starter/example.
+  example_kit:
+    material: DIAMOND_SWORD
+    slot: 10
+    display_name: "&bExample Kit"
+    lore:
+      - "&7Replace this item with your real kits,"
+      - "&7or delete the DeluxeMenus file once so 3SMPCore regenerates it."
+    left_click_commands:
+      - "[player] duel deluxe queue default"

@@ -9,6 +9,8 @@ session:
   wait-seconds:
     min: 0
     max: 32
+  # Used by /fishing play and NPC/menu starts so the minigame feels alive immediately.
+  instant-ready-delay-seconds: 1
   catch-window-seconds: 6
   base-fish-per-cast: 1
 

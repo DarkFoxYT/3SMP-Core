@@ -3,6 +3,7 @@ package net.dark.threecore.duels;
 import net.dark.threecore.duels.model.DuelKit;
 import net.dark.threecore.gui.menu.CoreMenuHolder;
 import net.dark.threecore.gui.menu.CoreMenuType;
+import net.dark.threecore.text.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.entity.Player;
@@ -21,15 +22,15 @@ public final class DuelGuiManager {
     }
 
     public Inventory buildMain(Player player) {
-        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_MAIN, "main"), 27, "3SMP Duels");
-        fill(inv, Material.GRAY_STAINED_GLASS_PANE);
-        inv.setItem(10, button(Material.DIAMOND_SWORD, "<gradient:#60a5fa:#c084fc>1v1</gradient>", List.of(
+        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_MAIN, "main"), 27, title("menus.duel", "3SMP Duels"));
+        fill(inv, Material.AIR);
+        inv.setItem(10, button("menus.duel.items.solo", Material.DIAMOND_SWORD, "<gradient:#60a5fa:#c084fc>1v1</gradient>", List.of(
                 "<gray>Solo duel queue.</gray>",
                 "<gray>Current mode:</gray> <white>" + service.queueModeName(player.getUniqueId()) + "</white>",
                 "<gray>Current kit:</gray> <white>" + service.queueKitName(player.getUniqueId()) + "</white>",
                 "<gray>Click to choose a kit and queue.</gray>"
         )));
-        inv.setItem(16, button(Material.PLAYER_HEAD, "<gradient:#f59e0b:#f97316>Party Duels</gradient>", List.of(
+        inv.setItem(16, button("menus.duel.items.party", Material.PLAYER_HEAD, "<gradient:#f59e0b:#f97316>Party Duels</gradient>", List.of(
                 "<gray>Queue your party for 2v2.</gray>",
                 "<gray>Current mode:</gray> <white>" + service.queueModeName(player.getUniqueId()) + "</white>",
                 "<gray>Current kit:</gray> <white>" + service.queueKitName(player.getUniqueId()) + "</white>"
@@ -38,16 +39,16 @@ public final class DuelGuiManager {
     }
 
     public Inventory buildKitSelector(Player player) {
-        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_KITS, "kits"), 54, "Select Duel Kit");
+        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_KITS, "kits"), 54, title("menus.kits", "Select Duel Kit"));
         fill(inv, Material.BLACK_STAINED_GLASS_PANE);
         int[] slots = {10,12,14,16,28,30,32,34};
         int index = 0;
         for (DuelKit kit : service.kits()) {
             if (!kit.enabled()) continue;
             if (index >= slots.length) break;
-            inv.setItem(slots[index++], button(kit.icon(), kit.displayName(), kitSelectorLore(kit)));
+            inv.setItem(slots[index++], button("menus.duel.items.kit", kit.icon(), kit.displayName(), kitSelectorLore(kit)));
         }
-        inv.setItem(49, button(Material.ARROW, "<gray>Back</gray>", List.of("<gray>Return to duel menu.</gray>")));
+        inv.setItem(49, button("menus.duel.items.back", Material.ARROW, "<gray>Back</gray>", List.of("<gray>Return to duel menu.</gray>")));
         return inv;
     }
 
@@ -63,23 +64,24 @@ public final class DuelGuiManager {
     }
 
     public Inventory buildEndSummary(Player player, String winner, String duration, int kills, int deaths, int wins, int losses, int streak) {
-        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_MAIN, "summary"), 27, "Duel Summary");
+        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_MAIN, "summary"), 27, title("menus.summary", "Duel Summary"));
         fill(inv, Material.LIGHT_BLUE_STAINED_GLASS_PANE);
-        inv.setItem(11, button(Material.GOLD_BLOCK, "<gradient:#60a5fa:#c084fc>" + winner + "</gradient>", List.of(
+        inv.setItem(11, button("menus.duel.items.summary-winner", Material.GOLD_BLOCK, "<gradient:#60a5fa:#c084fc>" + winner + "</gradient>", List.of(
                 "<gray>Duration:</gray> <white>" + duration + "</white>",
                 "<gray>Kills:</gray> <white>" + kills + "</white>",
                 "<gray>Deaths:</gray> <white>" + deaths + "</white>"
         )));
-        inv.setItem(13, button(Material.PAPER, "<gradient:#34d399:#22c55e>Stats</gradient>", List.of(
+        inv.setItem(13, button("menus.duel.items.summary-stats", Material.PAPER, "<gradient:#34d399:#22c55e>Stats</gradient>", List.of(
                 "<gray>Wins:</gray> <white>" + wins + "</white>",
                 "<gray>Losses:</gray> <white>" + losses + "</white>",
                 "<gray>Streak:</gray> <white>" + streak + "</white>"
         )));
-        inv.setItem(15, button(Material.ARROW, "<gray>Back to Duels</gray>", List.of("<gray>Open duel menu.</gray>")));
+        inv.setItem(15, button("menus.duel.items.back", Material.ARROW, "<gray>Back to Duels</gray>", List.of("<gray>Open duel menu.</gray>")));
         return inv;
     }
 
     private void fill(Inventory inv, Material material) {
+        if (material == Material.AIR) return;
         for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, button(material, " ", List.of()));
     }
 
@@ -101,11 +103,28 @@ public final class DuelGuiManager {
     }
 
     private ItemStack button(Material material, String name, List<String> lore) {
-        ItemStack item = new ItemStack(material);
+        return decorate(new ItemStack(material), name, lore);
+    }
+
+    private ItemStack button(String path, Material fallback, String name, List<String> lore) {
+        return decorate(service.guiIcon(path, fallback), name, lore);
+    }
+
+    private ItemStack decorate(ItemStack item, String name, List<String> lore) {
+        if (item == null || item.getType() == Material.AIR) return item == null ? new ItemStack(Material.AIR) : item;
         ItemMeta meta = item.getItemMeta();
         meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(name));
         meta.lore(new ArrayList<>(lore).stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(s)).toList());
         item.setItemMeta(meta);
         return item;
+    }
+
+    private net.kyori.adventure.text.Component title(String path, String fallback) {
+        String title = service.guiText(path + ".title", fallback);
+        String background = service.guiText(path + ".background", "");
+        StringBuilder builder = new StringBuilder(background == null ? "" : background);
+        for (String layer : service.guiTextList(path + ".layers")) builder.append(layer);
+        builder.append(title == null ? "" : title);
+        return Text.mm(builder.toString());
     }
 }

@@ -5,7 +5,7 @@ main: net.dark.threecore.ThreeSMPCorePlugin
 api-version: '1.21'
 load: POSTWORLD
 authors: [ DarkFox ]
-softdepend: [ ItemsAdder, PlaceholderAPI, PlayerPoints, Multiverse-Core, WorldGuard, WorldEdit, TAB, DecentHolograms ]
+softdepend: [ ItemsAdder, PlaceholderAPI, PlayerPoints, Multiverse-Core, WorldGuard, WorldEdit, TAB, DecentHolograms, Citizens, DeluxeMenus ]
 commands:
   help:
     description: Custom 3SMP help command
@@ -184,6 +184,8 @@ permissions:
   3smpcore.afkzone.admin:
     default: op
   3smpcore.hologram.admin:
+    default: op
+  3smpcore.npc.admin:
     default: op
   3smpcore.rankperms.admin:
     default: op

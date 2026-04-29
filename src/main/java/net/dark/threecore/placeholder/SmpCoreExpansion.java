@@ -2,6 +2,7 @@ package net.dark.threecore.placeholder;
 
 import me.clip.placeholderapi.expansion.PlaceholderExpansion;
 import net.dark.threecore.chat.ChatFormatService;
+import net.dark.threecore.duels.DuelService;
 import net.dark.threecore.dungeons.DungeonService;
 import net.dark.threecore.money.MoneyService;
 import net.dark.threecore.party.PartyService;
@@ -26,8 +27,13 @@ public class SmpCoreExpansion extends PlaceholderExpansion {
     private final FriendService friendService;
     private final SocialTabService socialTabService;
     private final ChatFormatService chatFormatService;
+    private final DuelService duelService;
 
     public SmpCoreExpansion(JavaPlugin plugin, PerkService perkService, WarpManager warpManager, SpawnService spawnService, MoneyService moneyService, SapphireService sapphireService, PartyService partyService, DungeonService dungeonService, FriendService friendService, SocialTabService socialTabService, ChatFormatService chatFormatService) {
+        this(plugin, perkService, warpManager, spawnService, moneyService, sapphireService, partyService, dungeonService, friendService, socialTabService, chatFormatService, null);
+    }
+
+    public SmpCoreExpansion(JavaPlugin plugin, PerkService perkService, WarpManager warpManager, SpawnService spawnService, MoneyService moneyService, SapphireService sapphireService, PartyService partyService, DungeonService dungeonService, FriendService friendService, SocialTabService socialTabService, ChatFormatService chatFormatService, DuelService duelService) {
         this.plugin = plugin;
         this.perkService = perkService;
         this.warpManager = warpManager;
@@ -39,6 +45,7 @@ public class SmpCoreExpansion extends PlaceholderExpansion {
         this.friendService = friendService;
         this.socialTabService = socialTabService;
         this.chatFormatService = chatFormatService;
+        this.duelService = duelService;
     }
 
     @Override public String getIdentifier() { return "smpcore"; }
@@ -69,6 +76,12 @@ public class SmpCoreExpansion extends PlaceholderExpansion {
             case "sapphires", "sapphire_balance" -> String.valueOf(sapphireService.balance(player.getUniqueId()));
             case "duel_winstreak" -> String.valueOf(data.duelWinStreak());
             case "duel_best_winstreak" -> String.valueOf(data.duelBestWinStreak());
+            case "duel_enabled" -> duelService == null ? "false" : "true";
+            case "duel_solo_queue" -> duelService == null ? "0" : String.valueOf(duelService.soloQueueCount());
+            case "duel_party_queue" -> duelService == null ? "0" : String.valueOf(duelService.partyQueueCount());
+            case "duel_queue_mode" -> duelService == null ? "none" : duelService.queueModeName(player.getUniqueId());
+            case "duel_queue_kit" -> duelService == null ? "none" : duelService.queueKitName(player.getUniqueId());
+            case "duel_queue_summary" -> duelService == null ? "none" : duelService.queueSummary(player.getUniqueId());
             case "cosmetic" -> data.activeCosmetic();
             case "cosmetic_id" -> data.activeCosmetic();
             case "has_cosmetic" -> String.valueOf(!data.activeCosmetic().isBlank());
@@ -86,6 +99,7 @@ public class SmpCoreExpansion extends PlaceholderExpansion {
             case "chat_display", "tab_display" -> player.isOnline() && chatFormatService != null ? chatFormatService.tabDisplay(player.getPlayer()) : player.getName() == null ? "" : player.getName();
             default -> {
                 if (params.startsWith("job_")) yield jobPlaceholder(data, params);
+                if (params.startsWith("duel_kit_queue_")) yield duelService == null ? "0" : String.valueOf(duelService.queuedPlayersForKit(params.substring("duel_kit_queue_".length())));
                 yield "";
             }
         };

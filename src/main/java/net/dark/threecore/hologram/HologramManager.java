@@ -10,10 +10,13 @@ import org.bukkit.Location;
 import org.bukkit.Statistic;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
+import org.bukkit.entity.Display;
 import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
+import org.bukkit.entity.TextDisplay;
 import org.bukkit.plugin.java.JavaPlugin;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.io.File;
 import java.lang.reflect.Method;
@@ -33,7 +36,8 @@ public final class HologramManager {
     private final JavaPlugin plugin;
     private final ConfigFiles configs;
     private final PlayerDataRepository repository;
-    private final List<ArmorStand> stands = new ArrayList<>();
+    private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
+    private final List<Entity> stands = new ArrayList<>();
     private final List<String> decentIds = new ArrayList<>();
 
     public HologramManager(JavaPlugin plugin, ConfigFiles configs, PlayerDataRepository repository) {
@@ -53,18 +57,19 @@ public final class HologramManager {
             List<String> lines = resolveLines(root.getString(id + ".type", "static"), root.getStringList(id + ".lines"));
             double spacing = root.getDouble(id + ".line-spacing", 0.28D);
             float yaw = (float) root.getDouble(id + ".location.yaw", base.getYaw());
-            if (spawnDecent(id, base, lines)) continue;
+            boolean fixedFacing = root.getBoolean(id + ".fixed-facing", false);
+            if (!fixedFacing && spawnDecent(id, base, lines)) continue;
             for (int i = 0; i < lines.size(); i++) {
                 Location line = base.clone().add(0, -i * spacing, 0);
                 line.setYaw(yaw);
-                spawn(line, lines.get(i));
+                spawn(line, lines.get(i), fixedFacing);
             }
         }
     }
 
     public void handle(CommandSender sender, String[] args) {
         if (args.length == 0) {
-            Text.send(sender, "<yellow>/3smpcore hologram place id | reload | list</yellow>");
+            Text.send(sender, "<yellow>/3smpcore hologram place <id> [fixed|billboard] | remove <id> | reload | list</yellow>");
             return;
         }
         switch (args[0].toLowerCase(Locale.ROOT)) {
@@ -72,20 +77,25 @@ public final class HologramManager {
             case "list" -> Text.send(sender, "<gray>Holograms:</gray> <white>" + String.join(", ", ids()) + "</white>");
             case "place" -> {
                 if (!(sender instanceof Player player)) { Text.send(sender, "<red>Players only.</red>"); return; }
-                if (args.length < 2) { Text.send(sender, "<red>Usage: /3smpcore hologram place id</red>"); return; }
-                place(player, args[1].toLowerCase(Locale.ROOT));
+                if (args.length < 2) { Text.send(sender, "<red>Usage: /3smpcore hologram place <id> [fixed|billboard]</red>"); return; }
+                place(player, args[1].toLowerCase(Locale.ROOT), args.length >= 3 ? args[2] : "");
             }
-            default -> Text.send(sender, "<yellow>/3smpcore hologram place id | reload | list</yellow>");
+            case "remove", "delete" -> {
+                if (args.length < 2) { Text.send(sender, "<red>Usage: /3smpcore hologram remove <id></red>"); return; }
+                remove(sender, args[1].toLowerCase(Locale.ROOT));
+            }
+            default -> Text.send(sender, "<yellow>/3smpcore hologram place <id> [fixed|billboard] | remove <id> | reload | list</yellow>");
         }
     }
 
     public List<String> complete(String[] args) {
-        if (args.length <= 1) return List.of("place", "reload", "list");
-        if (args.length == 2 && args[0].equalsIgnoreCase("place")) return ids();
+        if (args.length <= 1) return List.of("place", "remove", "reload", "list");
+        if (args.length == 2 && (args[0].equalsIgnoreCase("place") || args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("delete"))) return ids();
+        if (args.length == 3 && args[0].equalsIgnoreCase("place")) return List.of("fixed", "billboard");
         return List.of();
     }
 
-    private void place(Player player, String id) {
+    private void place(Player player, String id, String facingMode) {
         var root = configs.get("world/holograms.yml");
         if (!root.isConfigurationSection("holograms." + id)) {
             Text.send(player, "<red>Unknown hologram id.</red>");
@@ -100,6 +110,8 @@ public final class HologramManager {
         root.set(path + ".location.z", round(loc.getZ()));
         root.set(path + ".location.yaw", (double) loc.getYaw());
         root.set(path + ".location.pitch", 0.0D);
+        if (facingMode.equalsIgnoreCase("fixed")) root.set(path + ".fixed-facing", true);
+        else if (facingMode.equalsIgnoreCase("billboard")) root.set(path + ".fixed-facing", false);
         try {
             root.save(new File(plugin.getDataFolder(), "world/holograms.yml"));
         } catch (Exception ex) {
@@ -110,7 +122,38 @@ public final class HologramManager {
         Text.send(player, "<green>Placed hologram:</green> <white>" + id + "</white>");
     }
 
-    public ArmorStand spawn(Location location, String text) {
+    private void remove(CommandSender sender, String id) {
+        var root = configs.get("world/holograms.yml");
+        if (!root.isConfigurationSection("holograms." + id)) {
+            Text.send(sender, "<red>Unknown hologram id.</red>");
+            return;
+        }
+        root.set("holograms." + id + ".enabled", false);
+        try {
+            root.save(new File(plugin.getDataFolder(), "world/holograms.yml"));
+        } catch (Exception ex) {
+            Text.send(sender, "<red>Could not save hologram removal.</red>");
+            return;
+        }
+        reload();
+        Text.send(sender, "<green>Removed hologram:</green> <white>" + id + "</white>");
+    }
+
+    public Entity spawn(Location location, String text, boolean fixedFacing) {
+        if (fixedFacing) {
+            TextDisplay display = location.getWorld().spawn(location, TextDisplay.class, s -> {
+                s.setBillboard(Display.Billboard.FIXED);
+                s.setGravity(false);
+                s.setInvulnerable(true);
+                s.setRotation(location.getYaw(), location.getPitch());
+                s.text(Text.mm(text));
+                s.setSeeThrough(false);
+                s.setShadowed(false);
+                s.setBackgroundColor(org.bukkit.Color.fromARGB(0, 0, 0, 0));
+            });
+            stands.add(display);
+            return display;
+        }
         ArmorStand stand = location.getWorld().spawn(location, ArmorStand.class, s -> {
             s.setInvisible(true);
             s.setMarker(true);
@@ -205,7 +248,7 @@ public final class HologramManager {
     }
 
     private List<String> playtimeLines(List<String> fallback) {
-        List<Player> top = Bukkit.getOnlinePlayers().stream().sorted(Comparator.comparingInt((Player p) -> p.getStatistic(Statistic.PLAY_ONE_MINUTE)).reversed()).limit(5).toList();
+        List<Player> top = Bukkit.getOnlinePlayers().stream().sorted(Comparator.comparingInt((Player p) -> p.getStatistic(Statistic.PLAY_ONE_MINUTE)).reversed()).limit(5).collect(java.util.stream.Collectors.toCollection(ArrayList::new));
         List<String> lines = new ArrayList<>();
         lines.add("<gradient:#5B8DD9:#F8FBFF>Online Playtime</gradient>");
         int place = 1;
@@ -249,12 +292,16 @@ public final class HologramManager {
             removeDecent(id);
             Class<?> api = Class.forName("eu.decentsoftware.holograms.api.DHAPI");
             Method create = api.getMethod("createHologram", String.class, Location.class, List.class);
-            create.invoke(null, "3smp_" + id, location, lines);
+            create.invoke(null, "3smp_" + id, location, legacyLines(lines));
             decentIds.add("3smp_" + id);
             return true;
         } catch (Throwable ignored) {
             return false;
         }
+    }
+
+    private List<String> legacyLines(List<String> lines) {
+        return lines.stream().map(line -> LEGACY.serialize(Text.mm(line))).toList();
     }
 
     private void removeDecent(String id) {
