@@ -15,6 +15,7 @@ public final class PlayerProgressionData {
     private String activeCosmetic = "";
     private String activeParticle = "";
     private String activeEffect = "";
+    private String activeJoinQuitMessage = "";
     private int duelRating = 0;
     private int duelWins;
     private int duelLosses;
@@ -45,6 +46,8 @@ public final class PlayerProgressionData {
     public void activeParticle(String value) { this.activeParticle = value; }
     public String activeEffect() { return activeEffect; }
     public void activeEffect(String value) { this.activeEffect = value; }
+    public String activeJoinQuitMessage() { return activeJoinQuitMessage; }
+    public void activeJoinQuitMessage(String value) { this.activeJoinQuitMessage = value; }
     public int duelRating() { return duelRating; }
     public void duelRating(int value) { this.duelRating = Math.max(0, value); }
     public int duelWins() { return duelWins; }

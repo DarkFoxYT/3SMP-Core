@@ -21,22 +21,31 @@ import org.bukkit.plugin.java.JavaPlugin;
 
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 public final class ShopService implements Listener {
     private static final int[] ITEM_SLOTS = {10,11,12,13,14,15,16,19,20,21,22,23,24,25,28,29,30,31,32,33,34,37,38,39,40,41,42,43};
     private final JavaPlugin plugin;
     private final ConfigFiles configs;
     private final MoneyService moneyService;
+    private List<ShopCategory> cachedCategories = List.of();
+    private final Map<String, List<ShopItem>> cachedItems = new LinkedHashMap<>();
 
     public ShopService(JavaPlugin plugin, ConfigFiles configs, MoneyService moneyService) {
         this.plugin = plugin;
         this.configs = configs;
         this.moneyService = moneyService;
+        reload();
     }
 
-    public void reload() { }
+    public void reload() {
+        cachedCategories = loadCategories();
+        cachedItems.clear();
+        for (ShopCategory category : cachedCategories) cachedItems.put(category.id(), loadItems(category.id()));
+    }
 
     public void handle(CommandSender sender, String[] args) {
         if (!(sender instanceof Player player)) { Text.send(sender, "<red>Players only.</red>"); return; }
@@ -49,7 +58,7 @@ public final class ShopService implements Listener {
     public void openCategories(Player player) {
         Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_DEV, "shop:categories"), 54, configs.get("economy/shop.yml").getString("menu.title", "3SMP Shop"));
         fill(inv);
-        inv.setItem(4, button(Material.EMERALD, configs.get("economy/shop.yml").getString("menu.header", "<gradient:#1A2A4A:#f59e0b>3SMP Shop</gradient>"), List.of("<gray>Buy blocks, items, food, tools, and more.</gray>", "<gray>Balance:</gray> <white>" + moneyService.format(moneyService.balance(player.getUniqueId())) + "</white>")));
+        inv.setItem(4, button(Material.EMERALD, configs.get("economy/shop.yml").getString("menu.header", "<gradient:#f4cd2a:#eda323:#d28d0d>3SMP Shop</gradient>"), List.of("<gray>Buy blocks, items, food, tools, and more.</gray>", "<gray>Balance:</gray> <white>" + moneyService.format(moneyService.balance(player.getUniqueId())) + "</white>")));
         int[] slots = {10,12,14,16,28,30,32,34};
         List<ShopCategory> categories = categories();
         for (int i = 0; i < categories.size() && i < slots.length; i++) {
@@ -69,7 +78,7 @@ public final class ShopService implements Listener {
         int start = page * ITEM_SLOTS.length;
         for (int i = 0; i < ITEM_SLOTS.length && start + i < items.size(); i++) {
             ShopItem item = items.get(start + i);
-            inv.setItem(ITEM_SLOTS[i], button(item.material(), item.name(), List.of("<gray>Price:</gray> <gold>" + moneyService.format(item.price()) + "</gold>", "<gray>Amount:</gray> <white>" + item.amount() + "</white>", "<green>Click to buy.</green>")));
+            inv.setItem(ITEM_SLOTS[i], button(item.material(), item.name(), List.of("<gray>Price:</gray> <gradient:#f4cd2a:#eda323:#d28d0d>" + moneyService.format(item.price()) + "</gradient>", "<gray>Amount:</gray> <white>" + item.amount() + "</white>", "<green>Click to buy.</green>")));
         }
         if (page > 0) inv.setItem(45, button(Material.ARROW, "<gray>Previous Page</gray>", List.of()));
         inv.setItem(49, button(Material.BARRIER, "<red>Back</red>", List.of("<gray>Return to categories.</gray>")));
@@ -102,13 +111,29 @@ public final class ShopService implements Listener {
     }
 
     private void buy(Player player, ShopItem item) {
+        ItemStack purchase = new ItemStack(item.material(), item.amount());
+        if (!canFit(player, purchase)) {
+            Text.send(player, "<red>You need more inventory space.</red>");
+            player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 0.6f, 0.7f);
+            return;
+        }
         if (!moneyService.take(player.getUniqueId(), item.price())) { Text.send(player, "<red>You need " + moneyService.format(item.price()) + ".</red>"); return; }
-        player.getInventory().addItem(new ItemStack(item.material(), item.amount()));
+        player.getInventory().addItem(purchase);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.7f, 1.35f);
-        Text.actionBar(player, "<green>Bought</green> <white>" + item.amount() + "x " + item.material().name().toLowerCase(Locale.ROOT) + "</white> <gray>for</gray> <gold>" + moneyService.format(item.price()) + "</gold>");
+        Text.actionBar(player, "<green>Bought</green> <white>" + item.amount() + "x " + item.material().name().toLowerCase(Locale.ROOT) + "</white> <gray>for</gray> <gradient:#f4cd2a:#eda323:#d28d0d>" + moneyService.format(item.price()) + "</gradient>");
     }
 
     private List<ShopCategory> categories() {
+        return cachedCategories;
+    }
+
+    private ShopCategory category(String id) { return categories().stream().filter(c -> c.id().equalsIgnoreCase(id)).findFirst().orElse(null); }
+
+    private List<ShopItem> items(String category) {
+        return cachedItems.getOrDefault(category.toLowerCase(Locale.ROOT), List.of());
+    }
+
+    private List<ShopCategory> loadCategories() {
         ConfigurationSection section = configs.get("economy/shop.yml").getConfigurationSection("categories");
         if (section == null) return List.of();
         List<ShopCategory> out = new ArrayList<>();
@@ -117,9 +142,7 @@ public final class ShopService implements Listener {
         return out;
     }
 
-    private ShopCategory category(String id) { return categories().stream().filter(c -> c.id().equalsIgnoreCase(id)).findFirst().orElse(null); }
-
-    private List<ShopItem> items(String category) {
+    private List<ShopItem> loadItems(String category) {
         ConfigurationSection section = configs.get("economy/shop.yml").getConfigurationSection("categories." + category + ".items");
         if (section == null) return List.of();
         List<ShopItem> out = new ArrayList<>();
@@ -133,11 +156,25 @@ public final class ShopService implements Listener {
         return out;
     }
 
+    private boolean canFit(Player player, ItemStack purchase) {
+        int remaining = purchase.getAmount();
+        int max = purchase.getMaxStackSize();
+        for (ItemStack stack : player.getInventory().getStorageContents()) {
+            if (stack == null || stack.getType().isAir()) {
+                remaining -= max;
+            } else if (stack.isSimilar(purchase)) {
+                remaining -= Math.max(0, max - stack.getAmount());
+            }
+            if (remaining <= 0) return true;
+        }
+        return false;
+    }
+
     private int slotIndex(int slot) { for (int i = 0; i < ITEM_SLOTS.length; i++) if (ITEM_SLOTS[i] == slot) return i; return -1; }
     private int parseInt(String value) { try { return Integer.parseInt(value); } catch (Exception ignored) { return 0; } }
     private Material material(String input) { try { return Material.valueOf(input.toUpperCase(Locale.ROOT)); } catch (Exception ignored) { return Material.CHEST; } }
     private String plain(String input) { return input.replaceAll("<[^>]+>", ""); }
-    private void fill(Inventory inv) { for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, button(Material.GRAY_STAINED_GLASS_PANE, " ", List.of())); }
+    private void fill(Inventory inv) { for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, button(Material.BLACK_STAINED_GLASS_PANE, " ", List.of())); }
     private ItemStack button(Material material, String name, List<String> lore) { ItemStack item = new ItemStack(material); ItemMeta meta = item.getItemMeta(); meta.displayName(Text.mm(name)); meta.lore(lore.stream().map(Text::mm).toList()); item.setItemMeta(meta); return item; }
     private record ShopCategory(String id, String name, Material icon) {}
     private record ShopItem(String id, Material material, int amount, double price, String name) {}

@@ -4,6 +4,7 @@ import io.papermc.paper.event.player.AsyncChatEvent;
 import net.dark.threecore.config.ConfigFiles;
 import net.dark.threecore.perks.PerkService;
 import net.dark.threecore.text.Text;
+import net.dark.threecore.visual.VisualManager;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.TextComponent;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -26,12 +27,18 @@ import java.util.UUID;
 
 public final class ChatFormatService implements Listener {
     private static final LegacyComponentSerializer LEGACY_AMP = LegacyComponentSerializer.legacyAmpersand();
+    private static final PlainTextComponentSerializer PLAIN = PlainTextComponentSerializer.plainText();
     private final ConfigFiles configs;
     private final PerkService perkService;
+    private VisualManager visualManager;
 
     public ChatFormatService(JavaPlugin plugin, ConfigFiles configs, PerkService perkService) {
         this.configs = configs;
         this.perkService = perkService;
+    }
+
+    public void setVisualManager(VisualManager visualManager) {
+        this.visualManager = visualManager;
     }
 
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
@@ -39,10 +46,18 @@ public final class ChatFormatService implements Listener {
         Player player = event.getPlayer();
         var data = perkService.data(player.getUniqueId());
         RankChatStyle style = resolveRankStyle(player);
-        Component prefix = resolvePrefix(player);
+        Component prefix = visualManager == null ? resolvePrefix(player) : visualManager.renderedPrefix(player);
         Component tag = styledTag(player, data.activeTag(), style);
-        Component name = styledPlayerName(player, style);
-        event.renderer((source, sourceDisplayName, chatMessage, viewer) -> joinChatParts(prefix, name, tag, colorize(resolveMessageColor(player, data.activeMessageColor(), style), chatMessage)));
+        Component name = visualManager == null ? styledPlayerName(player, style) : visualManager.renderedPlayerName(player);
+        String messageColor = resolveMessageColor(player, data.activeMessageColor(), style);
+        event.renderer((source, sourceDisplayName, chatMessage, viewer) -> joinChatParts(prefix, name, tag, chatMessage(player, chatMessage, messageColor)));
+    }
+
+    private Component chatMessage(Player player, Component chatMessage, String messageColor) {
+        if (messageColor != null && !messageColor.isBlank() && !messageColor.equalsIgnoreCase("default")) {
+            return colorize(messageColor, chatMessage);
+        }
+        return visualManager == null ? chatMessage : visualManager.renderedChatMessage(player, chatMessage);
     }
 
     public String tabPrefix(Player player) {
@@ -50,6 +65,7 @@ public final class ChatFormatService implements Listener {
     }
 
     public String tabName(Player player) {
+        if (visualManager != null) return net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer.legacyAmpersand().serialize(visualManager.renderedPlayerName(player));
         return serializeForPlaceholder(styledPlayerName(player, resolveRankStyle(player)));
     }
 
@@ -77,9 +93,9 @@ public final class ChatFormatService implements Listener {
 
     private Component joinChatParts(Component prefix, Component name, Component tag, Component message) {
         List<Component> leading = new ArrayList<>();
-        leading.add(prefix);
-        leading.add(name);
-        if (!tag.equals(Component.empty())) leading.add(tag);
+        if (!isBlank(prefix)) leading.add(prefix);
+        if (!isBlank(name)) leading.add(name);
+        if (!isBlank(tag)) leading.add(tag);
 
         TextComponent.Builder builder = Component.text();
         for (int i = 0; i < leading.size(); i++) {
@@ -87,6 +103,10 @@ public final class ChatFormatService implements Listener {
             builder.append(leading.get(i));
         }
         return builder.append(Component.text(": ", NamedTextColor.GRAY)).append(message).build();
+    }
+
+    private boolean isBlank(Component component) {
+        return component == null || component.equals(Component.empty()) || PLAIN.serialize(component).isBlank();
     }
 
     private Component colorize(String id, Component message) {
@@ -97,9 +117,7 @@ public final class ChatFormatService implements Listener {
         String content = PlainTextComponentSerializer.plainText().serialize(message);
         try {
             if ("gradient".equals(type)) {
-                String from = sec.getString("from", sec.getString("hex", "#FFFFFF"));
-                String to = sec.getString("to", sec.getString("hex", "#FFFFFF"));
-                return Text.mm("<gradient:" + from + ":" + to + ">" + escapeMini(content) + "</gradient>");
+                return Text.mm("<gradient:" + gradientStops(sec) + ">" + escapeMini(content) + "</gradient>");
             }
             if ("none".equals(type)) return message;
             String hex = sec.getString("hex", null);
@@ -234,6 +252,13 @@ public final class ChatFormatService implements Listener {
         return input.replace("<", "&lt;").replace(">", "&gt;");
     }
 
+    private String gradientStops(ConfigurationSection section) {
+        String from = section.getString("from", section.getString("hex", "#FFFFFF"));
+        String middle = section.getString("middle", "");
+        String to = section.getString("to", section.getString("hex", "#FFFFFF"));
+        return middle == null || middle.isBlank() ? from + ":" + to : from + ":" + middle + ":" + to;
+    }
+
     private String applyPlayerPlaceholders(Player player, String input) {
         if (input == null || input.isBlank()) return input;
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") == null) return input;
@@ -279,9 +304,7 @@ public final class ChatFormatService implements Listener {
         if (content.isBlank()) return component;
         try {
             if ("gradient".equals(type)) {
-                String from = sec.getString("from", sec.getString("hex", "#FFFFFF"));
-                String to = sec.getString("to", sec.getString("hex", "#FFFFFF"));
-                return Text.mm("<gradient:" + from + ":" + to + ">" + escapeMini(content) + "</gradient>");
+                return Text.mm("<gradient:" + gradientStops(sec) + ">" + escapeMini(content) + "</gradient>");
             }
             if ("none".equals(type)) return component;
             String hex = sec.getString("hex", null);

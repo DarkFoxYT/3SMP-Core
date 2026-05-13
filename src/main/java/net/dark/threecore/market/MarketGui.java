@@ -22,10 +22,10 @@ public final class MarketGui {
     public Inventory build(Player player) {
         Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.MARKET_MAIN, "main"), 27, "3SMP Market");
         fill(inv);
-        inv.setItem(11, button(Material.COMPASS, "<gradient:#1A2A4A:#f59e0b>Teleport to Plot</gradient>", List.of("<gray>Go to your owned plot.</gray>")));
-        inv.setItem(13, button(Material.CHEST, "<gradient:#1A2A4A:#f59e0b>Manage Plot</gradient>", List.of("<gray>View plot info.</gray>")));
-        inv.setItem(15, button(Material.EMERALD, "<gradient:#1A2A4A:#f59e0b>Pay Rent</gradient>", List.of("<gray>Pay rent for your plot.</gray>")));
-        inv.setItem(22, button(Material.NAME_TAG, "<gradient:#1A2A4A:#f59e0b>Trust Players</gradient>", List.of("<gray>Trust editing comes from commands for now.</gray>")));
+        inv.setItem(11, button(Material.COMPASS, "<gradient:#f4cd2a:#eda323:#d28d0d>Teleport to Plot</gradient>", List.of("<gray>Go to your owned plot.</gray>")));
+        inv.setItem(13, button(Material.CHEST, "<gradient:#f4cd2a:#eda323:#d28d0d>Manage Plot</gradient>", List.of("<gray>View plot info.</gray>")));
+        inv.setItem(15, button(Material.EMERALD, "<gradient:#f4cd2a:#eda323:#d28d0d>Pay Rent</gradient>", List.of("<gray>Pay rent for your plot.</gray>")));
+        inv.setItem(22, button(Material.NAME_TAG, "<gradient:#f4cd2a:#eda323:#d28d0d>Trust Players</gradient>", List.of("<gray>Trust editing comes from commands for now.</gray>")));
         return inv;
     }
 

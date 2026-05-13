@@ -16,7 +16,7 @@ kits:
     armor: [DIAMOND_BOOTS, DIAMOND_LEGGINGS, DIAMOND_CHESTPLATE, DIAMOND_HELMET]
     offhand: [SHIELD]
   axe:
-    display-name: "<gradient:#ef4444:#f59e0b>Axe PvP</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Axe PvP</gradient>"
     icon: DIAMOND_AXE
     permission: ""
     slot: 12
@@ -39,8 +39,8 @@ kits:
     auto-potions: []
     rounds: 1
     health-indicator: false
-    lore: ["<gray>Netherite sword, pearls, pots, and totem pressure.</gray>"]
-    contents: [NETHERITE_SWORD, ENDER_PEARL, ENDER_PEARL, SPLASH_POTION, SPLASH_POTION, SPLASH_POTION, GOLDEN_CARROT, GOLDEN_CARROT]
+    lore: ["<gray>Netherite sword, pots, and totem pressure.</gray>"]
+    contents: [NETHERITE_SWORD, SPLASH_POTION, SPLASH_POTION, SPLASH_POTION, GOLDEN_CARROT, GOLDEN_CARROT]
     armor: [NETHERITE_BOOTS, NETHERITE_LEGGINGS, NETHERITE_CHESTPLATE, NETHERITE_HELMET]
     offhand: [TOTEM_OF_UNDYING]
   smp:
@@ -58,7 +58,7 @@ kits:
     armor: [DIAMOND_BOOTS, DIAMOND_LEGGINGS, DIAMOND_CHESTPLATE, DIAMOND_HELMET]
     offhand: [SHIELD]
   uhc:
-    display-name: "<gradient:#fb7185:#f59e0b>UHC</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>UHC</gradient>"
     icon: GOLDEN_APPLE
     permission: ""
     slot: 28

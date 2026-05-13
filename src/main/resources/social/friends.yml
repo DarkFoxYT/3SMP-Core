@@ -7,113 +7,389 @@ friends:
   tab:
     sneak-cycle-enabled: true
     tab-plugin-compatible: true
+    legacy-visuals-enabled: false
     visuals:
       enabled: true
       override-tab-plugin: true
       force-over-tab-plugin: true
       refresh-ticks: 20
-    # Shadows are applied by code. Use #RRGGBB:alpha.
-    shadow: "#000000:0.55"
-    # Keep defaults solid royal blue/gold. {grad:id} is still supported if you want it later.
+      shadows:
+        enabled: true
+        default: "#020617:0.70"
+        scoreboard: "#020617:0.80"
+        tab: "#020617:0.70"
+        nametag: "#020617:0.75"
+        ranks:
+          owner: "#332000:0.95"
+          dev: "#001a33:0.90"
+          admin: "#280000:0.90"
+          ultra: "#2a1600:0.90"
+          mvp: "#001a33:0.85"
+          vip: "#001525:0.80"
+          default: "#020617:0.70"
+      images:
+        enabled: true
+        strip-missing: false
+        placeholders:
+          server_logo: "%img_server_logo%"
+          owner: "%img_owner%"
+          dev: "%img_dev%"
+          admin: "%img_admin%"
+          sr_admin: "%img_sr_admin%"
+          mod: "%img_mod%"
+          builder: "%img_builder%"
+          sr_mod: "%img_sr_mod%"
+          jr_mod: "%img_jr_mod%"
+          pro: "%img_pro%"
+          mvp: "%img_mvp%"
+          elite: "%img_elite%"
+          ultra: "%img_ultra%"
+          vip: "%img_vip%"
+          patron: "%img_patron%"
+          3smp: "%img_3smp%"
+          solo_text: "%img_solo_text%"
+    world-display-names:
+      world: "Survival"
+      world_nether: "Nether"
+      world_the_end: "The End"
+      duels: "Duels"
+      dungeons: "Dungeons"
     header:
       - ""
       - "%img_server_logo%"
       - ""
-      - ""
-      - ""
-      - "&#4169e1&lPLAY.3smp.NET"
-      - "&#f5b82ePlaying on &#4169e1&l3SMP"
+      - "{grad:royal_gold}&lPLAY.3SMP.NET{/grad}"
+      - "{grad:soft}Survival • Duels • Dungeons{/grad}"
+      - "{grad:soft_gold}Crates - Sapphires - Parties{/grad}"
       - ""
     footer:
       - ""
-      - "&#f5b82ePlayers: &#4169e1%online%"
-      - "&#f5b82eFriends: &#4169e1%3smpcore_friends_list%"
-      - "&#f5b82eVote: &#4169e1/vote"
-      - "&#f5b82eStore: &#4169e1/store"
+      - "{grad:soft}Online {/grad}{grad:gold}%online%{/grad}{grad:soft} players{/grad}"
+      - "{grad:soft}Friends {/grad}{grad:royal}%3smpcore_friends_list%{/grad}"
       - ""
-      - "&#4169e1Thanks for playing on &#f5b82e3SMP"
+      - "{grad:gold}/vote{/grad} {grad:soft}to support us{/grad}   {grad:royal}/store{/grad}"
       - ""
-    player-format: "<rank_image> <rank_name> <tab_tag>"
-    nametag-prefix: "<rank_image> <tab_prefix> "
+      - "{grad:royal_gold}&lThanks for playing 3SMP{/grad}"
+      - ""
+    player-format: "<rank_image> {grad:rank}<player>{/grad} <tab_tag>"
+    nametag-prefix: "<rank_image> "
     nametag-suffix: " <tab_tag>"
-    nametag-display: "<rank_image> <rank_name>"
+    nametag-display: "<rank_image> {grad:rank}<player>{/grad}"
     gradients:
-      default: "#1d4ed8:#38bdf8"
-      server: "#1d4ed8:#38bdf8"
-      soft: "#2563eb:#7dd3fc"
-      gold: "#f59e0b:#fde68a"
-      vote: "#f59e0b:#fde68a"
-      store: "#f59e0b:#fde68a"
-      owner: "#2563eb:#93c5fd"
-      admin: "#f59e0b:#fde68a"
-      dev: "#1d4ed8:#38bdf8"
-      ultra: "#f59e0b:#fde68a"
-      mvp: "#2563eb:#7dd3fc"
-      3smp: "#1d4ed8:#38bdf8"
+      default: "#f4cd2a:#eda323:#d28d0d"
+      soft: "#ffffff:#fff7ad"
+      blue_soft: "#f4cd2a:#eda323:#d28d0d"
+      royal: "#f4cd2a:#eda323:#d28d0d"
+      gold: "#f4cd2a:#eda323:#d28d0d"
+      royal_gold: "#f4cd2a:#eda323:#d28d0d"
+      owner: "#f4cd2a:#eda323:#d28d0d"
+      admin: "#f4cd2a:#eda323:#d28d0d"
+      dev: "#f4cd2a:#eda323:#d28d0d"
+      ultra: "#f4cd2a:#eda323:#d28d0d"
+      mvp: "#f4cd2a:#eda323:#d28d0d"
+      vip: "#f4cd2a:#eda323:#d28d0d"
+      member: "#e2e8f0:#94a3b8"
+      3smp: "#f4cd2a:#eda323:#d28d0d"
+    duels:
+      team-one-gradient: "#ef4444:#fca5a5"
+      team-two-gradient: "#2563eb:#93c5fd"
+    chat:
+      message-color: "#fff7ad"
     ranks:
       default:
         image: ""
-        shadow: "#000000:0.65"
-        name-format: "&#4169e1<player>"
+        prefix: ""
+        tab-prefix: ""
+        gradient: "default"
+        sort-weight: 999
       owner:
-        image: "%img_owner%"
-        shadow: "#001525:0.9"
-        name-format: "&#4169e1&l<player>"
-      admin:
-        image: "%img_admin%"
-        shadow: "#250000:0.85"
-        name-format: "&#f5b82e&l<player>"
+        image: "<img:owner>"
+        prefix: ""
+        tab-prefix: ""
+        gradient: "owner"
+        sort-weight: 1
       dev:
-        image: "%img_dev%"
-        shadow: "#11002a:0.9"
-        name-format: "&#4169e1<player>"
+        image: "<img:dev>"
+        prefix: ""
+        tab-prefix: ""
+        gradient: "dev"
+        sort-weight: 2
+      admin:
+        image: "<img:admin>"
+        prefix: ""
+        tab-prefix: ""
+        gradient: "admin"
+        sort-weight: 3
       ultra:
-        image: "%img_ultra%"
-        shadow: "#2a1600:0.85"
-        name-format: "&#f5b82e<player>"
+        image: "<img:ultra>"
+        prefix: ""
+        tab-prefix: ""
+        gradient: "ultra"
+        sort-weight: 10
       mvp:
-        image: "%img_mvp%"
-        shadow: "#16002a:0.85"
-        name-format: "&#4169e1<player>"
-      3smp:
-        image: "%img_3smp%"
-        shadow: "#001f1f:0.85"
-        name-format: "&#4169e1<player>"
-    rank-dots:
-      owner: ""
-      admin: ""
-      ultra: ""
-      mvp: ""
-      3smp: ""
-      vip: ""
-      member: ""
-    placeholders:
-      mode: "%3smpcore_tab_mode%"
-      title: "%3smpcore_tab_title%"
-      members: "%3smpcore_tab_members%"
-    modes:
-      - global
-      - party
-      - dungeon
+        image: "<img:mvp>"
+        prefix: ""
+        tab-prefix: ""
+        gradient: "mvp"
+        sort-weight: 20
+      vip:
+        image: "<img:vip>"
+        prefix: ""
+        tab-prefix: ""
+        gradient: "vip"
+        sort-weight: 30
+      member:
+        image: ""
+        prefix: ""
+        tab-prefix: ""
+        gradient: "member"
+        sort-weight: 100
+      sr-admin:
+        image: "<img:sr_admin>"
+        prefix: ""
+        tab-prefix: ""
+        gradient: "admin"
+        sort-weight: 4
+      mod:
+        image: "<img:mod>"
+        prefix: ""
+        tab-prefix: ""
+        gradient: "mvp"
+        sort-weight: 5
+      sr-mod:
+        image: "<img:sr_mod>"
+        prefix: ""
+        tab-prefix: ""
+        gradient: "mvp"
+        sort-weight: 6
+      jr-mod:
+        image: "<img:jr_mod>"
+        prefix: ""
+        tab-prefix: ""
+        gradient: "mvp"
+        sort-weight: 7
+      builder:
+        image: "<img:builder>"
+        prefix: ""
+        tab-prefix: ""
+        gradient: "gold"
+        sort-weight: 8
+      patron:
+        image: "<img:patron>"
+        prefix: ""
+        tab-prefix: ""
+        gradient: "ultra"
+        sort-weight: 15
+      elite:
+        image: "<img:elite>"
+        prefix: ""
+        tab-prefix: ""
+        gradient: "mvp"
+        sort-weight: 25
+      pro:
+        image: "<img:pro>"
+        prefix: ""
+        tab-prefix: ""
+        gradient: "vip"
+        sort-weight: 35
+    sorting:
+      enabled: true
+      order:
+        - owner
+        - dev
+        - admin
+        - sr-mod
+        - mod
+        - ultra
+        - mvp
+        - vip
+        - member
+        - default
   scoreboards:
     enabled: true
+    refresh-ticks: 20
+    hide-line-numbers: true
+    center:
+      enabled: true
+      title: true
+      width: 28
+      image-widths:
+        server_logo: 10
+        owner: 4
+        dev: 4
+        admin: 4
+        sr_admin: 4
+        mod: 4
+        builder: 4
+        sr_mod: 4
+        jr_mod: 4
+        pro: 4
+        mvp: 4
+        elite: 4
+        ultra: 4
+        vip: 4
+        patron: 4
+        3smp: 4
+        solo_text: 28
     active: default
     boards:
       default:
-        title: "&#4169e1&l3&#f5b82e&lSMP"
+        title: "<img:solo_text>"
         lines:
-          - "&#1b2d5c&m-----------"
-          - "&#f5b82e&lNAME"
-          - "&#4169e1%player_name%"
-          - "&#f5b82e&lRANK"
-          - "&#4169e1%vault_prefix%"
-          - "&#f5b82e&lWORLD"
-          - "&#4169e1%world%"
-          - "&#f5b82e&lMONEY"
-          - "&#4169e1%smpcore_money_formatted%"
-          - "&#f5b82e&lSAPPHIRES"
-          - "&#4169e1%smpcore_sapphires%"
-          - "&#f5b82e&lPING"
-          - "&#4169e1%ping%ms"
-          - "&#1b2d5c&m-----------"
-          - "&#4169e1PLAY.&#f5b82e3smp.&#4169e1NET"
+          - "{grad:gold}&m--------------{/grad}"
+          - "{grad:gold}&lPLAYER{/grad}"
+          - "&#dbeafe%player_name%"
+          - ""
+          - "{grad:gold}&lRANK{/grad}"
+          - "{grad:gold}%3smpcore_scoreboard_rank%{/grad}"
+          - ""
+          - "{grad:gold}&lLOCATION{/grad}"
+          - "{grad:gold}%world%{/grad}"
+          - ""
+          - "{grad:gold}&lECONOMY{/grad}"
+          - "{grad:gold}$ %smpcore_money_formatted%{/grad}"
+          - "{grad:gold}* %smpcore_sapphires% Sapphires{/grad}"
+          - ""
+          - "{grad:gold}&lSERVER{/grad}"
+          - "{grad:gold}%online% online{/grad} &#64748b| {grad:gold}%ping%{/grad}"
+          - "{grad:gold}&m--------------{/grad}"
+          - "{grad:gold}PLAY.3SMP.NET{/grad}"
+visual-cosmetics:
+  enabled: true
+  allow-player-name-color-override: true
+  allow-player-prefix-override: true
+  allow-player-shadow-override: true
+  prefixes:
+    royal:
+      display-name: "Royal Prefix"
+      icon: "GOLD_INGOT"
+      text: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>ROYAL *</bold></gradient>"
+      permission: "3smpcore.visual.prefix.royal"
+    sapphire:
+      display-name: "Sapphire Prefix"
+      icon: "DIAMOND"
+      text: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>SAPPHIRE</bold></gradient>"
+      permission: "3smpcore.visual.prefix.sapphire"
+  name-colors:
+    royal_blue:
+      display-name: "Royal Blue"
+      icon: "LAPIS_LAZULI"
+      color: "#eda323"
+      permission: "3smpcore.visual.color.royal_blue"
+    gold:
+      display-name: "Gold"
+      icon: "GOLD_INGOT"
+      color: "#eda323"
+      permission: "3smpcore.visual.color.gold"
+    white:
+      display-name: "White"
+      icon: "WHITE_DYE"
+      color: "#ffffff"
+      permission: "3smpcore.visual.color.white"
+    amber:
+      display-name: "Amber"
+      icon: "ORANGE_DYE"
+      color: "#eda323"
+      permission: "3smpcore.visual.color.amber"
+    rose:
+      display-name: "Rose"
+      icon: "PINK_DYE"
+      color: "#fb7185"
+      permission: "3smpcore.visual.color.rose"
+    aqua:
+      display-name: "Aqua"
+      icon: "CYAN_DYE"
+      color: "#22d3ee"
+      permission: "3smpcore.visual.color.aqua"
+    emerald:
+      display-name: "Emerald"
+      icon: "EMERALD"
+      color: "#22c55e"
+      permission: "3smpcore.visual.color.emerald"
+    violet:
+      display-name: "Violet"
+      icon: "PURPLE_DYE"
+      color: "#a78bfa"
+      permission: "3smpcore.visual.color.violet"
+    ruby:
+      display-name: "Ruby"
+      icon: "RED_DYE"
+      color: "#ef4444"
+      permission: "3smpcore.visual.color.ruby"
+    frost:
+      display-name: "Frost"
+      icon: "SNOWBALL"
+      color: "#e0f2fe"
+      permission: "3smpcore.visual.color.frost"
+    graphite:
+      display-name: "Graphite"
+      icon: "GRAY_DYE"
+      color: "#94a3b8"
+      permission: "3smpcore.visual.color.graphite"
+  name-gradients:
+    royal_gold:
+      display-name: "Royal Gold"
+      icon: "NETHER_STAR"
+      gradient: "#f4cd2a:#eda323:#d28d0d"
+      permission: "3smpcore.visual.gradient.royal_gold"
+    soft_gold:
+      display-name: "Soft Gold"
+      icon: "AMETHYST_SHARD"
+      gradient: "#f4cd2a:#eda323:#d28d0d"
+      permission: "3smpcore.visual.gradient.soft_gold"
+    sapphire:
+      display-name: "Sapphire"
+      icon: "DIAMOND"
+      gradient: "#1d4ed8:#3b82f6:#93c5fd"
+      permission: "3smpcore.visual.gradient.sapphire"
+    ruby:
+      display-name: "Ruby"
+      icon: "REDSTONE"
+      gradient: "#7f1d1d:#dc2626:#fca5a5"
+      permission: "3smpcore.visual.gradient.ruby"
+    aurora:
+      display-name: "Aurora"
+      icon: "PRISMARINE_CRYSTALS"
+      gradient: "#22c55e:#06b6d4:#3b82f6"
+      permission: "3smpcore.visual.gradient.aurora"
+    cotton_candy:
+      display-name: "Cotton Candy"
+      icon: "PINK_DYE"
+      gradient: "#f9a8d4:#c4b5fd:#93c5fd"
+      permission: "3smpcore.visual.gradient.cotton_candy"
+    frostbite:
+      display-name: "Frostbite"
+      icon: "PACKED_ICE"
+      gradient: "#f8fafc:#a5f3fc:#38bdf8"
+      permission: "3smpcore.visual.gradient.frostbite"
+    emerald:
+      display-name: "Emerald"
+      icon: "EMERALD"
+      gradient: "#064e3b:#10b981:#86efac"
+      permission: "3smpcore.visual.gradient.emerald"
+    sunset:
+      display-name: "Sunset"
+      icon: "ORANGE_DYE"
+      gradient: "#f4cd2a:#eda323:#d28d0d"
+      permission: "3smpcore.visual.gradient.sunset"
+    galaxy:
+      display-name: "Galaxy"
+      icon: "ENDER_EYE"
+      gradient: "#4c1d95:#2563eb:#ec4899"
+      permission: "3smpcore.visual.gradient.galaxy"
+    toxic:
+      display-name: "Toxic"
+      icon: "SLIME_BALL"
+      gradient: "#84cc16:#a3e635:#d9f99d"
+      permission: "3smpcore.visual.gradient.toxic"
+    crimson_gold:
+      display-name: "Crimson Gold"
+      icon: "REDSTONE"
+      gradient: "#f4cd2a:#eda323:#d28d0d"
+      permission: "3smpcore.visual.gradient.crimson_gold"
+  shadows:
+    royal:
+      display-name: "Royal Shadow"
+      icon: "ECHO_SHARD"
+      shadow: "#020617:0.75"
+      permission: "3smpcore.visual.shadow.royal"

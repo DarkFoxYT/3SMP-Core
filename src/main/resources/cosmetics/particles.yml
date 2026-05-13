@@ -16,7 +16,7 @@ particles:
     lore:
       - "<gray>Light sparkles around you.</gray>"
   ember:
-    display-name: "<gradient:#f59e0b:#f97316>Ember Trail</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Ember Trail</gradient>"
     type: FLAME
     icon: BLAZE_POWDER
     permission: "3smpcore.perk.particle.ember"

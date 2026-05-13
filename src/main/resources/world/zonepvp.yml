@@ -24,10 +24,15 @@ upgrade:
   money-reward: 100.0
   order: [boots, leggings, chestplate, helmet, sword]
   final-streak: 50
+  netherite-at-kills: 100
+  enchant-interval-kills: 10
+  max-enchant-level: 5
 rewards:
   per-kill:
     arrow: 1
     golden-apple: 1
+particles:
+  interval-ticks: 10
 kits:
   iron:
     armor: [IRON_BOOTS, IRON_LEGGINGS, IRON_CHESTPLATE, IRON_HELMET]

@@ -10,7 +10,7 @@ zone:
   import-to-multiverse: true
 
 messages:
-  entering: "<gradient:#1A2A4A:#D6E8F7>Entered AFK zone.</gradient>"
+  entering: "<gradient:#f4cd2a:#eda323:#d28d0d>Entered AFK zone.</gradient>"
   afk: "<yellow>You are now AFK.</yellow>"
   reward: "<green>AFK reward received.</green>"
   leaving: "<gray>You left the AFK zone.</gray>"

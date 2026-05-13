@@ -161,6 +161,7 @@ public final class PlayerDataRepository {
             deleteWhere("DELETE FROM player_fishing_stats WHERE uuid = ?", uuid);
             deleteWhere("DELETE FROM player_souls WHERE uuid = ?", uuid);
             deleteWhere("DELETE FROM player_inventory_profiles WHERE uuid = ?", uuid);
+            deleteWhere("DELETE FROM player_duel_kit_stats WHERE uuid = ?", uuid);
             deleteWhere("DELETE FROM market_plot_trust WHERE player_uuid = ?", uuid);
             deleteWhere("DELETE FROM market_plots WHERE owner = ?", uuid);
         } catch (SQLException e) {
@@ -197,6 +198,43 @@ public final class PlayerDataRepository {
         }
     }
 
+    public DuelKitStats loadDuelKitStats(UUID uuid, String kitId, int defaultMmr) {
+        String normalizedKit = normalizeKit(kitId);
+        try (PreparedStatement ps = database.connection().prepareStatement("SELECT wins, losses, ranked_wins, ranked_losses, current_streak, best_streak, mmr FROM player_duel_kit_stats WHERE uuid = ? AND kit_id = ?")) {
+            ps.setString(1, uuid.toString());
+            ps.setString(2, normalizedKit);
+            try (ResultSet rs = ps.executeQuery()) {
+                if (rs.next()) {
+                    return new DuelKitStats(uuid, normalizedKit, rs.getInt(1), rs.getInt(2), rs.getInt(3), rs.getInt(4), rs.getInt(5), rs.getInt(6), rs.getInt(7));
+                }
+            }
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to load duel kit stats", e);
+        }
+        return new DuelKitStats(uuid, normalizedKit, 0, 0, 0, 0, 0, 0, Math.max(0, defaultMmr));
+    }
+
+    public void saveDuelKitStats(DuelKitStats stats) {
+        try (PreparedStatement ps = database.connection().prepareStatement("INSERT INTO player_duel_kit_stats(uuid, kit_id, wins, losses, ranked_wins, ranked_losses, current_streak, best_streak, mmr) VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(uuid, kit_id) DO UPDATE SET wins = excluded.wins, losses = excluded.losses, ranked_wins = excluded.ranked_wins, ranked_losses = excluded.ranked_losses, current_streak = excluded.current_streak, best_streak = excluded.best_streak, mmr = excluded.mmr")) {
+            ps.setString(1, stats.uuid().toString());
+            ps.setString(2, normalizeKit(stats.kitId()));
+            ps.setInt(3, Math.max(0, stats.wins()));
+            ps.setInt(4, Math.max(0, stats.losses()));
+            ps.setInt(5, Math.max(0, stats.rankedWins()));
+            ps.setInt(6, Math.max(0, stats.rankedLosses()));
+            ps.setInt(7, Math.max(0, stats.currentStreak()));
+            ps.setInt(8, Math.max(0, stats.bestStreak()));
+            ps.setInt(9, Math.max(0, stats.mmr()));
+            ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to save duel kit stats", e);
+        }
+    }
+
+    private String normalizeKit(String kitId) {
+        return kitId == null || kitId.isBlank() ? "default" : kitId.toLowerCase(java.util.Locale.ROOT);
+    }
+
     private void parseInto(PlayerProgressionData data, String text) {
         if (text == null || text.isBlank()) return;
         Map<String, String> values = new HashMap<>();
@@ -215,6 +253,7 @@ public final class PlayerDataRepository {
         data.activeCosmetic(values.getOrDefault("activeCosmetic", ""));
         data.activeParticle(values.getOrDefault("activeParticle", ""));
         data.activeEffect(values.getOrDefault("activeEffect", ""));
+        data.activeJoinQuitMessage(values.getOrDefault("activeJoinQuitMessage", ""));
         data.duelRating(parseInt(values.getOrDefault("duelRating", "0")));
         data.duelWins(parseInt(values.getOrDefault("duelWins", "0")));
         data.duelLosses(parseInt(values.getOrDefault("duelLosses", "0")));
@@ -234,6 +273,7 @@ public final class PlayerDataRepository {
                 + ";activeCosmetic=" + clean(data.activeCosmetic())
                 + ";activeParticle=" + clean(data.activeParticle())
                 + ";activeEffect=" + clean(data.activeEffect())
+                + ";activeJoinQuitMessage=" + clean(data.activeJoinQuitMessage())
                 + ";duelRating=" + data.duelRating()
                 + ";duelWins=" + data.duelWins()
                 + ";duelLosses=" + data.duelLosses()
@@ -278,4 +318,15 @@ public final class PlayerDataRepository {
     }
 
     public record InventoryProfile(ItemStack[] contents, ItemStack[] armor, ItemStack offhand) {}
+    public record DuelKitStats(UUID uuid, String kitId, int wins, int losses, int rankedWins, int rankedLosses, int currentStreak, int bestStreak, int mmr) {
+        public DuelKitStats recordResult(boolean win, boolean ranked, int newMmr) {
+            int nextWins = wins + (win ? 1 : 0);
+            int nextLosses = losses + (win ? 0 : 1);
+            int nextRankedWins = rankedWins + (ranked && win ? 1 : 0);
+            int nextRankedLosses = rankedLosses + (ranked && !win ? 1 : 0);
+            int nextStreak = win ? currentStreak + 1 : 0;
+            int nextBest = Math.max(bestStreak, nextStreak);
+            return new DuelKitStats(uuid, kitId, nextWins, nextLosses, nextRankedWins, nextRankedLosses, nextStreak, nextBest, Math.max(0, newMmr));
+        }
+    }
 }

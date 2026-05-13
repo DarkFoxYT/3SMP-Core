@@ -30,10 +30,15 @@ public final class DuelGuiManager {
                 "<gray>Current kit:</gray> <white>" + service.queueKitName(player.getUniqueId()) + "</white>",
                 "<gray>Click to choose a kit and queue.</gray>"
         )));
-        inv.setItem(16, button("menus.duel.items.party", Material.PLAYER_HEAD, "<gradient:#f59e0b:#f97316>Party Duels</gradient>", List.of(
-                "<gray>Queue your party for 2v2.</gray>",
+        inv.setItem(16, button("menus.duel.items.party", Material.PLAYER_HEAD, "<gradient:#f4cd2a:#eda323:#d28d0d>Party Duels</gradient>", List.of(
+                "<gray>Queue your party or configure party FFA.</gray>",
                 "<gray>Current mode:</gray> <white>" + service.queueModeName(player.getUniqueId()) + "</white>",
-                "<gray>Current kit:</gray> <white>" + service.queueKitName(player.getUniqueId()) + "</white>"
+                "<gray>Current kit:</gray> <white>" + service.queueKitName(player.getUniqueId()) + "</white>",
+                "<gray>Click to choose a kit and queue.</gray>"
+        )));
+        inv.setItem(22, button("menus.duel.items.leave", Material.BARRIER, "<red>Leave Queue</red>", List.of(
+                "<gray>Current:</gray> <white>" + service.queueSummary(player.getUniqueId()) + "</white>",
+                "<gray>Click to leave your current queue.</gray>"
         )));
         return inv;
     }
@@ -45,8 +50,12 @@ public final class DuelGuiManager {
         int index = 0;
         for (DuelKit kit : service.kits()) {
             if (!kit.enabled()) continue;
-            if (index >= slots.length) break;
-            inv.setItem(slots[index++], button("menus.duel.items.kit", kit.icon(), kit.displayName(), kitSelectorLore(kit)));
+            int slot = kit.slot();
+            if (slot < 0 || slot >= inv.getSize() || slot == 49 || inv.getItem(slot) != null && inv.getItem(slot).getType() != Material.BLACK_STAINED_GLASS_PANE) {
+                if (index >= slots.length) break;
+                slot = slots[index++];
+            }
+            inv.setItem(slot, button("menus.duel.items.kit", kit.icon(), kit.displayName(), kitSelectorLore(kit)));
         }
         inv.setItem(49, button("menus.duel.items.back", Material.ARROW, "<gray>Back</gray>", List.of("<gray>Return to duel menu.</gray>")));
         return inv;

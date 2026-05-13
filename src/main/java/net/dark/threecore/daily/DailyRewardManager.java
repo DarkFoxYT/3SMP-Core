@@ -184,7 +184,7 @@ public final class DailyRewardManager {
     public ItemStack bonusCard(String kind) {
         RewardDefinition reward = "weekly".equalsIgnoreCase(kind) ? weeklyBonus : monthlyBonus;
         Material material = "weekly".equalsIgnoreCase(kind) ? Material.SUNFLOWER : Material.NETHER_STAR;
-        String title = "weekly".equalsIgnoreCase(kind) ? "<gradient:#60a5fa:#c084fc>Weekly Bonus</gradient>" : "<gradient:#f59e0b:#fb7185>Monthly Bonus</gradient>";
+        String title = "weekly".equalsIgnoreCase(kind) ? "<gradient:#60a5fa:#c084fc>Weekly Bonus</gradient>" : "<gradient:#f4cd2a:#eda323:#d28d0d>Monthly Bonus</gradient>";
         ItemStack item = reward == null ? new ItemStack(material) : createItem(reward, 0);
         ItemMeta meta = item.getItemMeta();
         meta.displayName(Text.mm(title));

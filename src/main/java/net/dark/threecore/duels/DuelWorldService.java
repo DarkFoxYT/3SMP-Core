@@ -4,6 +4,7 @@ import net.dark.threecore.config.ConfigFiles;
 import net.dark.threecore.duels.model.DuelMap;
 import org.bukkit.Bukkit;
 import org.bukkit.Chunk;
+import org.bukkit.Difficulty;
 import org.bukkit.GameRule;
 import org.bukkit.Location;
 import org.bukkit.World;
@@ -16,7 +17,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Set;
 import java.util.UUID;
 import java.util.function.Consumer;
@@ -26,6 +30,7 @@ import java.util.regex.Pattern;
 public final class DuelWorldService {
     private static final Set<String> SKIP = Set.of("uid.dat", "session.lock");
     private static final Pattern REGION_FILE = Pattern.compile("r\\.(-?\\d+)\\.(-?\\d+)\\.mca");
+    private static final Pattern PUBLISHED_ARENA = Pattern.compile("([a-z0-9_-]+)_arena_(\\d+)");
     private final JavaPlugin plugin;
     private final ConfigFiles configs;
 
@@ -55,6 +60,58 @@ public final class DuelWorldService {
             }
         } catch (IOException ignored) {
         }
+        cleanupOldPublishedArenaWorlds();
+    }
+
+    private void cleanupOldPublishedArenaWorlds() {
+        if (!configs.get("duels/duels.yml").getBoolean("duels.world-instances.cleanup-old-published-arenas", true)) return;
+        var section = configs.get("duels/maps.yml").getConfigurationSection("maps");
+        if (section == null) return;
+        Set<String> configuredWorlds = new HashSet<>();
+        Map<String, Integer> newestByMap = new HashMap<>();
+        for (String mapId : section.getKeys(false)) {
+            String world = section.getString(mapId + ".world", "");
+            if (world == null || world.isBlank()) continue;
+            configuredWorlds.add(world.toLowerCase(java.util.Locale.ROOT));
+            Matcher matcher = PUBLISHED_ARENA.matcher(world.toLowerCase(java.util.Locale.ROOT));
+            if (matcher.matches() && matcher.group(1).equalsIgnoreCase(mapId)) {
+                newestByMap.put(mapId.toLowerCase(java.util.Locale.ROOT), Integer.parseInt(matcher.group(2)));
+            }
+        }
+        if (newestByMap.isEmpty()) return;
+        Path container = Bukkit.getWorldContainer().toPath();
+        try (var paths = Files.list(container)) {
+            paths.filter(Files::isDirectory).forEach(path -> maybeDeleteOldPublishedArena(path, configuredWorlds, newestByMap));
+        } catch (IOException ex) {
+            plugin.getLogger().warning("Failed to scan old duel arena worlds: " + ex.getMessage());
+        }
+    }
+
+    private void maybeDeleteOldPublishedArena(Path path, Set<String> configuredWorlds, Map<String, Integer> newestByMap) {
+        String name = path.getFileName().toString();
+        String lower = name.toLowerCase(java.util.Locale.ROOT);
+        if (configuredWorlds.contains(lower)) return;
+        Matcher matcher = PUBLISHED_ARENA.matcher(lower);
+        if (!matcher.matches()) return;
+        Integer newest = newestByMap.get(matcher.group(1));
+        if (newest == null) return;
+        int version;
+        try {
+            version = Integer.parseInt(matcher.group(2));
+        } catch (NumberFormatException ex) {
+            return;
+        }
+        if (version >= newest) return;
+        World loaded = Bukkit.getWorld(name);
+        if (loaded != null) {
+            if (!loaded.getPlayers().isEmpty()) return;
+            unregisterFromMultiverse(loaded.getName());
+            Bukkit.unloadWorld(loaded, true);
+        } else {
+            unregisterFromMultiverse(name);
+        }
+        delete(path);
+        plugin.getLogger().info("Removed old unused duel arena world: " + name);
     }
 
     public World createEditorWorld(String mapId, World sourceWorld) {
@@ -144,7 +201,7 @@ public final class DuelWorldService {
             if (world == null) return new InstancedMap(source, null);
             prepareMatchWorld(world, "duels.world-instances");
             registerWithMultiverse(world);
-            DuelMap map = new DuelMap(source.id(), source.displayName(), source.enabled(), instanceName, translate(source.lobby(), world), translate(source.spawnA(), world), translate(source.spawnB(), world), translate(source.spectator(), world));
+            DuelMap map = new DuelMap(source.id(), source.displayName(), source.enabled(), instanceName, translate(source.lobby(), world), translate(source.spawnA(), world), translate(source.spawnB(), world), translate(source.ffaSpawn(), world), translate(source.spectator(), world), source.redGate() == null ? null : source.redGate().inWorld(world), source.blueGate() == null ? null : source.blueGate().inWorld(world), translate(source.redGateExit(), world), translate(source.blueGateExit(), world), source.redGateCloseZone() == null ? null : source.redGateCloseZone().inWorld(world), source.blueGateCloseZone() == null ? null : source.blueGateCloseZone().inWorld(world));
             preloadImportantChunks(world, map);
             return new InstancedMap(map, world);
         } catch (Exception ex) {
@@ -195,7 +252,7 @@ public final class DuelWorldService {
             }
             prepareMatchWorld(world, "duels.world-instances");
             registerWithMultiverse(world);
-            DuelMap map = new DuelMap(source.id(), source.displayName(), source.enabled(), instanceName, translate(source.lobby(), world), translate(source.spawnA(), world), translate(source.spawnB(), world), translate(source.spectator(), world));
+            DuelMap map = new DuelMap(source.id(), source.displayName(), source.enabled(), instanceName, translate(source.lobby(), world), translate(source.spawnA(), world), translate(source.spawnB(), world), translate(source.ffaSpawn(), world), translate(source.spectator(), world), source.redGate() == null ? null : source.redGate().inWorld(world), source.blueGate() == null ? null : source.blueGate().inWorld(world), translate(source.redGateExit(), world), translate(source.blueGateExit(), world), source.redGateCloseZone() == null ? null : source.redGateCloseZone().inWorld(world), source.blueGateCloseZone() == null ? null : source.blueGateCloseZone().inWorld(world));
             preloadImportantChunks(world, map);
             callback.accept(new InstancedMap(map, world));
         } catch (Exception ex) {
@@ -215,22 +272,54 @@ public final class DuelWorldService {
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> delete(Bukkit.getWorldContainer().toPath().resolve(name)));
     }
 
+    public void ensureCombatWorld(DuelMap map) {
+        if (map == null) return;
+        World world = map.spawnA() != null && map.spawnA().getWorld() != null ? map.spawnA().getWorld() : Bukkit.getWorld(map.worldName());
+        ensureCombatWorld(world);
+    }
+
+    public void ensureCombatWorld(World world) {
+        if (world == null) return;
+        applyWorldRules(world, "duels.world-instances");
+        world.setPVP(true);
+    }
+
     private void applyWorldRules(World world, String path) {
         if (world == null) return;
-        world.setTime(1000L);
+        world.setTime(configLong(path + ".locked-time", 6000L));
         world.setStorm(false);
         world.setThundering(false);
+        world.setDifficulty(Difficulty.NORMAL);
         if (configs.get("duels/duels.yml").getBoolean(path + ".disable-mob-spawning", true)) {
             setGameRule(world, "doMobSpawning", false);
             setGameRule(world, "doPatrolSpawning", false);
             setGameRule(world, "doTraderSpawning", false);
             setGameRule(world, "doWardenSpawning", false);
+            removeExistingMobs(world);
         }
         if (configs.get("duels/duels.yml").getBoolean(path + ".disable-weather", true)) {
             setGameRule(world, "doWeatherCycle", false);
         }
         if (configs.get("duels/duels.yml").getBoolean(path + ".force-daylight", true)) {
             setGameRule(world, "doDaylightCycle", false);
+        }
+        if (configs.get("duels/duels.yml").getBoolean(path + ".disable-random-ticks", true)) {
+            setGameRule(world, "randomTickSpeed", 0);
+        }
+        if (configs.get("duels/duels.yml").getBoolean(path + ".disable-fire-tick", true)) {
+            setGameRule(world, "doFireTick", false);
+        }
+        if (configs.get("duels/duels.yml").getBoolean(path + ".disable-mob-griefing", true)) {
+            setGameRule(world, "mobGriefing", false);
+        }
+        setGameRule(world, "doInsomnia", false);
+        setGameRule(world, "disableRaids", true);
+    }
+
+    private void removeExistingMobs(World world) {
+        for (org.bukkit.entity.Entity entity : world.getEntities()) {
+            if (entity instanceof Player || entity instanceof org.bukkit.entity.ArmorStand) continue;
+            if (entity instanceof org.bukkit.entity.LivingEntity) entity.remove();
         }
     }
 
@@ -366,6 +455,13 @@ public final class DuelWorldService {
         String nested = path.replace("duels.world-instances.", "duels.world-instances.multiverse.");
         return yaml.getInt(nested, fallback);
     }
+
+    private long configLong(String path, long fallback) {
+        var yaml = configs.get("duels/duels.yml");
+        if (yaml.contains(path)) return yaml.getLong(path, fallback);
+        String nested = path.replace("duels.world-instances.", "duels.world-instances.multiverse.");
+        return yaml.getLong(nested, fallback);
+    }
     private <T> void setGameRule(World world, String ruleName, T value) {
         @SuppressWarnings("unchecked")
         GameRule<T> rule = (GameRule<T>) org.bukkit.Registry.GAME_RULE.get(org.bukkit.NamespacedKey.minecraft(toSnakeCase(ruleName)));
@@ -390,10 +486,20 @@ public final class DuelWorldService {
                 }
                 boolean pvp = configs.get("duels/duels.yml").getBoolean("duels.world-instances.multiverse.pvp", true);
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mv modify " + world.getName() + " set pvp " + pvp);
+                applyWorldRules(world, rulesPath(world.getName()));
+                world.setPVP(true);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    applyWorldRules(world, rulesPath(world.getName()));
+                    world.setPVP(true);
+                }, 40L);
             } catch (Exception ex) {
                 logMultiverseFailure("Failed to register duel world with Multiverse: " + ex.getMessage());
             }
         });
+    }
+
+    private String rulesPath(String worldName) {
+        return worldName != null && worldName.toLowerCase(java.util.Locale.ROOT).endsWith("_arena_edit") ? "duels.editor-worlds" : "duels.world-instances";
     }
 
     private String arenaLiveName(String mapId) {

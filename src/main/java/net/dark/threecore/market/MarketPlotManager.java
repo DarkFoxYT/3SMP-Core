@@ -140,12 +140,12 @@ public final class MarketPlotManager {
     public Inventory buildMenu(Player player) {
         Inventory inv = Bukkit.createInventory(new net.dark.threecore.gui.menu.CoreMenuHolder(net.dark.threecore.gui.menu.CoreMenuType.MARKET_MAIN, "market"), 27, title());
         fill(inv);
-        inv.setItem(11, button(Material.COMPASS, "<gradient:#1A2A4A:#f59e0b>Teleport to Plot</gradient>", List.of("<gray>Go to a market plot you own.</gray>")));
-        inv.setItem(13, button(Material.CHEST, "<gradient:#1A2A4A:#f59e0b>Manage Plot</gradient>", List.of("<gray>Change plot details.</gray>", "<gray>Open the market settings panel.</gray>")));
-        inv.setItem(15, button(Material.EMERALD, "<gradient:#1A2A4A:#f59e0b>Pay Rent</gradient>", List.of("<gray>Pay your weekly rent.</gray>")));
-        inv.setItem(19, button(Material.PAPER, "<gradient:#1A2A4A:#f59e0b>Plot Info</gradient>", List.of("<gray>Price, rent, owner, and access.</gray>")));
-        inv.setItem(22, button(Material.PLAYER_HEAD, "<gradient:#1A2A4A:#f59e0b>Trusted Players</gradient>", List.of("<gray>Add or remove trusted players.</gray>")));
-        inv.setItem(25, button(Material.REDSTONE, "<gradient:#1A2A4A:#f59e0b>Plot Settings</gradient>", List.of("<gray>Manage plot configuration.</gray>")));
+        inv.setItem(11, button(Material.COMPASS, "<gradient:#f4cd2a:#eda323:#d28d0d>Teleport to Plot</gradient>", List.of("<gray>Go to a market plot you own.</gray>")));
+        inv.setItem(13, button(Material.CHEST, "<gradient:#f4cd2a:#eda323:#d28d0d>Manage Plot</gradient>", List.of("<gray>Change plot details.</gray>", "<gray>Open the market settings panel.</gray>")));
+        inv.setItem(15, button(Material.EMERALD, "<gradient:#f4cd2a:#eda323:#d28d0d>Pay Rent</gradient>", List.of("<gray>Pay your weekly rent.</gray>")));
+        inv.setItem(19, button(Material.PAPER, "<gradient:#f4cd2a:#eda323:#d28d0d>Plot Info</gradient>", List.of("<gray>Price, rent, owner, and access.</gray>")));
+        inv.setItem(22, button(Material.PLAYER_HEAD, "<gradient:#f4cd2a:#eda323:#d28d0d>Trusted Players</gradient>", List.of("<gray>Add or remove trusted players.</gray>")));
+        inv.setItem(25, button(Material.REDSTONE, "<gradient:#f4cd2a:#eda323:#d28d0d>Plot Settings</gradient>", List.of("<gray>Manage plot configuration.</gray>")));
         return inv;
     }
 
@@ -264,7 +264,7 @@ public final class MarketPlotManager {
     private void showPlotInfo(Player player) {
         MarketPlot owned = ownedPlot(player.getUniqueId());
         if (owned == null) { Text.send(player, "<red>You do not own a plot.</red>"); return; }
-        Text.send(player, "<gradient:#1A2A4A:#f59e0b><bold>Market Plot Info</bold></gradient>");
+        Text.send(player, "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Market Plot Info</bold></gradient>");
         Text.send(player, "<gray>Name:</gray> <white>" + owned.name() + "</white>");
         Text.send(player, "<gray>Price:</gray> <white>" + moneyService.format(owned.price()) + "</white>");
         Text.send(player, "<gray>Rent:</gray> <white>" + moneyService.format(owned.rent()) + "</white>");
@@ -294,5 +294,5 @@ public final class MarketPlotManager {
     private void fill(Inventory inv) { ItemStack pane = new ItemStack(Material.GRAY_STAINED_GLASS_PANE); ItemMeta meta = pane.getItemMeta(); meta.displayName(Text.mm(" ")); pane.setItemMeta(meta); for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, pane); }
     private String title() { return configs.get("menus/market.yml").getString("menu.title", "3SMP Market"); }
     private void save(YamlConfiguration yaml, String file) { try { yaml.save(new File(plugin.getDataFolder(), file)); } catch (Exception ignored) {} }
-    private ItemStack wand() { ItemStack stack = new ItemStack(Material.BLAZE_ROD); ItemMeta meta = stack.getItemMeta(); meta.displayName(Text.mm("<gradient:#1A2A4A:#f59e0b>Market Plot Wand</gradient>")); meta.lore(List.of(Text.mm("<gray>Left click for pos1, right click for pos2.</gray>"))); stack.setItemMeta(meta); return stack; }
+    private ItemStack wand() { ItemStack stack = new ItemStack(Material.BLAZE_ROD); ItemMeta meta = stack.getItemMeta(); meta.displayName(Text.mm("<gradient:#f4cd2a:#eda323:#d28d0d>Market Plot Wand</gradient>")); meta.lore(List.of(Text.mm("<gray>Left click for pos1, right click for pos2.</gray>"))); stack.setItemMeta(meta); return stack; }
 }

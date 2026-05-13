@@ -96,7 +96,7 @@ public final class MoneyService {
     }
 
     private void help(CommandSender sender) {
-        Text.send(sender, "<gradient:#1A2A4A:#f59e0b>Money Commands</gradient>");
+        Text.send(sender, "<gradient:#f4cd2a:#eda323:#d28d0d>Money Commands</gradient>");
         Text.send(sender, "<gray>/money balance [player], /bal, /pay <player> <amount>, /sell, /ah</gray>");
         if (sender.hasPermission("3smpcore.money.admin")) Text.send(sender, "<gray>/money give|remove|set|reset <player> [amount]</gray>");
     }

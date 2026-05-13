@@ -1,9 +1,9 @@
 menu:
   title: "3SMP Shop"
-  header: "<gradient:#1A2A4A:#f59e0b>3SMP Shop</gradient>"
+  header: "<gradient:#f4cd2a:#eda323:#d28d0d>3SMP Shop</gradient>"
 categories:
   blocks:
-    display-name: "<gradient:#D6E8F7:#FFFFFF>Blocks</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Blocks</gradient>"
     icon: BRICKS
     items:
       stone: { material: STONE, amount: 64, price: 25.0, display-name: "<white>Stone</white>" }
@@ -11,21 +11,21 @@ categories:
       glass: { material: GLASS, amount: 32, price: 35.0, display-name: "<white>Glass</white>" }
       dirt: { material: DIRT, amount: 64, price: 12.0, display-name: "<white>Dirt</white>" }
   food:
-    display-name: "<gradient:#f59e0b:#fbbf24>Food</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Food</gradient>"
     icon: COOKED_BEEF
     items:
-      steak: { material: COOKED_BEEF, amount: 16, price: 30.0, display-name: "<gold>Steak</gold>" }
-      carrots: { material: GOLDEN_CARROT, amount: 8, price: 45.0, display-name: "<gold>Golden Carrots</gold>" }
+      steak: { material: COOKED_BEEF, amount: 16, price: 30.0, display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Steak</gradient>" }
+      carrots: { material: GOLDEN_CARROT, amount: 8, price: 45.0, display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Golden Carrots</gradient>" }
       bread: { material: BREAD, amount: 16, price: 18.0, display-name: "<white>Bread</white>" }
   tools:
-    display-name: "<gradient:#60a5fa:#c084fc>Tools</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Tools</gradient>"
     icon: IRON_PICKAXE
     items:
       iron_pickaxe: { material: IRON_PICKAXE, amount: 1, price: 120.0, display-name: "<white>Iron Pickaxe</white>" }
       iron_axe: { material: IRON_AXE, amount: 1, price: 115.0, display-name: "<white>Iron Axe</white>" }
       shield: { material: SHIELD, amount: 1, price: 90.0, display-name: "<white>Shield</white>" }
   farming:
-    display-name: "<gradient:#34d399:#22c55e>Farming</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Farming</gradient>"
     icon: WHEAT
     items:
       wheat_seeds: { material: WHEAT_SEEDS, amount: 32, price: 20.0, display-name: "<green>Wheat Seeds</green>" }

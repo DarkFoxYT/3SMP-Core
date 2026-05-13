@@ -1,6 +1,6 @@
 trims:
   royal:
-    display-name: "<gradient:#f59e0b:#f97316>Royal Trim</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Royal Trim</gradient>"
     icon: AMETHYST_SHARD
     required-rank: "royal"
     required-permission: "3smpcore.perk.trim.royal"

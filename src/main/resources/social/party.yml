@@ -8,9 +8,12 @@ party:
   invites:
     timeout-seconds: 60
 
+  ui:
+    auto-refresh-ticks: 20
+
   item:
-    enabled: true
-    slot: 8
+    enabled: false
+    slot: 7
     material: LECTERN
     name: "<gradient:#34d399:#22c55e>Party Manager</gradient>"
     prevent-drop: true

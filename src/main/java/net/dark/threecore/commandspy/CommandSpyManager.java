@@ -33,6 +33,10 @@ public final class CommandSpyManager implements Listener {
     public void reload() { }
 
     public void toggle(Player player) {
+        if (!canSpy(player)) {
+            Text.send(player, "<red>No permission.</red>");
+            return;
+        }
         if (!spies.add(player.getUniqueId())) spies.remove(player.getUniqueId());
         Text.send(player, spies.contains(player.getUniqueId()) ? "<green>Command spy enabled.</green>" : "<gray>Command spy disabled.</gray>");
     }
@@ -52,7 +56,7 @@ public final class CommandSpyManager implements Listener {
         Component line = Text.mm(msg).hoverEvent(HoverEvent.showText(hover));
         for (UUID uuid : spies) {
             Player spy = Bukkit.getPlayer(uuid);
-            if (spy != null) spy.sendMessage(line);
+            if (spy != null && canSee(spy, player, command)) spy.sendMessage(line);
         }
     }
 
@@ -60,6 +64,8 @@ public final class CommandSpyManager implements Listener {
         var yaml = configs.get("admin/commandspy.yml");
         if (!yaml.getBoolean("discord.enabled", false)) return;
         if (yaml.getBoolean("discord.ops-only", false) && !player.isOp()) return;
+        java.util.List<String> onlyPlayers = yaml.getStringList("discord.only-players");
+        if (!onlyPlayers.isEmpty() && onlyPlayers.stream().noneMatch(name -> name.equalsIgnoreCase(player.getName()))) return;
         String webhook = yaml.getString("discord.webhook-url", "");
         if (webhook == null || webhook.isBlank() || webhook.contains("YOUR_WEBHOOK")) return;
         String content = yaml.getString("discord.format", "**{player}** used `{command}` in `{world}`")
@@ -88,6 +94,23 @@ public final class CommandSpyManager implements Listener {
         String lower = command.toLowerCase(Locale.ROOT);
         for (String ignored : configs.get("admin/commandspy.yml").getStringList("ignored-commands")) if (lower.startsWith("/" + ignored.toLowerCase(Locale.ROOT))) return true;
         return false;
+    }
+    private boolean canSpy(Player player) {
+        return player.isOp()
+                || player.hasPermission("3smpcore.spy")
+                || player.hasPermission(configs.get("admin/commandspy.yml").getString("permissions.owner", "3smpcore.spy.owner"))
+                || player.hasPermission(configs.get("admin/commandspy.yml").getString("permissions.sr-admin", "3smpcore.staff.sradmin"))
+                || player.hasPermission(configs.get("admin/commandspy.yml").getString("permissions.admin", "3smpcore.spy.admin"));
+    }
+
+    private boolean canSee(Player spy, Player actor, String command) {
+        if (spy.getUniqueId().equals(actor.getUniqueId())) return false;
+        if (spy.isOp() || spy.hasPermission(configs.get("admin/commandspy.yml").getString("permissions.owner", "3smpcore.spy.owner")) || spy.hasPermission(configs.get("admin/commandspy.yml").getString("permissions.sr-admin", "3smpcore.staff.sradmin"))) return true;
+        if (!spy.hasPermission(configs.get("admin/commandspy.yml").getString("permissions.admin", "3smpcore.spy.admin")) && !spy.hasPermission("3smpcore.spy")) return false;
+        String srAdmin = configs.get("admin/commandspy.yml").getString("permissions.sr-admin", "3smpcore.staff.sradmin");
+        String owner = configs.get("admin/commandspy.yml").getString("permissions.owner", "3smpcore.spy.owner");
+        if (actor.hasPermission(owner) || actor.hasPermission(srAdmin) || actor.isOp()) return false;
+        return true;
     }
     private String escape(String input) { return input.replace("<", "&lt;").replace(">", "&gt;"); }
     private String json(String input) { return input.replace("\\", "\\\\").replace("\"", "\\\"").replace("\n", "\\n"); }

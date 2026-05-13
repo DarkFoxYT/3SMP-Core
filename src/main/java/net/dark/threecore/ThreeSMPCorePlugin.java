@@ -19,6 +19,7 @@ import net.dark.threecore.particle.ParticleManager;
 import net.dark.threecore.rtp.RtpManager;
 import net.dark.threecore.warp.WarpManager;
 import net.dark.threecore.command.CoreCommandManager;
+import net.dark.threecore.command.CommandRestrictionService;
 import net.dark.threecore.command.CommandRegistrar;
 import net.dark.threecore.command.base.CommandContext;
 import net.dark.threecore.placeholder.SmpCoreExpansion;
@@ -31,6 +32,8 @@ import net.dark.threecore.daily.DailyRewardManager;
 import net.dark.threecore.dungeons.DungeonService;
 import net.dark.threecore.welcome.WelcomeService;
 import net.dark.threecore.joinqueue.JoinQueueService;
+import net.dark.threecore.essentials.BackLocationService;
+import net.dark.threecore.essentials.BackpackService;
 import net.dark.threecore.essentials.EssentialCommandService;
 import net.dark.threecore.duels.DuelService;
 import net.dark.threecore.gems.GemService;
@@ -45,6 +48,9 @@ import net.dark.threecore.license.LicenseManager;
 import net.dark.threecore.zonepvp.ZonePvpService;
 import net.dark.threecore.social.FriendService;
 import net.dark.threecore.social.SocialTabService;
+import net.dark.threecore.visual.VisualManager;
+import net.dark.threecore.screentext.ScreenTextManager;
+import net.dark.threecore.screentext.ScreenTextPlaceholderExpansion;
 import net.dark.threecore.market.MarketWorldManager;
 import net.dark.threecore.market.MarketStorage;
 import net.dark.threecore.market.MarketRentService;
@@ -108,6 +114,9 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
     private WelcomeService welcomeService;
     private JoinQueueService joinQueueService;
     private EssentialCommandService essentialCommandService;
+    private BackLocationService backLocationService;
+    private BackpackService backpackService;
+    private CommandRestrictionService commandRestrictionService;
     private DailyRewardManager dailyRewardManager;
     private LicenseManager licenseManager;
     private SoulManager soulManager;
@@ -122,6 +131,8 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
     private MessageService messageService;
     private GuiThemeService guiThemeService;
     private PlayerDataService playerDataService;
+    private VisualManager visualManager;
+    private ScreenTextManager screenTextManager;
 
     @Override
     public void onEnable() {
@@ -130,10 +141,11 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         this.licenseManager = new LicenseManager(this);
         licenseManager.ensureTemplate();
         if (!licenseManager.validate()) {
-            getLogger().severe("3SMPCore license validation failed. Create a valid license/license.yml before enabling gameplay systems.");
+            getLogger().severe("3SMPCore license validation failed. Gameplay systems will not be enabled.");
             getServer().getPluginManager().disablePlugin(this);
             return;
         }
+        licenseManager.startRemoteMonitor();
 
         this.configs = new ConfigFiles(this);
         this.database = new Database(this);
@@ -168,7 +180,7 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         this.shopService = new ShopService(this, configs, moneyService);
         this.auctionHouseService = new AuctionHouseService(this, configs, moneyService);
         this.dailyRewardManager = new DailyRewardManager(this, configs, database, menuService, moneyService);
-        this.fishingRewardManager = new FishingRewardManager(this, configs, repository, moneyService, menuService);
+        this.fishingRewardManager = null;
         this.afkZoneManager = new AfkZoneManager(this, configs, menuService);
         this.soulManager = new SoulManager(this, configs, new SoulStorage(database), moneyService, menuService);
         this.marketWorldManager = new MarketWorldManager(this, configs);
@@ -183,7 +195,7 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         this.clearLagManager = new ClearLagManager(this, configs);
         this.dungeonService = new DungeonService(this, configs, menuService, repository, partyService, survivalService);
         this.duelService.setDungeonService(dungeonService);
-        this.fishingListener = new FishingListener(fishingRewardManager, duelService, dungeonService);
+        this.fishingListener = null;
         this.socialTabService = new SocialTabService(this, configs, chatFormatService);
         this.partyService.setDungeonService(dungeonService);
         this.partyService.setFriendService(friendService);
@@ -200,7 +212,10 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         this.survivalService.setSpawnService(spawnService);
         this.joinQueueService = new JoinQueueService(this, configs, spawnService, welcomeService);
         this.essentialCommandService = new EssentialCommandService();
-        this.zonePvpService = new ZonePvpService(this, configs, repository);
+        this.backLocationService = new BackLocationService(this, configs);
+        this.backpackService = new BackpackService(this, configs);
+        this.commandRestrictionService = new CommandRestrictionService(this, configs);
+        this.zonePvpService = new ZonePvpService(this, configs, repository, partyService);
         this.zonePvpService.setCosmeticsItemRefresher(perkService::giveCosmeticsItem);
         this.spawnZoneManager.zonePvpService(zonePvpService);
         this.soulDropService = new SoulDropService(this, configs, soulManager, duelService, dungeonService, zonePvpService);
@@ -208,7 +223,13 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         this.glowManager = new GlowManager();
         this.hologramManager = new HologramManager(this, configs, repository);
         if (hologramManager != null) hologramManager.reload();
-        this.commandManager = new CoreCommandManager(this, configs, perkService, sapphireService, gemService, chatFormatService, spawnService, launchpadService, commandSpyManager, warpManager, moneyService, clearLagManager, duelService, afkZoneManager, dailyRewardManager, soulManager, marketPlotManager, hologramManager);
+        this.visualManager = new VisualManager(this, configs);
+        this.visualManager.duelService(duelService);
+        this.chatFormatService.setVisualManager(visualManager);
+        this.visualManager.start();
+        this.screenTextManager = new ScreenTextManager(this, configs, moneyService);
+        this.screenTextManager.start();
+        this.commandManager = new CoreCommandManager(this, configs, perkService, sapphireService, gemService, chatFormatService, spawnService, launchpadService, commandSpyManager, warpManager, moneyService, clearLagManager, duelService, dungeonService, afkZoneManager, dailyRewardManager, soulManager, marketPlotManager, hologramManager);
         duelService.addPostMatchItemRefresher(perkService::giveCosmeticsItem);
         duelService.addPostMatchItemRefresher(dungeonService::giveItem);
         this.particleManager.reload();
@@ -233,6 +254,7 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         registerDirectCommand("party", partyService::handle, partyService::complete);
         registerDirectCommand("friend", context -> friendService.handle(context), context -> friendService.complete(context));
         registerDirectCommand("friends", context -> friendService.handle(context), context -> friendService.complete(context));
+        registerDirectCommand("visuals", context -> { if (context.sender() instanceof org.bukkit.entity.Player player && visualManager != null) visualManager.open(player); else net.dark.threecore.text.Text.send(context.sender(), "<red>Players only.</red>"); }, context -> List.of());
         registerDirectCommand("devpanel", context -> { if (context.sender() instanceof org.bukkit.entity.Player player) duelService.openDevMenu(player); else net.dark.threecore.text.Text.send(context.sender(), "<red>Players only.</red>"); }, context -> List.of());
         registerDirectCommand("survival", context -> survivalService.handle(context.sender(), context.args()), context -> survivalService.complete(context.args()));
         registerDirectCommand("money", context -> moneyService.handle(context.sender(), context.label(), context.args()), context -> moneyService.complete(context.args()));
@@ -273,29 +295,9 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
             if (context.sender() instanceof org.bukkit.entity.Player player) soulManager.open(player);
             else net.dark.threecore.text.Text.send(context.sender(), "<red>Players only.</red>");
         }, context -> List.of("sell", "trade"));
-        registerDirectCommand("fishdebug", context -> {
-            if (context.sender() instanceof org.bukkit.entity.Player player) {
-                if (!player.hasPermission("3smpcore.fishing.debug")) {
-                    net.dark.threecore.text.Text.send(player, "<red>No permission.</red>");
-                    return;
-                }
-                fishingRewardManager.debugStatus(player);
-            } else {
-                net.dark.threecore.text.Text.send(context.sender(), "<red>Players only.</red>");
-            }
-        }, context -> List.of());
-        registerDirectCommand("fishingdebug", context -> {
-            if (context.sender() instanceof org.bukkit.entity.Player player) {
-                if (!player.hasPermission("3smpcore.fishing.debug")) {
-                    net.dark.threecore.text.Text.send(player, "<red>No permission.</red>");
-                    return;
-                }
-                fishingRewardManager.debugStatus(player);
-            } else {
-                net.dark.threecore.text.Text.send(context.sender(), "<red>Players only.</red>");
-            }
-        }, context -> List.of());
-        registerDirectCommand("fishing", context -> fishingRewardManager.handleCommand(context.sender(), context.args()), context -> fishingRewardManager.complete(context.args()));
+        registerDirectCommand("fishdebug", context -> net.dark.threecore.text.Text.send(context.sender(), "<yellow>Fishing is disabled.</yellow>"), context -> List.of());
+        registerDirectCommand("fishingdebug", context -> net.dark.threecore.text.Text.send(context.sender(), "<yellow>Fishing is disabled.</yellow>"), context -> List.of());
+        registerDirectCommand("fishing", context -> net.dark.threecore.text.Text.send(context.sender(), "<yellow>Fishing is disabled.</yellow>"), context -> List.of());
         registerDirectCommand("market", context -> marketPlotManager.handle(context.sender(), context.args()), context -> marketPlotManager.complete(context.args()));
         registerDirectCommand("warp", context -> {
             if (context.sender() instanceof org.bukkit.entity.Player player) {
@@ -304,6 +306,8 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
                 else warpManager.teleport(player, context.arg(0));
             }
         }, context -> context.args().length == 0 ? warpManager.ids() : List.of("set"));
+        registerDirectCommand("back", context -> backLocationService.handle(context.sender()), context -> List.of());
+        registerDirectCommand("backpack", context -> backpackService.handle(context.sender()), context -> List.of());
         registerDirectCommand("rtp", context -> rtpManager.handle(context.sender(), context.args()), context -> context.args().length == 0 ? List.of("reload") : List.of());
         registerDirectCommand("speed", context -> essentialCommandService.speed(context), context -> List.of("0", "1", "2", "3", "5", "10"));
         registerDirectCommand("fly", context -> essentialCommandService.fly(context), context -> List.of("true", "false"));
@@ -326,12 +330,16 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         }, context -> context.args().length == 0 ? List.of("menu", "give") : List.of());
 
         getServer().getPluginManager().registerEvents(joinQueueService, this);
-        getServer().getPluginManager().registerEvents(new MenuListener(duelService, partyService, perkService, gemService, sapphireService, dailyRewardManager, fishingRewardManager, soulManager, duelLeaderboardService, launchpadService, warpManager, shopService, marketPlotManager), this);
+        getServer().getPluginManager().registerEvents(new MenuListener(duelService, partyService, perkService, gemService, sapphireService, dailyRewardManager, fishingRewardManager, soulManager, duelLeaderboardService, launchpadService, rtpManager, warpManager, shopService, marketPlotManager), this);
         getServer().getPluginManager().registerEvents(launchpadService, this);
         getServer().getPluginManager().registerEvents(spawnProtectionService, this);
         getServer().getPluginManager().registerEvents(spawnService, this);
         getServer().getPluginManager().registerEvents(spawnZoneManager, this);
         getServer().getPluginManager().registerEvents(survivalService, this);
+        getServer().getPluginManager().registerEvents(backLocationService, this);
+        getServer().getPluginManager().registerEvents(backpackService, this);
+        getServer().getPluginManager().registerEvents(commandRestrictionService, this);
+        getServer().getPluginManager().registerEvents(rtpManager, this);
         getServer().getPluginManager().registerEvents(gemAutoApplyListener, this);
         getServer().getPluginManager().registerEvents(perkService, this);
         getServer().getPluginManager().registerEvents(new org.bukkit.event.Listener() {
@@ -354,18 +362,27 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(dungeonService, this);
         getServer().getPluginManager().registerEvents(marketProtectionListener, this);
         getServer().getPluginManager().registerEvents(shopChestManager, this);
-        getServer().getPluginManager().registerEvents(fishingListener, this);
+        if (fishingListener != null) getServer().getPluginManager().registerEvents(fishingListener, this);
         getServer().getPluginManager().registerEvents(soulDropService, this);
         getServer().getPluginManager().registerEvents(soulManager, this);
 
         getServer().getPluginManager().registerEvents(zonePvpService, this);
-        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) { new SmpCoreExpansion(this, perkService, warpManager, spawnService, moneyService, sapphireService, partyService, dungeonService, friendService, socialTabService, chatFormatService, duelService).register(); new ThreeSmpCoreExpansion(this, perkService, warpManager, spawnService, moneyService, sapphireService, partyService, dungeonService, friendService, socialTabService, chatFormatService, duelService).register(); }
+        if (getServer().getPluginManager().getPlugin("PlaceholderAPI") != null) {
+            new SmpCoreExpansion(this, perkService, warpManager, spawnService, moneyService, sapphireService, partyService, dungeonService, friendService, socialTabService, chatFormatService, duelService, visualManager).register();
+            new ThreeSmpCoreExpansion(this, perkService, warpManager, spawnService, moneyService, sapphireService, partyService, dungeonService, friendService, socialTabService, chatFormatService, duelService, visualManager).register();
+            new ScreenTextPlaceholderExpansion(this, screenTextManager).register();
+        }
     }
 
     @Override
     public void onDisable() {
+        if (licenseManager != null) licenseManager.shutdown();
         if (particleManager != null) particleManager.shutdown();
         if (hologramManager != null) hologramManager.removeAll();
+        if (visualManager != null) visualManager.shutdown();
+        if (screenTextManager != null) screenTextManager.shutdown();
+        if (duelService != null) duelService.shutdown();
+        if (partyService != null) partyService.shutdown();
         if (spawnZoneManager != null) spawnZoneManager.reload();
         if (afkZoneManager != null) afkZoneManager.shutdown();
         if (fishingRewardManager != null) fishingRewardManager.shutdown();
@@ -387,6 +404,7 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         if (spawnZoneManager != null) spawnZoneManager.reload();
         if (afkZoneManager != null) afkZoneManager.reload();
         if (dailyRewardManager != null) dailyRewardManager.reload();
+        if (shopService != null) shopService.reload();
         if (clearLagManager != null) clearLagManager.reload();
         if (commandSpyManager != null) commandSpyManager.reload();
         if (dungeonService != null) dungeonService.reload();
@@ -395,6 +413,16 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         if (fishingRewardManager != null) fishingRewardManager.reload();
         if (soulManager != null) soulManager.reload();
         if (marketPlotManager != null) marketPlotManager.reload();
+        if (visualManager != null) visualManager.reload();
+        if (screenTextManager != null) screenTextManager.reload();
+    }
+
+    public VisualManager visualManager() {
+        return visualManager;
+    }
+
+    public ScreenTextManager screenTextManager() {
+        return screenTextManager;
     }
 
     public LicenseManager getLicenseManager() {
@@ -428,11 +456,11 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
     private void saveDefaultFiles() {
         preserveExistingDuelMaps();
         for (String file : new String[]{
-                "core/config.yml", "core/messages.yml", "core/help.yml", "core/join-queue.yml", "cosmetics/perks.yml", "cosmetics/prefixes.yml", "cosmetics/tags.yml", "cosmetics/colors.yml", "cosmetics/cosmetics.yml", "cosmetics/effects.yml",
+                "core/config.yml", "core/messages.yml", "core/help.yml", "core/join-queue.yml", "cosmetics/perks.yml", "cosmetics/prefixes.yml", "cosmetics/tags.yml", "cosmetics/colors.yml", "cosmetics/cosmetics.yml", "cosmetics/effects.yml", "cosmetics/join_quit_messages.yml",
                 "economy/sapphires.yml", "economy/souls.yml", "gems/gems.yml", "gems/capsules.yml", "duels/duels.yml", "duels/kits.yml", "duels/maps.yml", "social/party.yml", "cosmetics/trims.yml",
                 "duels/messages.yml", "menus/perks.yml", "menus/gems.yml", "menus/sapphires.yml", "menus/duels.yml", "menus/party.yml", "menus/dev.yml",
-                "world/launchpads.yml", "world/warps.yml", "world/rtp.yml", "core/welcome.yml", "world/zonepvp.yml", "social/friends.yml", "license/license.yml", "dungeons/dungeons.yml", "dungeons/rooms.yml", "dungeons/templates.yml", "dungeons/traps.yml", "world/survival.yml", "economy/money.yml", "economy/sell.yml", "economy/shop.yml", "economy/auction-house.yml", "world/afk.yml", "world/clearlag.yml", "cosmetics/particles.yml", "admin/commandspy.yml", "cosmetics/badges.yml", "cosmetics/glow.yml", "world/holograms.yml", "world/npcs.yml", "admin/permissions.yml", "rewards/daily.yml", "menus/daily.yml"
-                , "fishing/fishing.yml", "menus/fishing.yml", "menus/souls.yml", "world/market.yml", "menus/market.yml", "config.yml", "messages.yml", "gui.yml", "rewards.yml", "fishing.yml", "souls.yml", "market.yml"
+                "world/launchpads.yml", "world/warps.yml", "world/rtp.yml", "core/welcome.yml", "world/zonepvp.yml", "social/friends.yml", "social/visual-players.yml", "itemsadder/ranks.yml", "screen/screen-texts.yml", "dungeons/dungeons.yml", "dungeons/rooms.yml", "dungeons/templates.yml", "dungeons/traps.yml", "world/survival.yml", "economy/money.yml", "economy/sell.yml", "economy/shop.yml", "economy/auction-house.yml", "world/afk.yml", "world/clearlag.yml", "cosmetics/particles.yml", "admin/commandspy.yml", "cosmetics/badges.yml", "cosmetics/glow.yml", "world/holograms.yml", "world/npcs.yml", "admin/permissions.yml", "rewards/daily.yml", "menus/daily.yml"
+                , "menus/souls.yml", "world/market.yml", "menus/market.yml", "config.yml", "messages.yml", "gui.yml", "rewards.yml", "souls.yml", "market.yml"
         }) {
             saveResource(file, false);
         }

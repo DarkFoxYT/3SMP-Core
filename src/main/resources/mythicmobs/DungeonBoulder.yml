@@ -1,0 +1,15 @@
+DungeonBoulder:
+  Type: ARMOR_STAND
+  Display: '&#eda323&lDungeon Boulder'
+  Health: 999999
+  Damage: 0
+  Options:
+    Invisible: true
+    Invincible: true
+    NoAI: true
+    NoGravity: true
+    Silent: true
+    Marker: false
+    Collidable: false
+  Skills:
+    - sound{s=block.deepslate.step;v=1.4;p=0.6} @self ~onSpawn

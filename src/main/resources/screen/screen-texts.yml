@@ -1,0 +1,132 @@
+screen-text:
+  enabled: true
+  render-interval-ticks: 2
+  rainbow-enabled: false
+  gradients:
+    default: "#f8fafc:#cbd5e1"
+    soft: "#ffffff:#dbeafe"
+    blue_soft: "#bfdbfe:#60a5fa"
+    royal: "#1e3a8a:#2563eb:#60a5fa"
+    gold: "#f4cd2a:#eda323:#d28d0d"
+    royal_gold: "#f4cd2a:#eda323:#d28d0d"
+    critical: "#f4cd2a:#eda323:#d28d0d"
+    rainbow: "#f4cd2a:#eda323:#d28d0d"
+  images:
+    enabled: true
+    placeholders:
+      server_logo: "%img_server_logo%"
+      owner: "%img_owner%"
+      dev: "%img_dev%"
+      admin: "%img_admin%"
+      sr_admin: "%img_sr_admin%"
+      mod: "%img_mod%"
+      builder: "%img_builder%"
+      sr_mod: "%img_sr_mod%"
+      jr_mod: "%img_jr_mod%"
+      pro: "%img_pro%"
+      mvp: "%img_mvp%"
+      elite: "%img_elite%"
+      ultra: "%img_ultra%"
+      vip: "%img_vip%"
+      patron: "%img_patron%"
+      3smp: "%img_3smp%"
+
+screen-texts:
+  dungeon_warning:
+    content:
+      - "{grad:gold}&lWARNING{/grad}"
+      - "{grad:soft}Boss incoming{/grad}"
+    position:
+      anchor: TOP_CENTER
+      offsetX: 0
+      offsetY: 16
+    layer: CRITICAL
+    priority: 100
+    z-index: 10
+    type: TIMED
+    duration: 5000ms
+    refresh-ticks: 2
+    style:
+      gradient: ""
+      color: ""
+      bold: false
+      italic: false
+      underline: false
+      letter-spacing: 0
+      line-spacing: 0
+      alignment: CENTER
+      max-width: 30
+      opacity: 1.0
+      scale: 1.2
+      shadow:
+        enabled: true
+        color: "#020617"
+        alpha: 0.85
+        offsetX: 1
+        offsetY: 1
+        blur: 0
+    animation:
+      type: FADE_IN
+      duration: 300ms
+      delay: 0ms
+      easing: EASE_OUT
+
+  duel_banner:
+    content:
+      - "{grad:royal}&lDUELS{/grad}"
+      - "{grad:gold}%player_name%{/grad} {grad:soft}prepare to fight{/grad}"
+    position: CENTER
+    layer: OVERLAY
+    priority: 50
+    type: TIMED
+    duration: 3500ms
+    style:
+      alignment: CENTER
+      max-width: 34
+      shadow: true
+    animation:
+      type: SLIDE_LEFT
+      duration: 450ms
+      easing: EASE_OUT
+
+  hud_status:
+    content:
+      - "{grad:royal}3SMP{/grad} {grad:soft}%3smpcore_world%{/grad} {grad:gold}%3smpcore_online% online{/grad}"
+    position:
+      anchor: BOTTOM_CENTER
+      offsetX: 0
+      offsetY: -18
+    layer: HUD
+    priority: 10
+    type: TRACKED
+    refresh-ticks: 10
+    style:
+      alignment: CENTER
+      max-width: 48
+      shadow:
+        enabled: true
+        color: "#020617"
+        alpha: 0.75
+        offsetX: 1
+        offsetY: 1
+        blur: 0
+    animation:
+      type: NONE
+      duration: 0ms
+
+  notification:
+    content:
+      - "{grad:gold}&l3SMP{/grad} {grad:soft}%message%{/grad}"
+    position: BOTTOM_CENTER
+    layer: HUD_HIGH
+    priority: 40
+    type: EVENT_BASED
+    duration: 3000ms
+    style:
+      alignment: CENTER
+      max-width: 48
+      shadow: true
+    animation:
+      type: GLOW
+      duration: 700ms
+      easing: EASE_OUT

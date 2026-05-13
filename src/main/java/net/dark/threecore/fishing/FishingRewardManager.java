@@ -95,6 +95,10 @@ public final class FishingRewardManager {
         return plugin;
     }
 
+    public ConfigFiles configs() {
+        return configs;
+    }
+
     public void open(Player player) {
         FishingSession session = createSession(player, true);
         sessions.put(player.getUniqueId(), session);
@@ -282,7 +286,7 @@ public final class FishingRewardManager {
         FishingStats stats = storage.load(player.getUniqueId());
         inv.setItem(4, menuItem(Material.FISHING_ROD, "<gradient:#38bdf8:#22c55e>Fishing Dock</gradient>", List.of("<gray>Animated fishing, sellable catches, treasure rolls.</gray>", "<gray>Points:</gray> <white>" + stats.fishingPoints() + "</white>")));
         inv.setItem(20, menuItem(Material.COD, "<gradient:#38bdf8:#F8FBFF>Start Fishing</gradient>", List.of("<gray>Open the animated catch minigame.</gray>", "<yellow>Click to play.</yellow>")));
-        inv.setItem(22, menuItem(Material.EMERALD, "<gradient:#22c55e:#facc15>Sell Fish</gradient>", List.of("<gray>Sell all tagged custom fish in your inventory.</gray>", "<yellow>Click to cash out.</yellow>")));
+        inv.setItem(22, menuItem(Material.EMERALD, "<gradient:#f4cd2a:#eda323:#d28d0d>Sell Fish</gradient>", List.of("<gray>Sell all tagged custom fish in your inventory.</gray>", "<yellow>Click to cash out.</yellow>")));
         inv.setItem(24, menuItem(Material.BOOK, "<gradient:#5B8DD9:#F8FBFF>Your Stats</gradient>", List.of("<gray>Fish caught:</gray> <white>" + stats.fishCaught() + "</white>", "<gray>Rare catches:</gray> <white>" + stats.rareCatches() + "</white>", "<gray>Fishing points:</gray> <white>" + stats.fishingPoints() + "</white>")));
         menuService.open(player, inv);
     }
@@ -314,7 +318,7 @@ public final class FishingRewardManager {
             return;
         }
         moneyService.give(player.getUniqueId(), total);
-        Text.send(player, "<green>Sold <white>" + sold + "</white> fish for <gold>$" + total + "</gold>.</green>");
+        Text.send(player, "<green>Sold <white>" + sold + "</white> fish for <gradient:#f4cd2a:#eda323:#d28d0d>$" + total + "</gradient>.</green>");
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 1.0f, 1.35f);
     }
 
@@ -509,7 +513,7 @@ public final class FishingRewardManager {
                 item.setItemMeta(meta);
             }
             player.getInventory().addItem(item);
-            String message = loot.getString("message", "<gradient:#f59e0b:#fb7185>Bonus catch!</gradient>");
+            String message = loot.getString("message", "<gradient:#f4cd2a:#eda323:#d28d0d>Bonus catch!</gradient>");
             Text.send(player, message);
             player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8f, 1.2f);
         }
@@ -524,7 +528,7 @@ public final class FishingRewardManager {
         if (meta != null) {
             meta.displayName(Text.mm(sec == null ? "<white>" + rarity + " Fish</white>" : sec.getString("display-name", "<white>" + rarity + " Fish</white>")));
             List<String> lore = new ArrayList<>(sec == null ? List.of() : sec.getStringList("lore"));
-            lore.add("<gray>Sell value:</gray> <gold>$" + value + "</gold>");
+            lore.add("<gray>Sell value:</gray> <gradient:#f4cd2a:#eda323:#d28d0d>$" + value + "</gradient>");
             lore.add("<dark_gray>Use /fishing sell to cash out.</dark_gray>");
             meta.lore(lore.stream().map(Text::mm).toList());
             meta.getPersistentDataContainer().set(new NamespacedKey(plugin, FISH_KEY), PersistentDataType.STRING, rarity.toLowerCase(Locale.ROOT));

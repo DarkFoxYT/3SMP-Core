@@ -40,7 +40,7 @@ public final class ShopTransactionService {
         ItemStack stack = new ItemStack(org.bukkit.Material.valueOf(data.itemType()), amount);
         buyer.getInventory().addItem(stack);
         buyer.playSound(buyer.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.9f, 1.25f);
-        Text.send(buyer, "<green>Purchased <white>" + amount + "x " + data.itemName() + "</white> for <gold>" + moneyService.format(total) + "</gold>.</green>");
+        Text.send(buyer, "<green>Purchased <white>" + amount + "x " + data.itemName() + "</white> for <gradient:#f4cd2a:#eda323:#d28d0d>" + moneyService.format(total) + "</gradient>.</green>");
         if (stockService.empty(chestInventory, data)) {
             storage.save(data.withEnabled(false));
             if (owner != null) Text.send(owner, "<red>Your shop chest ran out of stock and was disabled.</red>");

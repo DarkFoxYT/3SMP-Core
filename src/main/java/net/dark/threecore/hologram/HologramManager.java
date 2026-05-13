@@ -11,11 +11,11 @@ import org.bukkit.Statistic;
 import org.bukkit.World;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Display;
-import org.bukkit.entity.ArmorStand;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.plugin.java.JavaPlugin;
+import org.bukkit.scheduler.BukkitTask;
 import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 
 import java.io.File;
@@ -36,9 +36,11 @@ public final class HologramManager {
     private final JavaPlugin plugin;
     private final ConfigFiles configs;
     private final PlayerDataRepository repository;
+    private static final String TEXT_DISPLAY_TAG = "3smp_hologram";
     private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
     private final List<Entity> stands = new ArrayList<>();
     private final List<String> decentIds = new ArrayList<>();
+    private BukkitTask refreshTask;
 
     public HologramManager(JavaPlugin plugin, ConfigFiles configs, PlayerDataRepository repository) {
         this.plugin = plugin;
@@ -47,7 +49,13 @@ public final class HologramManager {
     }
 
     public void reload() {
-        removeAll();
+        stopRefreshTask();
+        refreshNow();
+        startRefreshTask();
+    }
+
+    private void refreshNow() {
+        removeGeneratedEntities();
         var root = configs.get("world/holograms.yml").getConfigurationSection("holograms");
         if (root == null) return;
         for (String id : root.getKeys(false)) {
@@ -55,10 +63,10 @@ public final class HologramManager {
             Location base = location("holograms." + id + ".location");
             if (base == null || base.getWorld() == null) continue;
             List<String> lines = resolveLines(root.getString(id + ".type", "static"), root.getStringList(id + ".lines"));
+            if (spawnDecent(id, base, lines)) continue;
             double spacing = root.getDouble(id + ".line-spacing", 0.28D);
             float yaw = (float) root.getDouble(id + ".location.yaw", base.getYaw());
-            boolean fixedFacing = root.getBoolean(id + ".fixed-facing", false);
-            if (!fixedFacing && spawnDecent(id, base, lines)) continue;
+            boolean fixedFacing = true;
             for (int i = 0; i < lines.size(); i++) {
                 Location line = base.clone().add(0, -i * spacing, 0);
                 line.setYaw(yaw);
@@ -69,11 +77,12 @@ public final class HologramManager {
 
     public void handle(CommandSender sender, String[] args) {
         if (args.length == 0) {
-            Text.send(sender, "<yellow>/3smpcore hologram place <id> [fixed|billboard] | remove <id> | reload | list</yellow>");
+            Text.send(sender, "<yellow>/3smpcore hologram place <id> [fixed|billboard] | remove <id> | removeall | reload | list</yellow>");
             return;
         }
         switch (args[0].toLowerCase(Locale.ROOT)) {
             case "reload" -> { reload(); Text.send(sender, "<green>Holograms reloaded.</green>"); }
+            case "removeall", "clearall" -> { removeAll(); Text.send(sender, "<green>Removed all generated holograms.</green>"); }
             case "list" -> Text.send(sender, "<gray>Holograms:</gray> <white>" + String.join(", ", ids()) + "</white>");
             case "place" -> {
                 if (!(sender instanceof Player player)) { Text.send(sender, "<red>Players only.</red>"); return; }
@@ -84,12 +93,12 @@ public final class HologramManager {
                 if (args.length < 2) { Text.send(sender, "<red>Usage: /3smpcore hologram remove <id></red>"); return; }
                 remove(sender, args[1].toLowerCase(Locale.ROOT));
             }
-            default -> Text.send(sender, "<yellow>/3smpcore hologram place <id> [fixed|billboard] | remove <id> | reload | list</yellow>");
+            default -> Text.send(sender, "<yellow>/3smpcore hologram place <id> [fixed|billboard] | remove <id> | removeall | reload | list</yellow>");
         }
     }
 
     public List<String> complete(String[] args) {
-        if (args.length <= 1) return List.of("place", "remove", "reload", "list");
+        if (args.length <= 1) return List.of("place", "remove", "removeall", "reload", "list");
         if (args.length == 2 && (args[0].equalsIgnoreCase("place") || args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("delete"))) return ids();
         if (args.length == 3 && args[0].equalsIgnoreCase("place")) return List.of("fixed", "billboard");
         return List.of();
@@ -119,7 +128,7 @@ public final class HologramManager {
             return;
         }
         reload();
-        Text.send(player, "<green>Placed hologram:</green> <white>" + id + "</white>");
+        Text.send(player, "<green>Placed fixed hologram:</green> <white>" + id + "</white>");
     }
 
     private void remove(CommandSender sender, String id) {
@@ -140,40 +149,57 @@ public final class HologramManager {
     }
 
     public Entity spawn(Location location, String text, boolean fixedFacing) {
-        if (fixedFacing) {
-            TextDisplay display = location.getWorld().spawn(location, TextDisplay.class, s -> {
-                s.setBillboard(Display.Billboard.FIXED);
-                s.setGravity(false);
-                s.setInvulnerable(true);
-                s.setRotation(location.getYaw(), location.getPitch());
-                s.text(Text.mm(text));
-                s.setSeeThrough(false);
-                s.setShadowed(false);
-                s.setBackgroundColor(org.bukkit.Color.fromARGB(0, 0, 0, 0));
-            });
-            stands.add(display);
-            return display;
-        }
-        ArmorStand stand = location.getWorld().spawn(location, ArmorStand.class, s -> {
-            s.setInvisible(true);
-            s.setMarker(true);
+        TextDisplay display = location.getWorld().spawn(location, TextDisplay.class, s -> {
+            s.setBillboard(Display.Billboard.FIXED);
             s.setGravity(false);
             s.setInvulnerable(true);
-            s.setRotation(location.getYaw(), location.getPitch());
-            s.customName(Text.mm(text));
-            s.setCustomNameVisible(true);
+            s.setRotation(location.getYaw(), 0.0F);
+            s.text(Text.mm(text));
+            s.setSeeThrough(false);
+            s.setShadowed(false);
+            s.setBackgroundColor(org.bukkit.Color.fromARGB(0, 0, 0, 0));
+            s.setPersistent(false);
+            s.addScoreboardTag(TEXT_DISPLAY_TAG);
         });
-        stands.add(stand);
-        return stand;
+        stands.add(display);
+        return display;
     }
 
     public void removeAll() {
+        stopRefreshTask();
+        removeGeneratedEntities();
+    }
+
+    private void removeGeneratedEntities() {
         for (Entity entity : new ArrayList<>(stands)) entity.remove();
         stands.clear();
+        for (World world : Bukkit.getWorlds()) {
+            for (TextDisplay display : world.getEntitiesByClass(TextDisplay.class)) {
+                if (display.getScoreboardTags().contains(TEXT_DISPLAY_TAG)) display.remove();
+            }
+        }
         if (decentAvailable()) {
+            removeAllDecentGenerated();
             for (String id : new ArrayList<>(decentIds)) removeDecent(id);
+            var root = configs.get("world/holograms.yml").getConfigurationSection("holograms");
+            if (root != null) {
+                for (String id : root.getKeys(false)) removeDecent(id);
+            }
         }
         decentIds.clear();
+    }
+
+    private void startRefreshTask() {
+        int seconds = Math.max(0, configs.get("world/holograms.yml").getInt("refresh-seconds", 60));
+        if (seconds <= 0) return;
+        refreshTask = Bukkit.getScheduler().runTaskTimer(plugin, this::refreshNow, seconds * 20L, seconds * 20L);
+    }
+
+    private void stopRefreshTask() {
+        if (refreshTask != null) {
+            refreshTask.cancel();
+            refreshTask = null;
+        }
     }
 
     private List<String> resolveLines(String type, List<String> configured) {
@@ -205,12 +231,12 @@ public final class HologramManager {
 
     private List<String> moneyLines(List<String> fallback) {
         List<String> lines = new ArrayList<>();
-        lines.add("<gradient:#f59e0b:#fbbf24>Survival Money</gradient>");
+        lines.add("<gradient:#f4cd2a:#eda323:#d28d0d>Survival Money</gradient>");
         List<UUID> top = Arrays.stream(Bukkit.getOfflinePlayers()).map(p -> p.getUniqueId()).sorted(Comparator.comparingDouble((UUID id) -> repository.getMoneyBalance(id)).reversed()).limit(5).toList();
         int place = 1;
         for (UUID uuid : top) {
             String name = Bukkit.getOfflinePlayer(uuid).getName();
-            lines.add("<white>#" + place++ + "</white> <gray>" + (name == null ? uuid.toString().substring(0, 8) : name) + "</gray> <gold>$" + String.format(Locale.ROOT, "%,.0f", repository.getMoneyBalance(uuid)) + "</gold>");
+            lines.add("<white>#" + place++ + "</white> <gray>" + (name == null ? uuid.toString().substring(0, 8) : name) + "</gray> <gradient:#f4cd2a:#eda323:#d28d0d>$" + String.format(Locale.ROOT, "%,.0f", repository.getMoneyBalance(uuid)) + "</gradient>");
         }
         return lines.size() > 1 ? lines : fallback;
     }
@@ -237,7 +263,7 @@ public final class HologramManager {
     private List<String> killLines(List<String> fallback) {
         List<UUID> top = Arrays.stream(Bukkit.getOfflinePlayers()).map(p -> p.getUniqueId()).sorted(Comparator.comparingInt((UUID id) -> repository.load(id).duelKills()).reversed()).limit(5).toList();
         List<String> lines = new ArrayList<>();
-        lines.add("<gradient:#ef4444:#f97316>Kills Leaderboard</gradient>");
+        lines.add("<gradient:#f4cd2a:#eda323:#d28d0d>Kills Leaderboard</gradient>");
         int place = 1;
         for (UUID uuid : top) {
             int kills = repository.load(uuid).duelKills();
@@ -316,6 +342,21 @@ public final class HologramManager {
             } catch (NoSuchMethodException ignored) {
                 Method delete = hologram.getClass().getMethod("delete");
                 delete.invoke(hologram);
+            }
+        } catch (Throwable ignored) {
+        }
+    }
+
+    private void removeAllDecentGenerated() {
+        try {
+            Class<?> api = Class.forName("eu.decentsoftware.holograms.api.DHAPI");
+            Method getHolograms = api.getMethod("getHolograms");
+            Object value = getHolograms.invoke(null);
+            if (!(value instanceof Iterable<?> holograms)) return;
+            for (Object hologram : holograms) {
+                if (hologram == null) continue;
+                String name = String.valueOf(hologram.getClass().getMethod("getName").invoke(hologram));
+                if (name.startsWith("3smp_")) removeDecent(name);
             }
         } catch (Throwable ignored) {
         }

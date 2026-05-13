@@ -1,7 +1,7 @@
 hotbar:
-  enabled: true
+  enabled: false
   slot: 4
-  name: "<gradient:#7c4a03:#f59e0b>Cosmetics</gradient>"
+  name: "<gradient:#f4cd2a:#eda323:#d28d0d>Cosmetics</gradient>"
 
 cosmetics:
   none:
@@ -12,21 +12,21 @@ cosmetics:
     lore:
       - "<gray>No general cosmetic selected.</gray>"
   sapphire_style:
-    display-name: "<gradient:#1A2A4A:#D6E8F7>Sapphire Style</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Sapphire Style</gradient>"
     icon: DIAMOND
     permission: "3smpcore.perk.cosmetic.sapphire"
     default-unlocked: false
     lore:
       - "<gray>Used by integrated cosmetic hooks.</gray>"
   ember_style:
-    display-name: "<gradient:#f59e0b:#ef4444>Ember Style</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Ember Style</gradient>"
     icon: BLAZE_POWDER
     permission: "3smpcore.perk.cosmetic.ember"
     default-unlocked: false
     lore:
       - "<gray>Used by integrated cosmetic hooks.</gray>"
   frost_style:
-    display-name: "<gradient:#D6E8F7:#67e8f9>Frost Style</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Frost Style</gradient>"
     icon: BLUE_ICE
     permission: "3smpcore.perk.cosmetic.frost"
     default-unlocked: false
@@ -42,32 +42,23 @@ weapon_cosmetics:
     lore:
       - "<gray>No weapon cosmetic selected.</gray>"
   sapphire_blade:
-    display-name: "<gradient:#1A2A4A:#D6E8F7>Sapphire Blade</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Sapphire Blade</gradient>"
     permission: "3smpcore.cosmetic.weapon.sapphire"
     default-unlocked: false
     icon: DIAMOND_SWORD
     lore:
       - "<gray>Framework entry for future ItemsAdder weapon models.</gray>"
 
-dungeon_cosmetics:
-  default:
-    display-name: "<white>No Dungeon Cosmetic</white>"
-    permission: ""
-    default-unlocked: true
-    icon: BARRIER
-    lore:
-      - "<gray>No dungeon cosmetic selected.</gray>"
-
 kill_effects:
   default:
-    display-name: "<gradient:#facc15:#f59e0b>Default Kill Spark</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Default Kill Spark</gradient>"
     permission: ""
     default-unlocked: true
     icon: ENCHANTED_BOOK
     lore:
       - "<gray>Enchant particles and a clean ding on kill.</gray>"
   sapphire_burst:
-    display-name: "<gradient:#1A2A4A:#D6E8F7>Sapphire Burst</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Sapphire Burst</gradient>"
     permission: "3smpcore.cosmetic.kill.sapphire"
     default-unlocked: false
     icon: DIAMOND

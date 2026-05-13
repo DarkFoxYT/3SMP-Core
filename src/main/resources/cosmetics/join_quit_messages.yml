@@ -1,0 +1,21 @@
+join_quit_messages:
+  sapphire:
+    display-name: "<gradient:#38bdf8:#dbeafe>Sapphire Messages</gradient>"
+    permission: "3smpcore.perk.joinquit.sapphire"
+    default-unlocked: false
+    icon: DIAMOND
+    join-message: "<gradient:#38bdf8:#dbeafe>The sapphires glow brighter, [Player] has arrived!</gradient>"
+    quit-message: "<gradient:#38bdf8:#dbeafe>The sapphires have dimmed, [Player] has departed!</gradient>"
+    lore:
+      - "<gray>Join:</gray> <white>The sapphires glow brighter, [Player] has arrived!</white>"
+      - "<gray>Quit:</gray> <white>The sapphires have dimmed, [Player] has departed!</white>"
+  three_smp:
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>3 SMP Messages</gradient>"
+    permission: "3smpcore.perk.joinquit.3smp"
+    default-unlocked: false
+    icon: GOLD_INGOT
+    join-message: "<gradient:#f4cd2a:#eda323:#d28d0d>[Player] has joined the 3!</gradient>"
+    quit-message: "<gradient:#f4cd2a:#eda323:#d28d0d>[Player] has left the 3!</gradient>"
+    lore:
+      - "<gray>Join:</gray> <white>[Player] has joined the 3!</white>"
+      - "<gray>Quit:</gray> <white>[Player] has left the 3!</white>"

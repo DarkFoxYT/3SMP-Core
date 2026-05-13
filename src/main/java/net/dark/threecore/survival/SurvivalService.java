@@ -66,6 +66,7 @@ public final class SurvivalService implements Listener {
         player.teleport(loc);
         clearPlayerState(player);
         loadProfile(player, "survival");
+        rtpManager.giveItem(player);
         Text.send(player, yaml.getString("messages.teleported", "<green>Sent to survival.</green>"));
     }
 
@@ -95,6 +96,7 @@ public final class SurvivalService implements Listener {
         Player player = event.getPlayer();
         if (isSurvivalWorld(player.getWorld())) {
             loadProfile(player, "survival");
+            rtpManager.giveItem(player);
         } else {
             loadProfile(player, "spawn");
         }

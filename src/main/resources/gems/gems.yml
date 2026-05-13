@@ -1,5 +1,5 @@
 gems:
-  disabled-worlds: [world]
+  disabled-worlds: []
   current-season: default
   tiers: [ ROUGH, POLISHED, CUT, FLAWLESS, PRISMATIC ]
   slots-per-item: 3
@@ -24,7 +24,7 @@ gems:
     - FISHING_ROD
   definitions:
     power:
-      display-name: "<gradient:#1A2A4A:#D6E8F7>Power Gem</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Power Gem</gradient>"
       icon: AMETHYST_SHARD
       effect: "increase_damage"
       particle: "CRIT"
@@ -35,7 +35,7 @@ gems:
       lore:
         - "<gray>Boosts weapon damage on proc.</gray>"
     vitality:
-      display-name: "<gradient:#1A2A4A:#D6E8F7>Vitality Gem</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Vitality Gem</gradient>"
       icon: EMERALD
       effect: "increase_health"
       particle: "HEART"
@@ -46,7 +46,7 @@ gems:
       lore:
         - "<gray>Boosts max health while worn.</gray>"
     speed:
-      display-name: "<gradient:#1A2A4A:#D6E8F7>Speed Gem</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Speed Gem</gradient>"
       icon: SUGAR
       effect: "increase_speed"
       particle: "CLOUD"
@@ -57,7 +57,7 @@ gems:
       lore:
         - "<gray>Improves movement speed while worn.</gray>"
     bowmaster:
-      display-name: "<gradient:#1A2A4A:#D6E8F7>Bowmaster Gem</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Bowmaster Gem</gradient>"
       icon: ARROW
       effect: "increase_bow_power"
       particle: "CRIT"
@@ -68,7 +68,7 @@ gems:
       lore:
         - "<gray>Improves ranged combat on proc.</gray>"
     miner:
-      display-name: "<gradient:#1A2A4A:#D6E8F7>Miner Gem</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Miner Gem</gradient>"
       icon: IRON_PICKAXE
       effect: "increase_mining_speed"
       particle: "BLOCK_CRACK"
@@ -79,7 +79,7 @@ gems:
       lore:
         - "<gray>Improves mining speed while worn.</gray>"
     leech:
-      display-name: "<gradient:#1A2A4A:#D6E8F7>Leech Gem</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Leech Gem</gradient>"
       icon: GHAST_TEAR
       effect: "lifesteal"
       particle: "ELECTRIC_SPARK"
@@ -93,7 +93,7 @@ gems:
     winter:
       definitions:
         power:
-          display-name: "<gradient:#D6E8F7:#FFFFFF>Winter Power Gem</gradient>"
+          display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Winter Power Gem</gradient>"
           icon: PRISMARINE_CRYSTALS
           effect: "increase_damage"
           particle: "SNOWFLAKE"
@@ -104,7 +104,7 @@ gems:
           lore:
             - "<gray>Seasonal power with icy particles.</gray>"
         speed:
-          display-name: "<gradient:#D6E8F7:#FFFFFF>Frost Speed Gem</gradient>"
+          display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Frost Speed Gem</gradient>"
           icon: PACKED_ICE
           effect: "increase_speed"
           particle: "SNOWFLAKE"

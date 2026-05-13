@@ -18,7 +18,7 @@ items:
   duo:
     material: "itemsadder-threesmp:gui_clickzone"
     slot: 16
-    display_name: "&6&lParty Duel"
+    display_name: "&#eda323&lParty Duel"
     lore:
       - "&7Queue your party for team duels."
       - "&7Queued: &f%3smpcore_duel_party_queue%"

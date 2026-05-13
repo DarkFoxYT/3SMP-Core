@@ -7,7 +7,7 @@ items:
   back:
     material: ARROW
     slot: 49
-    display_name: "&eBack"
+    display_name: "&#eda323Back"
     left_click_commands:
       - "[player] duel deluxe menu"
 

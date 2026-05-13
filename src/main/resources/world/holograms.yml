@@ -1,3 +1,5 @@
+refresh-seconds: 60
+
 holograms:
   leaderboard_wall_title:
     enabled: false
@@ -11,7 +13,7 @@ holograms:
       pitch: 0.0
     line-spacing: 0.30
     lines:
-      - "<gradient:#5B8DD9:#F8FBFF><bold>3SMP Leaderboards</bold></gradient>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>3SMP Leaderboards</bold></gradient>"
       - "<gray>Souls • Fishing • Votes • Kills • Playtime • Coins</gray>"
       - "<dark_gray>Use /3smpcore hologram place id to position each panel.</dark_gray>"
   souls_top:
@@ -40,7 +42,7 @@ holograms:
       pitch: 0.0
     line-spacing: 0.28
     lines:
-      - "<gradient:#38bdf8:#22c55e>Fishing Points</gradient>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d>Fishing Points</gradient>"
       - "<gray>No fishing point data yet.</gray>"
   fish_caught_top:
     enabled: false
@@ -54,7 +56,7 @@ holograms:
       pitch: 0.0
     line-spacing: 0.28
     lines:
-      - "<gradient:#38bdf8:#22c55e>Fish Caught</gradient>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d>Fish Caught</gradient>"
       - "<gray>No fishing data yet.</gray>"
   votes_top:
     enabled: false
@@ -68,7 +70,7 @@ holograms:
       pitch: 0.0
     line-spacing: 0.28
     lines:
-      - "<gradient:#f59e0b:#fbbf24>Votes Leaderboard</gradient>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d>Votes Leaderboard</gradient>"
       - "<white>#1</white> <gray>%VotingPlugin_top_all_1%</gray>"
       - "<white>#2</white> <gray>%VotingPlugin_top_all_2%</gray>"
       - "<white>#3</white> <gray>%VotingPlugin_top_all_3%</gray>"
@@ -85,7 +87,7 @@ holograms:
       pitch: 0.0
     line-spacing: 0.28
     lines:
-      - "<gradient:#ef4444:#f97316>Kills Leaderboard</gradient>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d>Kills Leaderboard</gradient>"
       - "<gray>No kill data yet.</gray>"
   playtime_top:
     enabled: false
@@ -99,7 +101,7 @@ holograms:
       pitch: 0.0
     line-spacing: 0.28
     lines:
-      - "<gradient:#5B8DD9:#F8FBFF>Online Playtime</gradient>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d>Online Playtime</gradient>"
       - "<gray>Online playtime displays here.</gray>"
   duel_top:
     enabled: false
@@ -113,7 +115,7 @@ holograms:
       pitch: 0.0
     line-spacing: 0.28
     lines:
-      - "<gradient:#60a5fa:#c084fc>Duel Leaderboard</gradient>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d>Duel Leaderboard</gradient>"
   money_top:
     enabled: false
     type: money
@@ -126,7 +128,7 @@ holograms:
       pitch: 0.0
     line-spacing: 0.28
     lines:
-      - "<gradient:#f59e0b:#fbbf24>Survival Money</gradient>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d>Survival Money</gradient>"
   dungeon_top:
     enabled: false
     type: dungeons
@@ -139,5 +141,5 @@ holograms:
       pitch: 0.0
     line-spacing: 0.28
     lines:
-      - "<gradient:#4c1d95:#a78bfa>Dungeon Leaderboard</gradient>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d>Dungeon Leaderboard</gradient>"
       - "<gray>Completion display ready.</gray>"

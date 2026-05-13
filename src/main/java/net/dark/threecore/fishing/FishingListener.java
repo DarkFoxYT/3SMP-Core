@@ -28,6 +28,7 @@ public final class FishingListener implements Listener {
     public void onFish(PlayerFishEvent event) {
         if (!(event.getPlayer() instanceof Player player)) return;
         if (player.getGameMode() != GameMode.SURVIVAL) return;
+        if (!isAllowedFishingWorld(player)) return;
         if (duelService.isPlayerInDuel(player.getUniqueId()) || DuelService.isDuelPlayer(player)) return;
         if (dungeonService != null && DungeonService.isDungeonPlayer(player)) return;
         if (!rewardManager.isFishingRod(player.getInventory().getItemInMainHand()) && !rewardManager.isFishingRod(player.getInventory().getItemInOffHand())) return;
@@ -79,6 +80,12 @@ public final class FishingListener implements Listener {
         Material below = location.clone().subtract(0.0D, 0.45D, 0.0D).getBlock().getType();
         Material deepBelow = location.clone().subtract(0.0D, 1.05D, 0.0D).getBlock().getType();
         return hit == Material.WATER || below == Material.WATER || deepBelow == Material.WATER || hook.isInWater();
+    }
+
+    private boolean isAllowedFishingWorld(Player player) {
+        String configured = rewardManager.configs().get("world/survival.yml").getString("world", "world");
+        String world = player.getWorld().getName();
+        return world.equalsIgnoreCase(configured) || world.equalsIgnoreCase("world");
     }
 
     @EventHandler

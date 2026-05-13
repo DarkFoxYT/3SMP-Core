@@ -26,8 +26,167 @@ generation:
     boss-required: true
     exit-after-boss: true
     avoid-duplicates-until-pool-exhausted: true
-item:
+  room-engine:
+    max-attempts: 75
+    room-padding-blocks: 2
+    connector-gap-blocks: 1
+    allow-touching-at-connectors: true
+    require-final-boss-room: true
+    prevent-floating-connectors: true
+    seal-open-optional-connectors: true
+    required-open-connector-behavior: DEAD_END_OR_RETRY
+    optional-open-connector-behavior: CAP_WITH_WALL
+    allow-extra-ending-rooms: true
+    max-extra-ending-rooms: 10
+    ending-room-types:
+      - DEAD_END
+      - TREASURE
+      - CAP
+      - END
+    dead-end-room-types:
+      - DEAD_END
+      - TREASURE
+    main-path-length:
+      min: 6
+      max: 12
+    branch-count:
+      min: 2
+      max: 5
+    branch-length:
+      min: 1
+      max: 4
+    allow-vertical: true
+    max-y-level-difference: 3
+    boss-room-required: true
+    treasure-room-chance: 0.25
+    mini-boss-room-chance: 0.15
+    paste:
+      apply-physics: false
+      update-neighbors: false
+      preserve-blockstates: true
+      preserve-block-entities: true
+    vertical:
+      enabled: true
+      max-levels-up: 2
+      max-levels-down: 3
+      max-total-y-span: 64
+      require-stair-connector-types: true
+    multi-entrance:
+      enabled: true
+      inactive-entrance-behavior: DEAD_END_OR_CAP
+      inactive-entrance-room-types:
+        - TREASURE
+        - SECRET
+        - DEAD_END
+        - CAP
+      allow-inactive-entrance-loops: false
+      max-inactive-entrance-branches-per-room: 2
+    connector-snapping:
+      horizontal-default: CONNECTOR_FACE
+      vertical-default: ANCHOR
+      validate-exact-opening-position: true
+      debug-anchor-alignment: true
+dungeon-protection:
   enabled: true
+  prevent-break: true
+  prevent-place: true
+  prevent-buckets: true
+  prevent-explosions: true
+  prevent-fire: true
+  allowed-interactions:
+    - CHEST
+    - BARREL
+    - LEVER
+    - STONE_BUTTON
+dungeon-door:
+  material: POLISHED_BLACKSTONE
+  itemsadder-id: ""
+  open-delay-seconds: 5
+  slide-distance-blocks: 4
+  slide-duration-ticks: 40
+  sound-open: "minecraft:block.piston.extend"
+  sound-close: "minecraft:block.piston.contract"
+  particles: true
+boulder:
+  mythicmob-id: "DungeonBoulder"
+  modelengine-id: "boulder"
+  animations:
+    idle: "idle"
+    rolling: "rolling"
+traps:
+  mythicmobs:
+    boulder: "DungeonBoulder"
+    spike: "DungeonSpikeTrap"
+    bridge: "DungeonBridgeTrap"
+  editor:
+    save-armor-stand-markers: true
+dungeons:
+  boulder-traps:
+    enabled: false
+    fallback-visual-block: "minecraft:deepslate"
+    fallback-visual:
+      block: "minecraft:deepslate"
+      scale: 2.0
+      brightness:
+        block-light: 15
+        sky-light: 15
+    mythicmobs:
+      enabled: true
+      default-mob-id: "DungeonBoulder"
+    modelengine:
+      enabled: true
+      default-model-id: "boulder"
+      scale: 1.0
+    movement:
+      tick-rate: 1
+      speed: 0.42
+      acceleration: 0.02
+      max-speed: 0.85
+      rotate-to-path: true
+      rolling-visual: true
+    trigger:
+      mode: REGION
+      delay-ticks: 10
+      one-time: true
+    damage:
+      instant-kill: true
+      damage-amount: 9999.0
+      kill-radius: 1.6
+      vertical-radius: 1.8
+      bypass-permission: "3smpcore.dungeon.boulder.bypass"
+    sounds:
+      start: "minecraft:block.stone.break"
+      rolling-loop: "minecraft:block.deepslate.step"
+      scrape: "minecraft:block.grindstone.use"
+      impact: "minecraft:entity.generic.explode"
+      loop-interval-ticks: 12
+      volume: 1.4
+      pitch: 0.65
+    particles:
+      warning: true
+      rolling-dust: true
+      impact: true
+inventory:
+  save-on-start: true
+  restore-on-end: true
+  restore-on-death: true
+  clear-dungeon-items: true
+  keep-dungeon-loot: true
+  save-potion-effects: true
+  save-gamemode: true
+  emergency-restore-on-join: true
+  allow-move: true
+  allow-drop: false
+  allow-drag: true
+  allow-hotbar-swap: true
+  block-external-inventories: true
+items:
+  dungeon_key:
+    type: ITEMSADDER
+    id: "threesmp:dungeon_key"
+    fallback: TRIPWIRE_HOOK
+item:
+  enabled: false
   slot: 1
   material: COMPASS
   name: "<gradient:#4c1d95:#a78bfa>Dungeons</gradient>"
@@ -43,12 +202,12 @@ levels:
     mobs-per-room-per-player: 2
   desert:
     level-number: 2
-    display-name: "<gradient:#f59e0b:#fbbf24>Level 2: Desert</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Level 2: Desert</gradient>"
     coming-soon: true
     y: 80
   volcanic:
     level-number: 3
-    display-name: "<gradient:#ef4444:#f97316>Level 3: Volcanic</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Level 3: Volcanic</gradient>"
     coming-soon: true
     y: 80
   icy:
@@ -108,6 +267,19 @@ world-generation:
 boss:
   mythicmob: DungeonBoss
   spawn-command: "mm mobs spawn %mob% 1 %world%,%x%,%y%,%z%"
+  levels:
+    jungle: 5
+  mythicmobs:
+    jungle:
+      easy: "JungleBossEasy"
+      normal: "JungleBossNormal"
+      hard: "JungleBossHard"
+      nightmare: "JungleBossNightmare"
+    default:
+      easy: "DungeonBoss"
+      normal: "DungeonBoss"
+      hard: "DungeonBoss"
+      nightmare: "DungeonBoss"
 debug:
   enabled: true
 
@@ -126,4 +298,3 @@ rooms:
     small: "Below 24x24x16-ish volume."
     medium: "Medium-sized room pool."
     large: "Large 64x64x64-style room pool."
-

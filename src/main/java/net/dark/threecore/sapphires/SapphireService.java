@@ -60,6 +60,9 @@ public final class SapphireService {
                 long amount = args.length >= 3 ? parseLong(args[2]) : 0L;
                 apply(sub, target.getUniqueId(), amount);
                 Text.send(sender, "<green>Updated sapphires for " + displayName(target, args[1]) + ".</green>");
+                if (target.isOnline() && target.getPlayer() != null) {
+                    Text.send(target.getPlayer(), "<gradient:#f4cd2a:#eda323:#d28d0d>Sapphire balance updated.</gradient> <gray>New balance:</gray> <white>" + balance(target.getUniqueId()) + "</white>");
+                }
             }
             case "info" -> sendCommandHelp(sender);
             case "commands" -> Text.send(sender, "<gray>Configured sapphire commands: " + String.join(", ", commandIds()) + "</gray>");
@@ -86,12 +89,12 @@ public final class SapphireService {
     }
 
     public void sendShopSummary(Player player) {
-        Text.send(player, "<gradient:#1A2A4A:#D6E8F7>3SMP Sapphire Summary</gradient>");
+        Text.send(player, "<gradient:#f4cd2a:#eda323:#d28d0d>3SMP Sapphire Summary</gradient>");
         Text.send(player, "<gray>Balance:</gray> <white>" + balance(player.getUniqueId()) + "</white>");
         Text.send(player, "<gray>Shop link:</gray> <white>" + configs.get("economy/sapphires.yml").getString("sapphire.shop-url", "https://example.com") + "</white>");
         Text.send(player, "<gray>Commands:</gray> <white>/sapphire bal, /sapphire ballance, /sapphire shop</white>");
     }
-    public void sendBalance(Player player) { Text.send(player, "<gray>Your sapphires: <gradient:#22d3ee:#a78bfa>" + balance(player.getUniqueId()) + "</gradient></gray>"); }
+    public void sendBalance(Player player) { Text.send(player, "<gray>Your sapphires: <gradient:#f4cd2a:#eda323:#d28d0d>" + balance(player.getUniqueId()) + "</gradient></gray>"); }
     public void openShopInfo(Player player) { openShopLink(player); }
     public void sendCommandHelp(CommandSender sender) { Text.send(sender, "<gray>Sapphires are premium and non-tradeable. Use <white>/sapphire bal</white> or <white>/sapphire shop</white>.</gray>"); }
     public String shopUrl() { return configs.get("economy/sapphires.yml").getString("sapphire.shop-url", "https://example.com"); }
@@ -112,7 +115,8 @@ public final class SapphireService {
         if (!command.isBlank()) {
             Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("{player}", player.getName()).replace("{amount}", String.valueOf(amount)).replace("{uuid}", player.getUniqueId().toString()));
         }
-        Text.send(player, "<green>Purchase completed.</green>");
+        String label = sec.getString("display-name", id.replace('_', ' '));
+        Text.send(player, "<gradient:#f4cd2a:#eda323:#d28d0d>Purchase delivered:</gradient> <white>" + label + "</white>");
         player.closeInventory();
         return true;
     }
@@ -133,6 +137,9 @@ public final class SapphireService {
         OfflinePlayer target = Bukkit.getOfflinePlayer(targetName);
         apply(action, target.getUniqueId(), amount);
         Text.send(sender, "<green>Sapphire action executed for " + displayName(target, targetName) + ".</green>");
+        if (target.isOnline() && target.getPlayer() != null) {
+            Text.send(target.getPlayer(), "<gradient:#f4cd2a:#eda323:#d28d0d>Sapphire delivery confirmed.</gradient> <gray>Balance:</gray> <white>" + balance(target.getUniqueId()) + "</white>");
+        }
     }
 
     private void apply(String action, UUID target, long amount) {

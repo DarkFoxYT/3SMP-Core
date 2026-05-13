@@ -139,6 +139,10 @@ public final class SpawnService implements Listener {
         for (int slot = 0; slot <= 8; slot++) {
             player.getInventory().setItem(slot, null);
         }
+        if (!configs.get("core/config.yml").getBoolean("spawn.hotbar-items.enabled", false)) {
+            player.updateInventory();
+            return;
+        }
         if (perkService != null) perkService.giveCosmeticsItem(player);
         if (duelService != null) duelService.reloadItems(player);
         if (partyService != null) partyService.givePartyItems(player);

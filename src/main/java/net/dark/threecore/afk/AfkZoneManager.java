@@ -122,7 +122,7 @@ public final class AfkZoneManager implements Listener {
         Long graceUntil = inputGraceUntil.get(player.getUniqueId());
         if (graceUntil != null && System.currentTimeMillis() < graceUntil) return;
         if (returnLocations.containsKey(player.getUniqueId())) {
-            exitZone(player);
+            maintainAfkPlayer(player);
             return;
         }
         AfkZone zone = zoneAt(player.getLocation());
@@ -158,11 +158,12 @@ public final class AfkZoneManager implements Listener {
                 if (states.containsKey(player.getUniqueId())) exitZone(player);
                 continue;
             }
+            if (returnLocations.containsKey(player.getUniqueId())) maintainAfkPlayer(player);
             AfkZone zone = zoneAt(player.getLocation());
             if (zone == null) {
                 AfkPlayerState idle = state(player.getUniqueId());
                 if (returnLocations.containsKey(player.getUniqueId())) {
-                    exitZone(player);
+                    maintainAfkPlayer(player);
                     continue;
                 }
                 if (System.currentTimeMillis() - idle.lastRealMovementAt() >= afkAfter) enterCommand(player);
@@ -193,6 +194,10 @@ public final class AfkZoneManager implements Listener {
     }
 
     public void enterCommand(Player player) {
+        if (returnLocations.containsKey(player.getUniqueId())) {
+            exitZone(player);
+            return;
+        }
         AfkZone zone = firstZone();
         if (zone == null) {
             Text.send(player, "<red>No AFK zone is configured.</red>");
@@ -207,16 +212,29 @@ public final class AfkZoneManager implements Listener {
         returnGameModes.put(player.getUniqueId(), player.getGameMode());
         returnAllowFlight.put(player.getUniqueId(), player.getAllowFlight());
         returnFlying.put(player.getUniqueId(), player.isFlying());
-        inputGraceUntil.put(player.getUniqueId(), System.currentTimeMillis() + 1000L);
-        Location target = zone.center(world).clone().add(0.5, 1.0, 0.5);
+        inputGraceUntil.put(player.getUniqueId(), System.currentTimeMillis() + 5000L);
+        Location target = zone.center(world).clone().add(0.5, 0.5, 0.5);
+        maintainAfkPlayer(player);
         player.teleport(target);
-        player.setGameMode(GameMode.SPECTATOR);
         AfkPlayerState state = state(player.getUniqueId());
         state.zoneId(zone.id());
         state.afk(true);
         state.lastRealMovementAt(System.currentTimeMillis());
         state.lastRewardAt(System.currentTimeMillis());
+        maintainAfkPlayer(player);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> maintainAfkPlayer(player), 1L);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> maintainAfkPlayer(player), 5L);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> maintainAfkPlayer(player), 20L);
         Text.send(player, config("messages.entering", "<gradient:#1A2A4A:#D6E8F7>Entered AFK zone.</gradient>"));
+    }
+
+    private void maintainAfkPlayer(Player player) {
+        if (player == null || !player.isOnline() || !returnLocations.containsKey(player.getUniqueId())) return;
+        player.setGameMode(GameMode.SPECTATOR);
+        player.setAllowFlight(true);
+        player.setFlying(true);
+        player.setFallDistance(0.0f);
+        player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
     }
 
     private void exitZone(Player player) {

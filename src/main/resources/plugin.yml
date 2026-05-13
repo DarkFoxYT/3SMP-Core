@@ -5,7 +5,7 @@ main: net.dark.threecore.ThreeSMPCorePlugin
 api-version: '1.21'
 load: POSTWORLD
 authors: [ DarkFox ]
-softdepend: [ ItemsAdder, PlaceholderAPI, PlayerPoints, Multiverse-Core, WorldGuard, WorldEdit, TAB, DecentHolograms, Citizens, DeluxeMenus ]
+softdepend: [ ItemsAdder, PlaceholderAPI, PlayerPoints, Multiverse-Core, WorldGuard, WorldEdit, TAB, DecentHolograms, Citizens, DeluxeMenus, MythicMobs, ModelEngine ]
 commands:
   help:
     description: Custom 3SMP help command
@@ -38,6 +38,9 @@ commands:
     aliases: [ friends ]
   friends:
     description: Friend command
+  visuals:
+    description: Open the visual cosmetics menu
+    aliases: [ visual, visduals ]
   devpanel:
     description: Open the duel developer panel
   perks:
@@ -57,6 +60,10 @@ commands:
     description: Launchpad commands
   warp:
     description: Warp commands
+  back:
+    description: Return to your previous survival location
+  backpack:
+    description: Open your survival backpack
   rtp:
     description: Random teleport commands
   spawn:
@@ -129,6 +136,18 @@ permissions:
     default: op
   3smpcore.debug:
     default: op
+  3smpcore.visuals.admin:
+    default: op
+  3smpcore.visuals.open:
+    default: true
+  3smpcore.visuals.reload:
+    default: op
+  3smpcore.scoreboard.use:
+    default: true
+  3smpcore.screentext.editor:
+    default: op
+  3smpcore.screentext.admin:
+    default: op
   3smpcore.perks.use:
     default: true
   3smpcore.perks.admin:
@@ -148,6 +167,8 @@ permissions:
   3smpcore.duel.use:
     default: true
   3smpcore.duel.admin:
+    default: op
+  3smpcore.duel.editor:
     default: op
   3smpcore.party.use:
     default: true
@@ -205,6 +226,20 @@ permissions:
     default: true
   3smpcore.market.admin:
     default: op
+  3smpcore.back.use:
+    default: true
+  3smpcore.backpack.use:
+    default: true
+  3smpcore.command.bypass:
+    default: op
+  3smpcore.staff.sradmin:
+    default: op
+  3smpcore.staff.admin:
+    default: op
+  3smpcore.spy.owner:
+    default: op
+  3smpcore.spy.admin:
+    default: op
 
 
 
@@ -219,6 +254,14 @@ permissions:
   3smpcore.dungeons.use:
     default: true
   3smpcore.dungeons.admin:
+    default: op
+  3smpcore.dungeon.admin:
+    default: op
+  3smpcore.dungeon.editor:
+    default: op
+  3smpcore.dungeon.boulder.bypass:
+    default: op
+  3smpcore.dungeon.protection.bypass:
     default: op
 
   3smpcore.zonepvp.admin:

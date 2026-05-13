@@ -22,4 +22,12 @@ public final class ConfigFiles {
     public void reload() {
         cache.clear();
     }
+
+    public void reload(String path) {
+        if (path == null || path.isBlank()) {
+            reload();
+            return;
+        }
+        cache.remove(path);
+    }
 }

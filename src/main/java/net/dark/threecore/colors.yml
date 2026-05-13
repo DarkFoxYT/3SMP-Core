@@ -24,8 +24,8 @@ colors:
     hex: "#FF5555"
     preview: "<gradient:#FF5555:#FF7777>Red</gradient>"
   gold:
-    display-name: "<gold>Gold</gold>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Gold</gradient>"
     permission: "3smpcore.chat.hex"
     default-unlocked: false
-    hex: "#f59e0b"
-    preview: "<gradient:#f59e0b:#fbbf24>Gold</gradient>"
+    hex: "#eda323"
+    preview: "<gradient:#f4cd2a:#eda323:#d28d0d>Gold</gradient>"

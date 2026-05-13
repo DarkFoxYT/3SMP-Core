@@ -16,4 +16,4 @@ release:
   players-per-interval: 1
   interval-ticks: 40
 messages:
-  actionbar: "<gradient:#1A2A4A:#D6E8F7>Join Queue</gradient> <gray>Position:</gray> <white>{position}</white><gray>/{total}</gray>"
+  actionbar: "<gradient:#f4cd2a:#eda323:#d28d0d>Join Queue</gradient> <gray>Position:</gray> <white>{position}</white><gray>/{total}</gray>"

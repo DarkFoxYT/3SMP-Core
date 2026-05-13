@@ -6,26 +6,31 @@ sapphire:
   command-aliases: [ sap, sapphires ]
   shop-items:
     crate_keys:
+      display-name: "Cosmic Crate Key"
       currency: sapphires
       price: 100
       amount: 1
-      give-command: "crate keys give {player} {amount}"
+      give-command: "crate key give {player} cosmic {amount}"
     gem_extractor:
+      display-name: "Gem Extractor"
       currency: sapphires
       price: 250
       amount: 1
       give-command: "gems giveextractor {player} {amount}"
     gem_capsule:
+      display-name: "Rough Gem Capsule"
       currency: sapphires
       price: 400
       amount: 1
       give-command: "gems givecapsule {player} rough {amount}"
     cosmetics:
+      display-name: "Cosmetic Unlock"
       currency: sapphires
       price: 500
       amount: 1
       give-command: "perks unlock {player} cosmetics"
     donor_rank:
+      display-name: "VIP Rank"
       currency: sapphires
       price: 2000
       amount: 1

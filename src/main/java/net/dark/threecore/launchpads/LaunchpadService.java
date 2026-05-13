@@ -48,6 +48,7 @@ public final class LaunchpadService implements Listener {
     private final Map<String, LaunchpadDefinition> definitions = new LinkedHashMap<>();
     private final Map<String, PlacedLaunchpad> placedPads = new LinkedHashMap<>();
     private final Map<java.util.UUID, PendingSignEdit> pendingTargetEdits = new java.util.HashMap<>();
+    private final Map<java.util.UUID, String> pendingBlockTargetEdits = new java.util.HashMap<>();
     private final Map<java.util.UUID, PendingRenameEdit> pendingRenameEdits = new java.util.HashMap<>();
 
     public LaunchpadService(JavaPlugin plugin, ConfigFiles configs, MenuService menuService, PerkService perkService) {
@@ -83,7 +84,7 @@ public final class LaunchpadService implements Listener {
         }
         definitions.putIfAbsent("default", new LaunchpadDefinition(
                 "default",
-                "<gradient:#f59e0b:#f97316>Launchpad</gradient>",
+                "<gradient:#f4cd2a:#eda323:#d28d0d>Launchpad</gradient>",
                 Material.SLIME_BLOCK,
                 true,
                 "DIRECTION",
@@ -142,7 +143,7 @@ public final class LaunchpadService implements Listener {
             if (slot >= 45) break;
         }
 
-        inv.setItem(49, button(Material.SLIME_BLOCK, "<gradient:#f59e0b:#f97316>Create New</gradient>", List.of("<gray>Give a launchpad item.</gray>", "<gray>Place it in the world, then configure it.</gray>")));
+        inv.setItem(49, button(Material.SLIME_BLOCK, "<gradient:#f4cd2a:#eda323:#d28d0d>Create New</gradient>", List.of("<gray>Give a launchpad item.</gray>", "<gray>Place it in the world, then configure it.</gray>")));
         inv.setItem(53, button(Material.BARRIER, "<red>Close</red>", List.of("<gray>Exit the launchpad browser.</gray>")));
         return inv;
     }
@@ -158,10 +159,10 @@ public final class LaunchpadService implements Listener {
             return inv;
         }
 
-        inv.setItem(11, button(Material.SLIME_BLOCK, "<gradient:#f59e0b:#f97316>Give Item</gradient>", List.of("<gray>Gives the configured launchpad item.</gray>")));
+        inv.setItem(11, button(Material.SLIME_BLOCK, "<gradient:#f4cd2a:#eda323:#d28d0d>Give Item</gradient>", List.of("<gray>Gives the configured launchpad item.</gray>")));
         inv.setItem(12, button(pad.definition().enabled() ? Material.LIME_DYE : Material.RED_DYE, pad.definition().enabled() ? "<green>Enabled</green>" : "<red>Disabled</red>", List.of("<gray>Toggle this launchpad in game.</gray>")));
-        inv.setItem(13, button(Material.COMPASS, "<gradient:#60a5fa:#c084fc>Update Target</gradient>", List.of("<gray>Open the sign editor and enter coordinates.</gray>", "<gray>Use x, y, z and optional world.</gray>")));
-        inv.setItem(14, button(Material.NAME_TAG, "<gradient:#60a5fa:#fbbf24>Rename</gradient>", List.of("<gray>Rename this placed launchpad.</gray>", "<gray>Use the sign editor for a clean in-game rename.</gray>", "<white>Current:</white> <aqua>" + pad.definition().displayName() + "</aqua>")));
+        inv.setItem(13, button(Material.COMPASS, "<gradient:#60a5fa:#c084fc>Update Target</gradient>", List.of("<gray>Click, then right-click the block players should land on.</gray>", "<gray>The landing point is saved from that block.</gray>")));
+        inv.setItem(14, button(Material.NAME_TAG, "<gradient:#f4cd2a:#eda323:#d28d0d>Rename</gradient>", List.of("<gray>Rename this placed launchpad.</gray>", "<gray>Use the sign editor for a clean in-game rename.</gray>", "<white>Current:</white> <aqua>" + pad.definition().displayName() + "</aqua>")));
         inv.setItem(15, button(Material.REDSTONE, "<gradient:#34d399:#22c55e>Launch Info</gradient>", List.of(
                 "<gray>Enabled:</gray> <white>" + pad.definition().enabled() + "</white>",
                 "<gray>Mode:</gray> <white>" + pad.definition().mode() + "</white>",
@@ -224,23 +225,10 @@ public final class LaunchpadService implements Listener {
             openMenu(player);
             return;
         }
-        Location signLocation = player.getLocation().getBlock().getLocation().add(0, 1, 0);
-        var block = signLocation.getBlock();
-        var previous = block.getBlockData().clone();
-        block.setType(Material.OAK_SIGN);
-        pendingTargetEdits.put(player.getUniqueId(), new PendingSignEdit(placementKey, signLocation, previous));
-        try {
-            if (block.getState() instanceof Sign sign) {
-                player.openSign(sign, Side.FRONT);
-                Text.send(player, "<gray>Enter coordinates on the sign: line 1 x, line 2 y, line 3 z, line 4 world (optional).</gray>");
-            } else {
-                Text.send(player, "<red>Could not open sign editor.</red>");
-            }
-        } catch (Throwable ex) {
-            pendingTargetEdits.remove(player.getUniqueId());
-            block.setBlockData(previous);
-            Text.send(player, "<red>Could not open sign editor.</red>");
-        }
+        pendingBlockTargetEdits.put(player.getUniqueId(), placementKey);
+        player.closeInventory();
+        Text.send(player, "<green>Right-click the block players should land on.</green>");
+        Text.actionBar(player, "<gray>Launchpad target select:</gray> <white>right-click landing block</white>");
     }
 
     public void openRenameEditor(Player player, String placementKey) {
@@ -340,6 +328,25 @@ public final class LaunchpadService implements Listener {
         if (event.getAction() != Action.RIGHT_CLICK_BLOCK) return;
         Block block = event.getClickedBlock();
         if (block == null) return;
+        String targetEdit = pendingBlockTargetEdits.remove(event.getPlayer().getUniqueId());
+        if (targetEdit != null) {
+            event.setCancelled(true);
+            if (!canEdit(event.getPlayer())) {
+                Text.send(event.getPlayer(), "<red>No permission.</red>");
+                return;
+            }
+            PlacedLaunchpad edited = placedPads.get(targetEdit);
+            if (edited == null) {
+                Text.send(event.getPlayer(), "<red>That launchpad no longer exists.</red>");
+                openMenu(event.getPlayer());
+                return;
+            }
+            setMode(targetEdit, "TARGET");
+            setTargetPlacement(targetEdit, landingTarget(block, event.getPlayer()));
+            Text.send(event.getPlayer(), "<green>Launchpad landing block saved.</green>");
+            openDetailMenu(event.getPlayer(), targetEdit);
+            return;
+        }
         PlacedLaunchpad pad = placedPads.get(key(block.getLocation()));
         if (pad == null) {
             Location below = block.getLocation().clone().subtract(0, 1, 0);
@@ -438,12 +445,7 @@ public final class LaunchpadService implements Listener {
         player.setFallDistance(0.0f);
         player.setSneaking(false);
         player.setGliding(false);
-        Bukkit.getScheduler().runTaskLater(plugin, () -> {
-            if (player.isOnline()) {
-                player.setVelocity(velocity);
-                player.setFallDistance(0.0f);
-            }
-        }, 1L);
+        stabilizeLaunch(player, launchpad.target());
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (player.isOnline()) player.removeMetadata("launchpad_cooldown", plugin);
         }, 12L);
@@ -596,11 +598,11 @@ public final class LaunchpadService implements Listener {
             inv.setItem(13, button(Material.LIME_WOOL, "<gradient:#60a5fa:#c084fc>Y+</gradient>", List.of("<gray>Raise the lift strength.</gray>", "<white>Current Y: " + formatDelta(pad.definition().velocity().getY()) + "</white>")));
             inv.setItem(14, button(Material.RED_WOOL, "<gradient:#60a5fa:#c084fc>Z-</gradient>", List.of("<gray>Decrease push to the north.</gray>", "<white>Current Z: " + formatDelta(pad.definition().velocity().getZ()) + "</white>")));
             inv.setItem(15, button(Material.LIME_WOOL, "<gradient:#60a5fa:#c084fc>Z+</gradient>", List.of("<gray>Increase push to the south.</gray>", "<white>Current Z: " + formatDelta(pad.definition().velocity().getZ()) + "</white>")));
-            inv.setItem(16, button(Material.SLIME_BLOCK, "<gradient:#f59e0b:#f97316>Boost All</gradient>", List.of("<gray>Increase the entire vector slightly.</gray>", "<white>Current: " + formatVector(pad.definition().velocity()) + "</white>")));
-            inv.setItem(17, button(Material.FIREWORK_ROCKET, "<gradient:#f59e0b:#fbbf24>Strength -</gradient>", List.of("<gray>Reduce launch strength.</gray>", "<white>Current Strength: " + formatDelta(pad.definition().strength()) + "</white>")));
-            inv.setItem(18, button(Material.ENDER_PEARL, "<gradient:#34d399:#22c55e>Target Mode</gradient>", List.of("<gray>Switch to teleport target mode.</gray>", "<gray>Uses the sign-entered coordinate.</gray>")));
-            inv.setItem(19, button(Material.FIREWORK_ROCKET, "<gradient:#f59e0b:#fbbf24>Strength +</gradient>", List.of("<gray>Increase launch strength.</gray>", "<white>Current Strength: " + formatDelta(pad.definition().strength()) + "</white>")));
-            inv.setItem(20, button(Material.ENDER_PEARL, "<gradient:#f59e0b:#f97316>Vertical Boost</gradient>", List.of("<gray>Launch straight up.</gray>", "<white>Vector: 0.0, 2.0, 0.0</white>")));
+            inv.setItem(16, button(Material.SLIME_BLOCK, "<gradient:#f4cd2a:#eda323:#d28d0d>Boost All</gradient>", List.of("<gray>Increase the entire vector slightly.</gray>", "<white>Current: " + formatVector(pad.definition().velocity()) + "</white>")));
+            inv.setItem(17, button(Material.FIREWORK_ROCKET, "<gradient:#f4cd2a:#eda323:#d28d0d>Strength -</gradient>", List.of("<gray>Reduce launch strength.</gray>", "<white>Current Strength: " + formatDelta(pad.definition().strength()) + "</white>")));
+            inv.setItem(18, button(Material.ENDER_PEARL, "<gradient:#34d399:#22c55e>Target Mode</gradient>", List.of("<gray>Launch toward the saved landing block.</gray>", "<gray>Set the target from the detail menu.</gray>")));
+            inv.setItem(19, button(Material.FIREWORK_ROCKET, "<gradient:#f4cd2a:#eda323:#d28d0d>Strength +</gradient>", List.of("<gray>Increase launch strength.</gray>", "<white>Current Strength: " + formatDelta(pad.definition().strength()) + "</white>")));
+            inv.setItem(20, button(Material.ENDER_PEARL, "<gradient:#f4cd2a:#eda323:#d28d0d>Vertical Boost</gradient>", List.of("<gray>Launch straight up.</gray>", "<white>Vector: 0.0, 2.0, 0.0</white>")));
             inv.setItem(22, button(Material.ARROW, "<gray>Back</gray>", List.of("<gray>Return to launchpad details.</gray>")));
         }
         return inv;
@@ -705,8 +707,8 @@ public final class LaunchpadService implements Listener {
         start.setY(Math.max(start.getY(), padLocation.getY()));
         start.setZ(padLocation.getZ());
 
-        double dx = target.getX() + 0.5 - start.getX();
-        double dz = target.getZ() + 0.5 - start.getZ();
+        double dx = target.getX() - start.getX();
+        double dz = target.getZ() - start.getZ();
         double dy = target.getY() - start.getY();
         double horizontal = Math.sqrt(dx * dx + dz * dz);
         if (horizontal < 0.01 && Math.abs(dy) < 0.01) return new Vector(0.0, 0.6, 0.0);
@@ -732,6 +734,40 @@ public final class LaunchpadService implements Listener {
 
     private double clamp(double value, double min, double max) {
         return Math.max(min, Math.min(max, value));
+    }
+
+    private Location landingTarget(Block block, Player player) {
+        Location target = block.getLocation().add(0.5D, 1.0D, 0.5D);
+        target.setYaw(player.getYaw());
+        target.setPitch(player.getPitch());
+        return target;
+    }
+
+    private void stabilizeLaunch(Player player, Location target) {
+        if (target == null || target.getWorld() == null || !target.getWorld().equals(player.getWorld())) return;
+        int ticks = Math.max(8, configs.get("world/launchpads.yml").getInt("physics.course-correction-ticks", 36));
+        int interval = Math.max(2, configs.get("world/launchpads.yml").getInt("physics.course-correction-interval-ticks", 4));
+        for (int delay = interval; delay <= ticks; delay += interval) {
+            Bukkit.getScheduler().runTaskLater(plugin, () -> correctLaunchCourse(player, target), delay);
+        }
+    }
+
+    private void correctLaunchCourse(Player player, Location target) {
+        if (!player.isOnline() || target == null || target.getWorld() == null || !target.getWorld().equals(player.getWorld())) return;
+        player.setFallDistance(0.0F);
+        if (player.isOnGround()) return;
+        Location currentLocation = player.getLocation();
+        Vector horizontal = target.toVector().subtract(currentLocation.toVector());
+        horizontal.setY(0.0D);
+        double distance = horizontal.length();
+        if (distance < 1.25D) return;
+        horizontal.normalize().multiply(Math.min(0.28D, distance / 40.0D));
+        Vector current = player.getVelocity();
+        current.setX(clamp(current.getX() + horizontal.getX(), -3.2D, 3.2D));
+        current.setZ(clamp(current.getZ() + horizontal.getZ(), -3.2D, 3.2D));
+        double heightDelta = target.getY() - currentLocation.getY();
+        if (heightDelta > 0.5D) current.setY(Math.max(current.getY(), Math.min(1.0D, heightDelta / 12.0D)));
+        player.setVelocity(current);
     }
 
     private String formatDelta(double value) {

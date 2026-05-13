@@ -10,6 +10,7 @@ import net.dark.threecore.sapphires.SapphireService;
 import net.dark.threecore.social.FriendService;
 import net.dark.threecore.social.SocialTabService;
 import net.dark.threecore.spawn.SpawnService;
+import net.dark.threecore.visual.VisualManager;
 import net.dark.threecore.warp.WarpManager;
 import org.bukkit.plugin.java.JavaPlugin;
 
@@ -20,6 +21,10 @@ public final class ThreeSmpCoreExpansion extends SmpCoreExpansion {
 
     public ThreeSmpCoreExpansion(JavaPlugin plugin, PerkService perkService, WarpManager warpManager, SpawnService spawnService, MoneyService moneyService, SapphireService sapphireService, PartyService partyService, DungeonService dungeonService, FriendService friendService, SocialTabService socialTabService, ChatFormatService chatFormatService, DuelService duelService) {
         super(plugin, perkService, warpManager, spawnService, moneyService, sapphireService, partyService, dungeonService, friendService, socialTabService, chatFormatService, duelService);
+    }
+
+    public ThreeSmpCoreExpansion(JavaPlugin plugin, PerkService perkService, WarpManager warpManager, SpawnService spawnService, MoneyService moneyService, SapphireService sapphireService, PartyService partyService, DungeonService dungeonService, FriendService friendService, SocialTabService socialTabService, ChatFormatService chatFormatService, DuelService duelService, VisualManager visualManager) {
+        super(plugin, perkService, warpManager, spawnService, moneyService, sapphireService, partyService, dungeonService, friendService, socialTabService, chatFormatService, duelService, visualManager);
     }
 
     @Override public String getIdentifier() { return "3smpcore"; }

@@ -6,8 +6,8 @@ import net.dark.threecore.daily.DailyRewardManager;
 import net.dark.threecore.fishing.FishingRewardManager;
 import net.dark.threecore.gems.GemService;
 import net.dark.threecore.gui.menu.CoreMenuHolder;
-import net.dark.threecore.gui.menu.CoreMenuType;
 import net.dark.threecore.launchpads.LaunchpadService;
+import net.dark.threecore.rtp.RtpManager;
 import net.dark.threecore.warp.WarpManager;
 import net.dark.threecore.shop.ShopService;
 import net.dark.threecore.party.PartyService;
@@ -19,6 +19,7 @@ import net.dark.threecore.gui.menu.CoreMenuType;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
+import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.inventory.ItemStack;
 
 public final class MenuListener implements Listener {
@@ -32,11 +33,12 @@ public final class MenuListener implements Listener {
     private final SoulManager soulManager;
     private final DuelLeaderboardService leaderboardService;
     private final LaunchpadService launchpadService;
+    private final RtpManager rtpManager;
     private final WarpManager warpManager;
     private final ShopService shopService;
     private final MarketPlotManager marketPlotManager;
 
-    public MenuListener(DuelService duelService, PartyService partyService, PerkService perkService, GemService gemService, SapphireService sapphireService, DailyRewardManager dailyRewardManager, FishingRewardManager fishingRewardManager, SoulManager soulManager, DuelLeaderboardService leaderboardService, LaunchpadService launchpadService, WarpManager warpManager, ShopService shopService, MarketPlotManager marketPlotManager) {
+    public MenuListener(DuelService duelService, PartyService partyService, PerkService perkService, GemService gemService, SapphireService sapphireService, DailyRewardManager dailyRewardManager, FishingRewardManager fishingRewardManager, SoulManager soulManager, DuelLeaderboardService leaderboardService, LaunchpadService launchpadService, RtpManager rtpManager, WarpManager warpManager, ShopService shopService, MarketPlotManager marketPlotManager) {
         this.duelService = duelService;
         this.partyService = partyService;
         this.perkService = perkService;
@@ -47,6 +49,7 @@ public final class MenuListener implements Listener {
         this.soulManager = soulManager;
         this.leaderboardService = leaderboardService;
         this.launchpadService = launchpadService;
+        this.rtpManager = rtpManager;
         this.warpManager = warpManager;
         this.shopService = shopService;
         this.marketPlotManager = marketPlotManager;
@@ -56,6 +59,7 @@ public final class MenuListener implements Listener {
     public void onClick(InventoryClickEvent event) {
         if (!(event.getView().getTopInventory().getHolder() instanceof CoreMenuHolder holder)) return;
         if (holder.type() == CoreMenuType.DUEL_DEV && holder.context().toLowerCase(java.util.Locale.ROOT).startsWith("kit-editor:")) { duelService.handleKitEditorClick(event); return; }
+        if (holder.type() == CoreMenuType.DUEL_LOADOUT) { duelService.handleLoadoutClick(event); return; }
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof org.bukkit.entity.Player player)) return;
         if (event.getClickedInventory() == null || event.getClickedInventory() != event.getView().getTopInventory()) return;
@@ -107,7 +111,7 @@ public final class MenuListener implements Listener {
                 else sapphireService.handleMenuClick(player, slot);
             }
             case DAILY_MAIN -> { if (item == null) return; dailyRewardManager.handleClick(player, slot); }
-            case FISHING_MAIN -> { if (item == null) return; fishingRewardManager.handleClick(player, slot); }
+            case FISHING_MAIN -> { if (item == null || fishingRewardManager == null) return; fishingRewardManager.handleClick(player, slot); }
             case SOULS_MAIN -> {
                 if (item == null) return;
                 String ctx = holder.context().toLowerCase(java.util.Locale.ROOT);
@@ -115,9 +119,24 @@ public final class MenuListener implements Listener {
                 if (ctx.equals("souls-rewards")) soulManager.handleRewardsClick(player, slot);
                 else soulManager.handleClick(player, slot);
             }
+            case RTP_MAIN -> { if (rtpManager != null) rtpManager.handleClick(player, slot); }
             case MARKET_MAIN -> { if (item == null) return; marketPlotManager.handle(player, slot); }
             case SHOP_CHEST -> { }
         }
+    }
+
+    @EventHandler
+    public void onDrag(InventoryDragEvent event) {
+        if (!(event.getView().getTopInventory().getHolder() instanceof CoreMenuHolder holder)) return;
+        if (holder.type() == CoreMenuType.DUEL_DEV && holder.context().toLowerCase(java.util.Locale.ROOT).startsWith("kit-editor:")) {
+            duelService.handleKitEditorDrag(event);
+            return;
+        }
+        if (holder.type() == CoreMenuType.DUEL_LOADOUT) {
+            duelService.handleLoadoutDrag(event);
+            return;
+        }
+        event.setCancelled(true);
     }
 }
 

@@ -1,0 +1,68 @@
+info:
+  namespace: ranks
+
+font_images:
+  owner:
+    path: ranks:font/owner
+    scale_ratio: 6
+    y_position: 6
+  dev:
+    path: ranks:font/dev
+    scale_ratio: 6
+    y_position: 6
+  admin:
+    path: ranks:font/admin
+    scale_ratio: 6
+    y_position: 6
+  sr_admin:
+    path: ranks:font/sr-admin
+    scale_ratio: 6
+    y_position: 6
+  mod:
+    path: ranks:font/mod
+    scale_ratio: 6
+    y_position: 6
+  builder:
+    path: ranks:font/builder
+    scale_ratio: 6
+    y_position: 6
+  sr_mod:
+    path: ranks:font/sr-mod
+    scale_ratio: 6
+    y_position: 6
+  jr_mod:
+    path: ranks:font/jr-mod
+    scale_ratio: 6
+    y_position: 6
+  pro:
+    path: ranks:font/pro
+    scale_ratio: 6
+    y_position: 6
+  mvp:
+    path: ranks:font/mvp
+    scale_ratio: 6
+    y_position: 6
+  elite:
+    path: ranks:font/elite
+    scale_ratio: 6
+    y_position: 6
+  ultra:
+    path: ranks:font/ultra
+    scale_ratio: 6
+    y_position: 6
+  vip:
+    path: ranks:font/vip
+    scale_ratio: 6
+    y_position: 6
+  patron:
+    path: ranks:font/patron
+    scale_ratio: 6
+    y_position: 6
+  server_logo:
+    path: ranks:font/server_logo
+    scale_ratio: 32
+    y_position: 1
+  solo_text:
+    path: ranks:font/solo_text
+    scale_ratio: 100
+    y_position: 1

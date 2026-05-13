@@ -1,4 +1,4 @@
 warps:
   spawn:
-    display-name: "<gradient:#60a5fa:#c084fc>Spawn</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Spawn</gradient>"
     icon: ENDER_PEARL

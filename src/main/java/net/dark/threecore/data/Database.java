@@ -35,6 +35,7 @@ public final class Database {
                 st.executeUpdate("CREATE TABLE IF NOT EXISTS market_plot_trust (plot_id TEXT NOT NULL, player_uuid TEXT NOT NULL, PRIMARY KEY(plot_id, player_uuid))");
                 st.executeUpdate("CREATE TABLE IF NOT EXISTS shop_chests (world TEXT NOT NULL, x INTEGER NOT NULL, y INTEGER NOT NULL, z INTEGER NOT NULL, owner TEXT NOT NULL, price REAL NOT NULL DEFAULT 1, quantity INTEGER NOT NULL DEFAULT 1, enabled INTEGER NOT NULL DEFAULT 0, item_type TEXT NOT NULL DEFAULT 'COBBLESTONE', item_name TEXT NOT NULL DEFAULT 'Cobblestone', PRIMARY KEY(world, x, y, z))");
                 st.executeUpdate("CREATE TABLE IF NOT EXISTS player_inventory_profiles (uuid TEXT NOT NULL, profile TEXT NOT NULL, contents TEXT NOT NULL, armor TEXT NOT NULL, offhand TEXT NOT NULL, PRIMARY KEY(uuid, profile))");
+                st.executeUpdate("CREATE TABLE IF NOT EXISTS player_duel_kit_stats (uuid TEXT NOT NULL, kit_id TEXT NOT NULL, wins INTEGER NOT NULL DEFAULT 0, losses INTEGER NOT NULL DEFAULT 0, ranked_wins INTEGER NOT NULL DEFAULT 0, ranked_losses INTEGER NOT NULL DEFAULT 0, current_streak INTEGER NOT NULL DEFAULT 0, best_streak INTEGER NOT NULL DEFAULT 0, mmr INTEGER NOT NULL DEFAULT 1000, PRIMARY KEY(uuid, kit_id))");
             }
         } catch (SQLException e) {
             throw new IllegalStateException("Failed to initialize database", e);

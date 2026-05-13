@@ -65,7 +65,7 @@ rarities:
     weight: 5
     icon:
       material: PUFFERFISH
-    display-name: "<gradient:#f59e0b:#fb7185>Legendary Fish</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Legendary Fish</gradient>"
     coins-min: 1000
     coins-max: 2500
     fishing-points: 15
@@ -99,7 +99,7 @@ fish-items:
   legendary:
     material: PUFFERFISH
     itemsadder: "3smp:legendary_fish"
-    display-name: "<gradient:#f59e0b:#fb7185>Abyss Crownfish</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Abyss Crownfish</gradient>"
     sell-value: 2500
     lore:
       - "<gray>Tier 4 fish.</gray>"
@@ -257,51 +257,51 @@ fish-catalog:
     abyss_crownfish:
       material: PUFFERFISH
       itemsadder: "3smp:fish_abyss_crownfish"
-      display-name: "<gradient:#f59e0b:#fb7185>Abyss Crownfish</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Abyss Crownfish</gradient>"
       sell-value: 2500
       lore: [ "<gray>Legendary fish 1/8.</gray>" ]
     sunken_leviathan_scale:
       material: PUFFERFISH
       itemsadder: "3smp:fish_leviathan_scale"
-      display-name: "<gradient:#f59e0b:#fb7185>Leviathan Scale</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Leviathan Scale</gradient>"
       sell-value: 3250
       lore: [ "<gray>Legendary fish 2/8.</gray>" ]
     golden_kraken:
       material: PUFFERFISH
       itemsadder: "3smp:fish_golden_kraken"
-      display-name: "<gradient:#f59e0b:#fb7185>Golden Kraken</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Golden Kraken</gradient>"
       sell-value: 4000
       lore: [ "<gray>Legendary fish 3/8.</gray>" ]
     phantom_marlin:
       material: PUFFERFISH
       itemsadder: "3smp:fish_phantom_marlin"
-      display-name: "<gradient:#f59e0b:#fb7185>Phantom Marlin</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Phantom Marlin</gradient>"
       sell-value: 4750
       lore: [ "<gray>Legendary fish 4/8.</gray>" ]
     starlit_manta:
       material: PUFFERFISH
       itemsadder: "3smp:fish_starlit_manta"
-      display-name: "<gradient:#f59e0b:#fb7185>Starlit Manta</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Starlit Manta</gradient>"
       sell-value: 5500
       lore: [ "<gray>Legendary fish 5/8.</gray>" ]
     void_nautilus:
       material: PUFFERFISH
       itemsadder: "3smp:fish_void_nautilus"
-      display-name: "<gradient:#f59e0b:#fb7185>Void Nautilus</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Void Nautilus</gradient>"
       sell-value: 6500
       lore: [ "<gray>Legendary fish 6/8.</gray>" ]
     sapphire_shark:
       material: PUFFERFISH
       itemsadder: "3smp:fish_sapphire_shark"
-      display-name: "<gradient:#f59e0b:#fb7185>Sapphire Shark</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Sapphire Shark</gradient>"
       sell-value: 8000
       lore: [ "<gray>Legendary fish 7/8.</gray>" ]
     mythic_whale:
       material: PUFFERFISH
       itemsadder: "3smp:fish_mythic_whale"
-      display-name: "<gradient:#f59e0b:#fb7185>Mythic Whale</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Mythic Whale</gradient>"
       sell-value: 12000
-      lore: [ "<gray>Legendary fish 8/8.</gray>", "<gold>The big one.</gold>" ]
+      lore: [ "<gray>Legendary fish 8/8.</gray>", "<gradient:#f4cd2a:#eda323:#d28d0d>The big one.</gradient>" ]
 
 bonus-loot:
   saddle:
@@ -309,10 +309,10 @@ bonus-loot:
     chance: 0.08
     material: SADDLE
     amount: 1
-    display-name: "<gold>Recovered Saddle</gold>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Recovered Saddle</gradient>"
     lore:
       - "<gray>Dragged up from deep water.</gray>"
-    message: "<gold>Bonus catch:</gold> <white>Recovered Saddle</white>"
+    message: "<gradient:#f4cd2a:#eda323:#d28d0d>Bonus catch:</gradient> <white>Recovered Saddle</white>"
   nautilus_shell:
     rarities: [ rare, legendary ]
     chance: 0.05
@@ -328,10 +328,10 @@ bonus-loot:
     material: TRIPWIRE_HOOK
     itemsadder: "3smp:sunken_key"
     amount: 1
-    display-name: "<gradient:#38bdf8:#f59e0b>Sunken Crate Key</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Sunken Crate Key</gradient>"
     lore:
       - "<gray>A valuable crate key from the ocean floor.</gray>"
-    message: "<gradient:#38bdf8:#f59e0b>Insane catch:</gradient> <white>Sunken Crate Key</white>"
+    message: "<gradient:#f4cd2a:#eda323:#d28d0d>Insane catch:</gradient> <white>Sunken Crate Key</white>"
   ocean_relic:
     rarities: [ legendary ]
     chance: 0.01
@@ -341,5 +341,5 @@ bonus-loot:
     display-name: "<gradient:#22d3ee:#a855f7>Ocean Relic</gradient>"
     lore:
       - "<gray>Extremely valuable jackpot loot.</gray>"
-      - "<gold>Worth a lot. Show it off.</gold>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d>Worth a lot. Show it off.</gradient>"
     message: "<gradient:#22d3ee:#a855f7><bold>JACKPOT!</bold></gradient> <white>You pulled an Ocean Relic!</white>"

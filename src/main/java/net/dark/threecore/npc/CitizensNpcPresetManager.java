@@ -94,7 +94,7 @@ public final class CitizensNpcPresetManager {
     }
 
     private void run(Player player, String command) {
-        Bukkit.getScheduler().runTask(plugin, () -> player.performCommand(command));
+        player.performCommand(command);
     }
 
     private String quote(String value) {

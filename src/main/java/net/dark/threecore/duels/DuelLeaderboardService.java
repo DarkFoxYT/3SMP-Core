@@ -48,11 +48,17 @@ public final class DuelLeaderboardService {
         for (UUID uuid : top) {
             PlayerProgressionData data = repository.load(uuid);
             String name = Bukkit.getOfflinePlayer(uuid).getName();
-            inv.setItem(slot++, button(Material.PLAYER_HEAD, "<gradient:#60a5fa:#c084fc>#" + place + " " + (name == null ? uuid.toString().substring(0, 8) : name) + "</gradient>", List.of("<gray>Rating: " + data.duelRating() + "</gray>", "<gray>Wins: " + data.duelWins() + " | Losses: " + data.duelLosses() + "</gray>", "<gray>Streak: " + data.duelWinStreak() + " | Best: " + data.duelBestWinStreak() + "</gray>", "<gray>Prize: " + prize(place) + "</gray>")));
+            List<String> lore = new ArrayList<>(List.of(
+                    "<gray>Rating: " + data.duelRating() + "</gray>",
+                    "<gray>Wins: " + data.duelWins() + " | Losses: " + data.duelLosses() + "</gray>",
+                    "<gray>Streak: " + data.duelWinStreak() + " | Best: " + data.duelBestWinStreak() + "</gray>"
+            ));
+            if (place <= 3) lore.add("<gray>Prize: " + prize(place) + "</gray>");
+            inv.setItem(slot++, button(Material.PLAYER_HEAD, "<gradient:#f4cd2a:#eda323:#d28d0d>#" + place + " " + (name == null ? uuid.toString().substring(0, 8) : name) + "</gradient>", lore));
             place++;
             if (slot > 26) break;
         }
-        inv.setItem(22, button(Material.SUNFLOWER, "<gradient:#f59e0b:#fbbf24>Monthly Prizes</gradient>", List.of(
+        inv.setItem(22, button(Material.SUNFLOWER, "<gradient:#f4cd2a:#eda323:#d28d0d>Monthly Prizes</gradient>", List.of(
                 "<gray>1st:</gray> <white>" + prize(1) + "</white>",
                 "<gray>2nd:</gray> <white>" + prize(2) + "</white>",
                 "<gray>3rd:</gray> <white>" + prize(3) + "</white>",
@@ -66,7 +72,7 @@ public final class DuelLeaderboardService {
     }
 
     private String prize(int place) {
-        return configs.get("duels/duels.yml").getString("duels.leaderboard.prizes." + place + ".display", place <= 10 ? "Configured manually" : "None");
+        return configs.get("duels/duels.yml").getString("duels.leaderboard.prizes." + place + ".display", place <= 3 ? "Configured manually" : "");
     }
 
     private void fill(Inventory inv, Material material) { for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, button(material, " ", List.of())); }

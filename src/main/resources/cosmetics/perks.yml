@@ -6,7 +6,7 @@ categories:
     display-name: "<gradient:#34d399:#22c55e>Tags</gradient>"
     slot: 12
   colors:
-    display-name: "<gradient:#f59e0b:#ef4444>Colors</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Colors</gradient>"
     slot: 14
   cosmetics:
     display-name: "<gradient:#f472b6:#fb7185>Cosmetics</gradient>"

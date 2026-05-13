@@ -49,12 +49,12 @@ public final class EssentialCommandService {
     }
 
     public void gamemode(CommandContext context) {
-        if (!context.sender().hasPermission(BASE_PERMISSION) && !context.sender().hasPermission(GAMEMODE_PERMISSION)) { Text.send(context.sender(), "<red>No permission.</red>"); return; }
+        if (!hasBypass(context.sender()) && !context.sender().hasPermission(BASE_PERMISSION) && !context.sender().hasPermission(GAMEMODE_PERMISSION)) { Text.send(context.sender(), "<red>No permission.</red>"); return; }
         if (context.args().length == 0) { Text.send(context.sender(), "<red>Usage: /gamemode <survival|creative|adventure|spectator> [player]</red>"); return; }
         GameMode mode = parseGameMode(context.arg(0));
         if (mode == null) { Text.send(context.sender(), "<red>Unknown gamemode.</red>"); return; }
         boolean targetOther = context.args().length >= 2;
-        if (targetOther && !context.sender().hasPermission(BASE_PERMISSION) && !context.sender().hasPermission(GAMEMODE_OTHERS_PERMISSION)) {
+        if (targetOther && !hasBypass(context.sender()) && !context.sender().hasPermission(BASE_PERMISSION) && !context.sender().hasPermission(GAMEMODE_OTHERS_PERMISSION)) {
             Text.send(context.sender(), "<red>No permission.</red>");
             return;
         }
@@ -73,7 +73,7 @@ public final class EssentialCommandService {
     }
 
     public void time(CommandContext context) {
-        if (!context.sender().hasPermission(BASE_PERMISSION) && !context.sender().hasPermission(TIME_PERMISSION)) { Text.send(context.sender(), "<red>No permission.</red>"); return; }
+        if (!hasBypass(context.sender()) && !context.sender().hasPermission(BASE_PERMISSION) && !context.sender().hasPermission(TIME_PERMISSION)) { Text.send(context.sender(), "<red>No permission.</red>"); return; }
         if (context.args().length == 0) { Text.send(context.sender(), "<red>Usage: /time <day|noon|night|midnight|ticks> [world]</red>"); return; }
         World world = context.args().length >= 2 ? Bukkit.getWorld(context.arg(1)) : context.sender() instanceof Player p ? p.getWorld() : Bukkit.getWorlds().get(0);
         if (world == null) { Text.send(context.sender(), "<red>World not found.</red>"); return; }
@@ -89,7 +89,7 @@ public final class EssentialCommandService {
     }
 
     public void gamerule(CommandContext context) {
-        if (!context.sender().hasPermission(BASE_PERMISSION) && !context.sender().hasPermission(GAMERULE_PERMISSION)) { Text.send(context.sender(), "<red>No permission.</red>"); return; }
+        if (!hasBypass(context.sender()) && !context.sender().hasPermission(BASE_PERMISSION) && !context.sender().hasPermission(GAMERULE_PERMISSION)) { Text.send(context.sender(), "<red>No permission.</red>"); return; }
         if (context.args().length < 2) { Text.send(context.sender(), "<red>Usage: /gamerule <rule> <value> [world]</red>"); return; }
         World world = context.args().length >= 3 ? Bukkit.getWorld(context.arg(2)) : context.sender() instanceof Player p ? p.getWorld() : Bukkit.getWorlds().get(0);
         if (world == null) { Text.send(context.sender(), "<red>World not found.</red>"); return; }
@@ -140,14 +140,15 @@ public final class EssentialCommandService {
     }
 
     private boolean allowed(Player player, String permission) {
-        if (DuelService.isDuelPlayer(player)) {
+        if (DuelService.isDuelPlayer(player) && !hasBypass(player)) {
             Text.send(player, "<red>You cannot use that command during a duel.</red>");
             return false;
         }
-        if (player.hasPermission(BASE_PERMISSION) || player.hasPermission(permission)) return true;
+        if (hasBypass(player) || player.hasPermission(BASE_PERMISSION) || player.hasPermission(permission)) return true;
         Text.send(player, "<red>No permission.</red>");
         return false;
     }
+    private boolean hasBypass(org.bukkit.command.CommandSender sender) { return sender.hasPermission("3smpcore.command.bypass") || sender.hasPermission("3smpcore.staff.sradmin") || sender.hasPermission("3smpcore.admin"); }
     private GameMode parseGameMode(String input) { return switch (input.toLowerCase(Locale.ROOT)) { case "0", "s", "survival" -> GameMode.SURVIVAL; case "1", "c", "creative" -> GameMode.CREATIVE; case "2", "a", "adventure" -> GameMode.ADVENTURE; case "3", "sp", "spectator" -> GameMode.SPECTATOR; default -> null; }; }
     private float parseFloat(String input, float fallback) { try { return Float.parseFloat(input); } catch (Exception ignored) { return fallback; } }
     private long parseLong(String input, long fallback) { try { return Long.parseLong(input); } catch (Exception ignored) { return fallback; } }

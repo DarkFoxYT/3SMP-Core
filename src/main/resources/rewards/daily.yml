@@ -1,5 +1,5 @@
 menu:
-  title: "<gradient:#1A2A4A:#f59e0b>Daily Rewards</gradient>"
+  title: "<gradient:#f4cd2a:#eda323:#d28d0d>Daily Rewards</gradient>"
   size: 54
   fill:
     material: BLACK_STAINED_GLASS_PANE
@@ -42,7 +42,7 @@ messages:
 rewards:
   days:
     "1":
-      display-name: "<gradient:#60a5fa:#c084fc>Day 1 Reward</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Day 1 Reward</gradient>"
       icon:
         material: EMERALD
       coins: 250
@@ -57,34 +57,34 @@ rewards:
           lore:
             - "<gray>Placeholder for future ItemsAdder icons.</gray>"
     "2":
-      display-name: "<gradient:#60a5fa:#c084fc>Day 2 Reward</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Day 2 Reward</gradient>"
       icon:
         material: DIAMOND
       coins: 500
       lore:
         - "<gray>More coins and a nicer item.</gray>"
     "3":
-      display-name: "<gradient:#60a5fa:#c084fc>Day 3 Reward</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Day 3 Reward</gradient>"
       icon:
         material: GOLD_INGOT
       coins: 750
     "4":
-      display-name: "<gradient:#60a5fa:#c084fc>Day 4 Reward</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Day 4 Reward</gradient>"
       icon:
         material: IRON_INGOT
       coins: 1000
     "5":
-      display-name: "<gradient:#60a5fa:#c084fc>Day 5 Reward</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Day 5 Reward</gradient>"
       icon:
         material: NETHER_STAR
       coins: 1250
     "6":
-      display-name: "<gradient:#60a5fa:#c084fc>Day 6 Reward</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Day 6 Reward</gradient>"
       icon:
         material: AMETHYST_SHARD
       coins: 1500
     "7":
-      display-name: "<gradient:#f59e0b:#fb7185>Day 7 Reward</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Day 7 Reward</gradient>"
       icon:
         material: ENCHANTED_GOLDEN_APPLE
       coins: 2500
@@ -94,7 +94,7 @@ rewards:
     enabled: true
     interval-days: 7
     reward:
-      display-name: "<gradient:#f59e0b:#fb7185>Weekly Bonus</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Weekly Bonus</gradient>"
       icon:
         material: SUNFLOWER
       coins: 5000
@@ -104,7 +104,7 @@ rewards:
     enabled: true
     interval-days: 30
     reward:
-      display-name: "<gradient:#8b5cf6:#ec4899>Monthly Bonus</gradient>"
+      display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Monthly Bonus</gradient>"
       icon:
         material: NETHER_STAR
       coins: 25000

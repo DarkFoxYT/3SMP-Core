@@ -1,36 +1,28 @@
 badges:
-  default:
-    display-name: "<white>No Badge</white>"
-    permission: ""
-    default-unlocked: true
-    icon: BARRIER
-    lore:
-      - "<gray>No badge before your prefix.</gray>"
-    preview: ""
-  sapphire:
-    display-name: "<gradient:#1A2A4A:#D6E8F7>Sapphire Badge</gradient>"
-    permission: "3smpcore.perk.badge.sapphire"
-    required-rank: sapphire
+  szn_i:
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>[SZN I]</gradient>"
+    permission: "3smpcore.perk.badge.szn_i"
     default-unlocked: false
-    icon: DIAMOND
+    icon: CLOCK
     lore:
-      - "<gray>ItemsAdder glyph/image ready badge.</gray>"
-      - "<gray>Replace preview with your IA custom font glyph.</gray>"
-    preview: "<gradient:#1A2A4A:#D6E8F7>[?]</gradient>"
-  mythic:
-    display-name: "<gradient:#f59e0b:#f97316>Mythic Badge</gradient>"
-    permission: "3smpcore.perk.badge.mythic"
-    required-rank: mythic
+      - "<gray>Season 1 exclusive badge.</gray>"
+      - "<gray>Attainable through crate unlocks.</gray>"
+    preview: "<gradient:#f4cd2a:#eda323:#d28d0d>[SZN I]</gradient>"
+  og:
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>[OG]</gradient>"
+    permission: "3smpcore.perk.badge.og"
     default-unlocked: false
-    icon: NETHER_STAR
+    icon: GOLDEN_APPLE
     lore:
-      - "<gray>Gold rank badge before prefix.</gray>"
-    preview: "<gradient:#f59e0b:#f97316>[?]</gradient>"
-  ia_example:
-    display-name: "<gradient:#D6E8F7:#FFFFFF>ItemsAdder Example</gradient>"
-    permission: "3smpcore.perk.badge.ia"
+      - "<gray>Season 1 exclusive badge.</gray>"
+      - "<gray>Attainable through crate unlocks.</gray>"
+    preview: "<gradient:#f4cd2a:#eda323:#d28d0d>[OG]</gradient>"
+  three:
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>[3]</gradient>"
+    permission: "3smpcore.perk.badge.three"
     default-unlocked: false
-    icon: PAPER
+    icon: GOLD_INGOT
     lore:
-      - "<gray>Use an ItemsAdder font image/glyph here.</gray>"
-    preview: ""
+      - "<gray>Season 1 exclusive badge.</gray>"
+      - "<gray>Attainable through crate unlocks.</gray>"
+    preview: "<gradient:#f4cd2a:#eda323:#d28d0d>[3]</gradient>"

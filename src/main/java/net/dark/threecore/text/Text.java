@@ -7,7 +7,7 @@ import org.bukkit.entity.Player;
 
 public final class Text {
     private static final MiniMessage MINI_MESSAGE = MiniMessage.miniMessage();
-    private static final String PREFIX = "<gradient:#1A2A4A:#f59e0b>3SMP</gradient><white>></white> ";
+    private static final String PREFIX = "<gradient:#f4cd2a:#eda323:#d28d0d>3SMP</gradient><white>></white> ";
 
     private Text() {}
 

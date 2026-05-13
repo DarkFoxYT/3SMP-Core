@@ -16,13 +16,13 @@ tags:
       - "<gray>For the always-on players.</gray>"
     preview: "<gradient:#34d399:#22c55e><Grinder></gradient>"
   rich:
-    display-name: "<gradient:#f59e0b:#fbbf24>Rich</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Rich</gradient>"
     permission: "3smpcore.perk.tag.rich"
     default-unlocked: false
     icon: GOLD_INGOT
     lore:
       - "<gray>A flexy economy tag.</gray>"
-    preview: "<gradient:#f59e0b:#fbbf24><Rich></gradient>"
+    preview: "<gradient:#f4cd2a:#eda323:#d28d0d><Rich></gradient>"
   menace:
     display-name: "<gradient:#ef4444:#7f1d1d>Menace</gradient>"
     permission: "3smpcore.perk.tag.menace"

@@ -110,11 +110,11 @@ public final class GemService implements Listener {
     public Inventory buildMenu() {
         Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.GEMS_MAIN, "main"), 27, "3SMP Gems");
         fill(inv, pane());
-        inv.setItem(10, button(Material.DIAMOND_SWORD, "<gradient:#1A2A4A:#D6E8F7>Combine</gradient>", List.of("<gray>Socket a gem into a supported item.</gray>", "<gray>Choose a gem and a base item.</gray>")));
-        inv.setItem(13, button(Material.ANVIL, "<gradient:#1A2A4A:#D6E8F7>Extractor</gradient>", List.of("<gray>Remove a gem safely if possible.</gray>", "<gray>Shift-right click a socketed item.</gray>")));
-        inv.setItem(16, button(Material.BOOK, "<gradient:#1A2A4A:#D6E8F7>Gem Types</gradient>", List.of("<gray>Browse seasonal gems.</gray>")));
-        inv.setItem(19, button(Material.NETHER_STAR, "<gradient:#1A2A4A:#D6E8F7>Gem Stats</gradient>", List.of("<gray>Inspect your socketed gems.</gray>", "<gray>Shows effects, tiers, proc chance, and cooldowns.</gray>")));
-        inv.setItem(22, button(Material.ENDER_CHEST, "<gradient:#8b5cf6:#38bdf8>Gem Capsules</gradient>", List.of("<gray>Spend sapphires on capsule rolls.</gray>", "<gray>Prismatic gems are excluded.</gray>")));
+        inv.setItem(10, button(Material.DIAMOND_SWORD, "<gradient:#f4cd2a:#eda323:#d28d0d>Combine</gradient>", List.of("<gray>Socket a gem into a supported item.</gray>", "<gray>Choose a gem and a base item.</gray>")));
+        inv.setItem(13, button(Material.ANVIL, "<gradient:#f4cd2a:#eda323:#d28d0d>Extractor</gradient>", List.of("<gray>Remove a gem safely if possible.</gray>", "<gray>Shift-right click a socketed item.</gray>")));
+        inv.setItem(16, button(Material.BOOK, "<gradient:#f4cd2a:#eda323:#d28d0d>Gem Types</gradient>", List.of("<gray>Browse seasonal gems.</gray>")));
+        inv.setItem(19, button(Material.NETHER_STAR, "<gradient:#f4cd2a:#eda323:#d28d0d>Gem Stats</gradient>", List.of("<gray>Inspect your socketed gems.</gray>", "<gray>Shows effects, tiers, proc chance, and cooldowns.</gray>")));
+        inv.setItem(22, button(Material.ENDER_CHEST, "<gradient:#f4cd2a:#eda323:#d28d0d>Gem Capsules</gradient>", List.of("<gray>Spend sapphires on capsule rolls.</gray>", "<gray>Prismatic gems are excluded.</gray>")));
         return inv;
     }
 
@@ -130,10 +130,10 @@ public final class GemService implements Listener {
         Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.GEMS_MAIN, "combine"), 27, "3SMP Gem Combine");
         fill(inv, pane());
         GemUiState state = uiState.computeIfAbsent(player.getUniqueId(), k -> new GemUiState());
-        inv.setItem(11, state.baseItem == null ? button(Material.DIAMOND_SWORD, "<gradient:#1A2A4A:#D6E8F7>Base Item</gradient>", List.of("<gray>Click to use the item in your main hand.</gray>")) : state.baseItem.clone());
-        inv.setItem(15, state.selectedGem == null ? button(Material.AMETHYST_SHARD, "<gradient:#1A2A4A:#D6E8F7>Select Gem</gradient>", List.of("<gray>Click a gem type in your inventory, or browse the gem list.</gray>")) : state.selectedGem.clone());
+        inv.setItem(11, state.baseItem == null ? button(Material.DIAMOND_SWORD, "<gradient:#f4cd2a:#eda323:#d28d0d>Base Item</gradient>", List.of("<gray>Click to use the item in your main hand.</gray>")) : state.baseItem.clone());
+        inv.setItem(15, state.selectedGem == null ? button(Material.AMETHYST_SHARD, "<gradient:#f4cd2a:#eda323:#d28d0d>Select Gem</gradient>", List.of("<gray>Click a gem type in your inventory, or browse the gem list.</gray>")) : state.selectedGem.clone());
         inv.setItem(22, button(Material.LIME_DYE, "<green>Combine</green>", List.of("<gray>Apply the selected gem to the base item.</gray>")));
-        inv.setItem(26, button(Material.BOOK, "<gradient:#1A2A4A:#D6E8F7>Browse Gems</gradient>", List.of("<gray>Pick a gem from the configured registry.</gray>")));
+        inv.setItem(26, button(Material.BOOK, "<gradient:#f4cd2a:#eda323:#d28d0d>Browse Gems</gradient>", List.of("<gray>Pick a gem from the configured registry.</gray>")));
         return inv;
     }
 
@@ -271,7 +271,7 @@ public final class GemService implements Listener {
     public Inventory buildCapsuleShop(Player player) {
         Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.GEMS_MAIN, "capsules"), 54, "3SMP Gem Capsules");
         fill(inv, pane());
-        inv.setItem(4, button(Material.NETHER_STAR, "<gradient:#5B8DD9:#F8FBFF>Gem Capsule Shop</gradient>", List.of("<gray>Roll random gems by tier.</gray>", "<red>Prismatic gems are not inside capsules.</red>", "<gray>Balance:</gray> <gradient:#22d3ee:#a78bfa>" + repository.getSapphireBalance(player.getUniqueId()) + " Sapphires</gradient>")));
+        inv.setItem(4, button(Material.NETHER_STAR, "<gradient:#f4cd2a:#eda323:#d28d0d>Gem Capsule Shop</gradient>", List.of("<gray>Roll random gems by tier.</gray>", "<red>Prismatic gems are not inside capsules.</red>", "<gray>Balance:</gray> <gradient:#f4cd2a:#eda323:#d28d0d>" + repository.getSapphireBalance(player.getUniqueId()) + " Sapphires</gradient>")));
         int[] slots = {10, 12, 14, 16, 28, 30, 32, 34};
         int index = 0;
         ConfigurationSection section = configs.get("gems/capsules.yml").getConfigurationSection("capsules");
@@ -300,7 +300,7 @@ public final class GemService implements Listener {
         fill(inv, pane());
         ItemStack showcase = item == null || item.getType().isAir() ? button(Material.BARRIER, "<red>No item selected</red>", List.of("<gray>Hold a socketed item in your main hand.</gray>")) : item.clone();
         inv.setItem(13, showcase);
-        inv.setItem(4, button(Material.NETHER_STAR, "<gradient:#1A2A4A:#D6E8F7>Current Season</gradient>", List.of("<gray>Season:</gray> <white>" + registry.currentSeason() + "</white>", "<gray>Registry:</gray> <white>" + registry.gemIds().size() + " base gem(s)</white>")));
+        inv.setItem(4, button(Material.NETHER_STAR, "<gradient:#f4cd2a:#eda323:#d28d0d>Current Season</gradient>", List.of("<gray>Season:</gray> <white>" + registry.currentSeason() + "</white>", "<gray>Registry:</gray> <white>" + registry.gemIds().size() + " base gem(s)</white>")));
         List<String> sockets = socketIds(item);
         for (int i = 0; i < 3; i++) {
             int slot = 20 + (i * 2);
@@ -411,7 +411,7 @@ public final class GemService implements Listener {
     private void healPlayer(Player player, double amount) { if (amount <= 0.0) return; double max = player.getAttribute(Attribute.MAX_HEALTH) == null ? 20.0 : player.getAttribute(Attribute.MAX_HEALTH).getValue(); player.setHealth(Math.min(max, player.getHealth() + amount)); }
     private boolean isOffCooldown(UUID uuid, String gemId) { long now = System.currentTimeMillis(); return procCooldowns.getOrDefault(uuid, Collections.emptyMap()).getOrDefault(gemId, 0L) <= now; }
     private void pushCooldown(UUID uuid, String gemId, long ticks) { long until = System.currentTimeMillis() + (Math.max(0L, ticks) * 50L); procCooldowns.computeIfAbsent(uuid, k -> new HashMap<>()).put(gemId, until); }
-    private ItemStack extractorItem() { ItemStack item = new ItemStack(Material.PRISMARINE_SHARD); ItemMeta meta = item.getItemMeta(); meta.displayName(Text.mm("<gradient:#1A2A4A:#D6E8F7>Gem Extractor</gradient>")); meta.lore(List.of(Text.mm("<gray>Shift-right click a socketed item to extract its gem.</gray>"))); meta.getPersistentDataContainer().set(keyExtractor(), PersistentDataType.BYTE, (byte)1); meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES); item.setItemMeta(meta); return item; }
+    private ItemStack extractorItem() { ItemStack item = new ItemStack(Material.PRISMARINE_SHARD); ItemMeta meta = item.getItemMeta(); meta.displayName(Text.mm("<gradient:#f4cd2a:#eda323:#d28d0d>Gem Extractor</gradient>")); meta.lore(List.of(Text.mm("<gray>Shift-right click a socketed item to extract its gem.</gray>"))); meta.getPersistentDataContainer().set(keyExtractor(), PersistentDataType.BYTE, (byte)1); meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES); item.setItemMeta(meta); return item; }
     private NamespacedKey keyGem() { return new NamespacedKey(plugin, GEM_KEY); }
     private NamespacedKey keySockets() { return new NamespacedKey(plugin, GEM_SOCKETS_KEY); }
     private NamespacedKey keyExtractor() { return new NamespacedKey(plugin, EXTRACTOR_KEY); }

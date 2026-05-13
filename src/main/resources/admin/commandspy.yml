@@ -1,5 +1,9 @@
 spy:
   enabled-by-default: false
+permissions:
+  owner: "3smpcore.spy.owner"
+  sr-admin: "3smpcore.staff.sradmin"
+  admin: "3smpcore.spy.admin"
 ignored-commands:
   - login
   - register
@@ -8,4 +12,9 @@ discord:
   enabled: false
   webhook-url: "YOUR_WEBHOOK_URL_HERE"
   ops-only: false
+  only-players:
+    - "H3IB"
+    - "P4L"
+    - "Dark"
+    - "Kronos"
   format: "**{player}** used `{command}` in `{world}`"

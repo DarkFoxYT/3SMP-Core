@@ -8,6 +8,7 @@ import net.dark.threecore.command.base.SubCommand;
 import net.dark.threecore.config.ConfigFiles;
 import net.dark.threecore.gems.GemService;
 import net.dark.threecore.duels.DuelService;
+import net.dark.threecore.dungeons.DungeonService;
 import net.dark.threecore.daily.DailyRewardManager;
 import net.dark.threecore.launchpads.LaunchpadService;
 import net.dark.threecore.souls.SoulManager;
@@ -51,6 +52,7 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
     private final MoneyService moneyService;
     private final ClearLagManager clearLagManager;
     private final DuelService duelService;
+    private final DungeonService dungeonService;
     private final AfkZoneManager afkZoneManager;
     private final DailyRewardManager dailyRewardManager;
     private final SoulManager soulManager;
@@ -59,14 +61,14 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
     private final CitizensNpcPresetManager npcPresetManager;
     private CommandTree root;
 
-    public CoreCommandManager(ThreeSMPCorePlugin plugin, ConfigFiles configs, PerkService perkService, SapphireService sapphireService, GemService gemService, ChatFormatService chatFormatService, SpawnService spawnService, LaunchpadService launchpadService, CommandSpyManager commandSpyManager, WarpManager warpManager, MoneyService moneyService, ClearLagManager clearLagManager, DuelService duelService, AfkZoneManager afkZoneManager, DailyRewardManager dailyRewardManager, SoulManager soulManager, MarketPlotManager marketPlotManager, HologramManager hologramManager) {
-        this.plugin = plugin; this.configs = configs; this.perkService = perkService; this.sapphireService = sapphireService; this.gemService = gemService; this.chatFormatService = chatFormatService; this.spawnService = spawnService; this.launchpadService = launchpadService; this.commandSpyManager = commandSpyManager; this.warpManager = warpManager; this.moneyService = moneyService; this.clearLagManager = clearLagManager; this.duelService = duelService; this.afkZoneManager = afkZoneManager; this.dailyRewardManager = dailyRewardManager; this.soulManager = soulManager; this.marketPlotManager = marketPlotManager; this.hologramManager = hologramManager;
+    public CoreCommandManager(ThreeSMPCorePlugin plugin, ConfigFiles configs, PerkService perkService, SapphireService sapphireService, GemService gemService, ChatFormatService chatFormatService, SpawnService spawnService, LaunchpadService launchpadService, CommandSpyManager commandSpyManager, WarpManager warpManager, MoneyService moneyService, ClearLagManager clearLagManager, DuelService duelService, DungeonService dungeonService, AfkZoneManager afkZoneManager, DailyRewardManager dailyRewardManager, SoulManager soulManager, MarketPlotManager marketPlotManager, HologramManager hologramManager) {
+        this.plugin = plugin; this.configs = configs; this.perkService = perkService; this.sapphireService = sapphireService; this.gemService = gemService; this.chatFormatService = chatFormatService; this.spawnService = spawnService; this.launchpadService = launchpadService; this.commandSpyManager = commandSpyManager; this.warpManager = warpManager; this.moneyService = moneyService; this.clearLagManager = clearLagManager; this.duelService = duelService; this.dungeonService = dungeonService; this.afkZoneManager = afkZoneManager; this.dailyRewardManager = dailyRewardManager; this.soulManager = soulManager; this.marketPlotManager = marketPlotManager; this.hologramManager = hologramManager;
         this.npcPresetManager = new CitizensNpcPresetManager(plugin, configs);
     }
 
     public void register() {
         root = new CommandTree("3smpcore", "3smpcore.admin", "Main command hub");
-        root.add(new ReloadCommand()); root.add(new InfoCommand()); root.add(new AdminCommand()); root.add(new DevPanelCommand()); root.add(new DebugCommand()); root.add(new SapphireRootCommand()); root.add(new SpawnRootCommand()); root.add(new GiveRootCommand()); root.add(new LicenseCommand()); root.add(new AfkZoneCommand()); root.add(new HologramCommand()); root.add(new NpcPresetCommand()); root.add(new RankPermsCommand()); root.add(new DailyRootCommand()); root.add(new SoulsRootCommand()); root.add(new MarketRootCommand());
+        root.add(new ReloadCommand()); root.add(new InfoCommand()); root.add(new AdminCommand()); root.add(new DevPanelCommand()); root.add(new DebugCommand()); root.add(new DuelRootCommand()); root.add(new DungeonRootCommand()); root.add(new VisualsCommand()); root.add(new TabCommand()); root.add(new ScoreboardCommand()); root.add(new ScreenTextCommand()); root.add(new SapphireRootCommand()); root.add(new SpawnRootCommand()); root.add(new GiveRootCommand()); root.add(new LicenseCommand()); root.add(new AfkZoneCommand()); root.add(new HologramCommand()); root.add(new NpcPresetCommand()); root.add(new RankPermsCommand()); root.add(new DailyRootCommand()); root.add(new SoulsRootCommand()); root.add(new MarketRootCommand());
         PluginCommand command = plugin.getCommand("3smpcore"); if (command != null) { command.setExecutor(this); command.setTabCompleter(this); }
         PluginCommand launchpadCommand = plugin.getCommand("launchpad"); if (launchpadCommand != null) { launchpadCommand.setExecutor(this::handleLaunchpad); launchpadCommand.setTabCompleter((sender, cmd, alias, args) -> args.length == 1 ? List.of("give", "menu", "settarget") : List.of()); }
         PluginCommand rankCommand = plugin.getCommand("rank"); if (rankCommand != null) { rankCommand.setExecutor(this::handleRank); rankCommand.setTabCompleter(this::completeRank); }
@@ -116,6 +118,10 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
             }
         }
         Text.send(sender, "<green>Applied " + (mode.equals("sub") ? "subscription" : "rank") + " package:</green> <white>" + rank + "</white> <gray>to</gray> <white>" + playerName + "</white> <dark_gray>(" + ran + " commands)</dark_gray>");
+        Player onlineTarget = Bukkit.getPlayerExact(playerName);
+        if (onlineTarget != null) {
+            Text.send(onlineTarget, "<gradient:#f4cd2a:#eda323:#d28d0d>Store delivery received:</gradient> <white>" + rank.toUpperCase(Locale.ROOT) + "</white>");
+        }
         return true;
     }
 
@@ -134,9 +140,9 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
     public void reload() { sapphireService.reload(); launchpadService.reload(); commandSpyManager.reload(); }
 
     @Override public boolean onCommand(CommandSender sender, Command command, String label, String[] args) { if (args.length == 0) { Text.send(sender, "<gradient:#60a5fa:#c084fc>3SMPCore</gradient> <gray>- use /3smpcore reload|admin|sapphire|spawn|devpanel|debug|daily|souls|give|info</gray>"); return true; } String sub = args[0].toLowerCase(Locale.ROOT); for (SubCommand child : root.children()) { if (child.name().equalsIgnoreCase(sub)) { if (!child.canUse(sender)) { Text.send(sender, "<red>No permission.</red>"); return true; } child.execute(new CommandContext(sender, label, Arrays.copyOfRange(args, 1, args.length), List.of(sub))); return true; } } Text.send(sender, "<red>Unknown subcommand.</red>"); return true; }
-    @Override public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) { if (args.length == 1) { List<String> list = new ArrayList<>(); for (SubCommand child : root.children()) if (child.canUse(sender)) list.add(child.name()); return list; } String sub = args[0].toLowerCase(Locale.ROOT); for (SubCommand child : root.children()) { if (child.name().equalsIgnoreCase(sub) && child.canUse(sender)) return child.tabComplete(new CommandContext(sender, alias, Arrays.copyOfRange(args, 1, args.length), List.of(sub))); } return List.of(); }
+    @Override public List<String> onTabComplete(CommandSender sender, Command command, String alias, String[] args) { if (args.length == 1) { List<String> list = new ArrayList<>(); for (SubCommand child : root.children()) if (!child.name().equalsIgnoreCase("license") && child.canUse(sender)) list.add(child.name()); return list; } String sub = args[0].toLowerCase(Locale.ROOT); for (SubCommand child : root.children()) { if (child.name().equalsIgnoreCase(sub) && child.canUse(sender)) return child.tabComplete(new CommandContext(sender, alias, Arrays.copyOfRange(args, 1, args.length), List.of(sub))); } return List.of(); }
 
-    private final class ReloadCommand implements SubCommand { public String name() { return "reload"; } public String permission() { return "3smpcore.reload"; } public String description() { return "Reload all systems"; } public void execute(CommandContext context) { plugin.reloadAll(); Text.send(context.sender(), "<green>Reloaded all configs and managers.</green>"); } }
+    private final class ReloadCommand implements SubCommand { public String name() { return "reload"; } public String permission() { return "3smpcore.reload"; } public String description() { return "Reload all systems"; } public void execute(CommandContext context) { if (context.args().length > 0 && context.arg(0).equalsIgnoreCase("visuals")) { if (plugin.visualManager() != null) plugin.visualManager().reload(); Text.send(context.sender(), "<green>Reloaded visual systems.</green>"); return; } plugin.reloadAll(); Text.send(context.sender(), "<green>Reloaded all configs and managers.</green>"); } public List<String> tabComplete(CommandContext context) { return context.args().length <= 1 ? List.of("visuals") : List.of(); } }
     private final class InfoCommand implements SubCommand { public String name() { return "info"; } public String permission() { return "3smpcore.admin"; } public String description() { return "Plugin info"; } public void execute(CommandContext context) { Text.send(context.sender(), "<gradient:#60a5fa:#c084fc>3SMPCore</gradient> <gray>v" + plugin.getDescription().getVersion() + " loaded.</gray>"); } }
 
     private final class AdminCommand implements SubCommand {
@@ -199,7 +205,7 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
         }
         private void jobs(CommandContext context) { Text.send(context.sender(), "<yellow>Jobs admin command is reserved here; the jobs module data layer is not active in this build yet.</yellow>"); }
         private void help(CommandSender sender) {
-            Text.send(sender, "<gradient:#1A2A4A:#f59e0b>Admin Commands</gradient>");
+            Text.send(sender, "<gradient:#f4cd2a:#eda323:#d28d0d>Admin Commands</gradient>");
             Text.send(sender, "<gray>/3smpcore admin setspawn | spy | setwarp <id> | clearlag | pvp <on|off> | wipeplayer <player></gray>");
             Text.send(sender, "<gray>/3smpcore admin tag set/remove/info/list ...</gray>");
             Text.send(sender, "<gray>/3smpcore admin cosmetics info/set/reset ...</gray>");
@@ -215,7 +221,80 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
     }
 
     private final class DevPanelCommand implements SubCommand { public String name() { return "devpanel"; } public String permission() { return "3smpcore.dev"; } public String description() { return "Developer panel"; } public void execute(CommandContext context) { if (!(context.sender() instanceof Player player)) { Text.send(context.sender(), "<red>Players only.</red>"); return; } duelService.openDevMenu(player); } }
-    private final class DebugCommand implements SubCommand { public String name() { return "debug"; } public String permission() { return "3smpcore.debug"; } public String description() { return "Debug tools"; } public void execute(CommandContext context) { String mode = context.args().length == 0 ? "status" : context.arg(0).toLowerCase(Locale.ROOT); switch (mode) { case "status" -> { Text.send(context.sender(), "<gradient:#60a5fa:#c084fc>3SMPCore Debug</gradient>"); Text.send(context.sender(), "<gray>Spawn:</gray> <white>" + spawnService.getSpawnLocation() + "</white>"); Text.send(context.sender(), "<gray>Launchpads:</gray> <white>" + launchpadService.ids().size() + " definitions</white>"); Text.send(context.sender(), "<gray>Dev panel:</gray> <white>use /3smpcore devpanel</white>"); } case "reload" -> { plugin.reloadAll(); Text.send(context.sender(), "<green>Reloaded all systems.</green>"); } case "spawn" -> { if (!(context.sender() instanceof Player player)) { Text.send(context.sender(), "<red>Players only.</red>"); return; } spawnService.sendToSpawn(player); } case "launchpad", "launchpads" -> { if (!(context.sender() instanceof Player player)) { Text.send(context.sender(), "<red>Players only.</red>"); return; } launchpadService.openMenu(player); } default -> Text.send(context.sender(), "<yellow>Use /3smpcore debug status|reload|spawn|launchpad|launchpads</yellow>"); } } public List<String> tabComplete(CommandContext context) { return context.args().length <= 1 ? List.of("status", "reload", "spawn", "launchpad", "launchpads") : List.of(); } }
+    private final class DuelRootCommand implements SubCommand {
+        public String name() { return "duel"; }
+        public String permission() { return "3smpcore.duel.use"; }
+        public String description() { return "Duel commands"; }
+        public void execute(CommandContext context) { duelService.handle(context); }
+        public List<String> tabComplete(CommandContext context) { return duelService.complete(context); }
+    }
+    private final class DungeonRootCommand implements SubCommand {
+        public String name() { return "dungeon"; }
+        public String permission() { return "3smpcore.dungeons.use"; }
+        public String description() { return "Dungeon commands"; }
+        public void execute(CommandContext context) { dungeonService.handle(context.sender(), context.args()); }
+        public List<String> tabComplete(CommandContext context) { return dungeonService.complete(context.args()); }
+    }
+    private final class DebugCommand implements SubCommand { public String name() { return "debug"; } public String permission() { return "3smpcore.debug"; } public String description() { return "Debug tools"; } public void execute(CommandContext context) { String mode = context.args().length == 0 ? "status" : context.arg(0).toLowerCase(Locale.ROOT); switch (mode) { case "status" -> { Text.send(context.sender(), "<gradient:#60a5fa:#c084fc>3SMPCore Debug</gradient>"); Text.send(context.sender(), "<gray>Spawn:</gray> <white>" + spawnService.getSpawnLocation() + "</white>"); Text.send(context.sender(), "<gray>Launchpads:</gray> <white>" + launchpadService.ids().size() + " definitions</white>"); Text.send(context.sender(), "<gray>Dev panel:</gray> <white>use /3smpcore devpanel</white>"); } case "rank" -> { if (context.args().length < 2) { Text.send(context.sender(), "<yellow>/3smpcore debug rank <player></yellow>"); return; } Player target = Bukkit.getPlayerExact(context.arg(1)); if (target == null) { Text.send(context.sender(), "<red>Player not found.</red>"); return; } if (plugin.visualManager() != null) plugin.visualManager().debugRank(context.sender(), target); } case "reload" -> { plugin.reloadAll(); Text.send(context.sender(), "<green>Reloaded all systems.</green>"); } case "spawn" -> { if (!(context.sender() instanceof Player player)) { Text.send(context.sender(), "<red>Players only.</red>"); return; } spawnService.sendToSpawn(player); } case "launchpad", "launchpads" -> { if (!(context.sender() instanceof Player player)) { Text.send(context.sender(), "<red>Players only.</red>"); return; } launchpadService.openMenu(player); } default -> Text.send(context.sender(), "<yellow>Use /3smpcore debug status|rank|reload|spawn|launchpad|launchpads</yellow>"); } } public List<String> tabComplete(CommandContext context) { if (context.args().length <= 1) return List.of("status", "rank", "reload", "spawn", "launchpad", "launchpads"); if (context.arg(0).equalsIgnoreCase("rank")) return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList(); return List.of(); } }
+    private final class TabCommand implements SubCommand { public String name() { return "tab"; } public String permission() { return "3smpcore.visuals.admin"; } public String description() { return "Tab visuals"; } public void execute(CommandContext context) { if (context.args().length > 0 && context.arg(0).equalsIgnoreCase("reload")) { if (plugin.visualManager() != null) plugin.visualManager().reload(); Text.send(context.sender(), "<green>Reloaded tab visuals.</green>"); return; } Text.send(context.sender(), "<yellow>/3smpcore tab reload</yellow>"); } public List<String> tabComplete(CommandContext context) { return context.args().length <= 1 ? List.of("reload") : List.of(); } }
+    private final class VisualsCommand implements SubCommand { public String name() { return "visuals"; } public String permission() { return "3smpcore.visuals.open"; } public String description() { return "Open visuals menu"; } public void execute(CommandContext context) { if (context.args().length > 0 && context.arg(0).equalsIgnoreCase("reload")) { if (!context.sender().hasPermission("3smpcore.visuals.reload")) { Text.send(context.sender(), "<red>No permission.</red>"); return; } if (plugin.visualManager() != null) plugin.visualManager().reload(); Text.send(context.sender(), "<green>Reloaded visuals.</green>"); return; } if (!(context.sender() instanceof Player player)) { Text.send(context.sender(), "<red>Players only.</red>"); return; } if (plugin.visualManager() != null) plugin.visualManager().open(player); } public List<String> tabComplete(CommandContext context) { return context.args().length <= 1 ? List.of("reload") : List.of(); } }
+    private final class ScoreboardCommand implements SubCommand { public String name() { return "scoreboard"; } public String permission() { return "3smpcore.scoreboard.use"; } public String description() { return "Scoreboard controls"; } public void execute(CommandContext context) { if (context.args().length > 0 && context.arg(0).equalsIgnoreCase("reload")) { if (!context.sender().hasPermission("3smpcore.visuals.admin")) { Text.send(context.sender(), "<red>No permission.</red>"); return; } if (plugin.visualManager() != null) plugin.visualManager().reload(); Text.send(context.sender(), "<green>Reloaded scoreboards.</green>"); return; } if (context.args().length > 0 && context.arg(0).equalsIgnoreCase("toggle")) { if (!(context.sender() instanceof Player player)) { Text.send(context.sender(), "<red>Players only.</red>"); return; } boolean enabled = plugin.visualManager() == null || plugin.visualManager().toggleScoreboard(player); Text.send(player, enabled ? "<green>Scoreboard enabled.</green>" : "<yellow>Scoreboard disabled.</yellow>"); return; } Text.send(context.sender(), "<yellow>/3smpcore scoreboard toggle|reload</yellow>"); } public List<String> tabComplete(CommandContext context) { return context.args().length <= 1 ? List.of("toggle", "reload") : List.of(); } }
+    private final class ScreenTextCommand implements SubCommand {
+        public String name() { return "screentext"; }
+        public String permission() { return "3smpcore.screentext.editor"; }
+        public String description() { return "Screen text editor and API previews"; }
+        public void execute(CommandContext context) {
+            if (plugin.screenTextManager() == null) {
+                Text.send(context.sender(), "<red>Screen text system is not loaded.</red>");
+                return;
+            }
+            if (context.args().length == 0) {
+                if (!(context.sender() instanceof Player player)) { Text.send(context.sender(), "<red>Players only.</red>"); return; }
+                plugin.screenTextManager().openEditor(player);
+                return;
+            }
+            String sub = context.arg(0).toLowerCase(Locale.ROOT);
+            switch (sub) {
+                case "reload" -> {
+                    if (!context.sender().hasPermission("3smpcore.screentext.admin")) { Text.send(context.sender(), "<red>No permission.</red>"); return; }
+                    plugin.screenTextManager().reload();
+                    Text.send(context.sender(), "<green>Reloaded screen text templates.</green>");
+                }
+                case "preview" -> {
+                    if (!(context.sender() instanceof Player player)) { Text.send(context.sender(), "<red>Players only.</red>"); return; }
+                    if (context.args().length < 2) { Text.send(player, "<yellow>/3smpcore screentext preview <id></yellow>"); return; }
+                    plugin.screenTextManager().preview(player, context.arg(1));
+                }
+                case "show" -> {
+                    if (!context.sender().hasPermission("3smpcore.screentext.admin")) { Text.send(context.sender(), "<red>No permission.</red>"); return; }
+                    if (context.args().length < 3) { Text.send(context.sender(), "<yellow>/3smpcore screentext show <player> <id></yellow>"); return; }
+                    Player target = Bukkit.getPlayerExact(context.arg(1));
+                    if (target == null) { Text.send(context.sender(), "<red>Player not found.</red>"); return; }
+                    boolean shown = plugin.screenTextManager().show(target, context.arg(2));
+                    Text.send(context.sender(), shown ? "<green>Screen text shown.</green>" : "<red>Unknown template.</red>");
+                }
+                case "clear" -> {
+                    if (!context.sender().hasPermission("3smpcore.screentext.admin")) { Text.send(context.sender(), "<red>No permission.</red>"); return; }
+                    Player target = context.args().length >= 2 ? Bukkit.getPlayerExact(context.arg(1)) : context.sender() instanceof Player player ? player : null;
+                    if (target == null) { Text.send(context.sender(), "<red>Player not found.</red>"); return; }
+                    plugin.screenTextManager().clear(target);
+                    Text.send(context.sender(), "<green>Screen text cleared.</green>");
+                }
+                default -> {
+                    if (!(context.sender() instanceof Player player)) { Text.send(context.sender(), "<red>Players only.</red>"); return; }
+                    plugin.screenTextManager().openEditor(player);
+                }
+            }
+        }
+        public List<String> tabComplete(CommandContext context) {
+            if (context.args().length <= 1) return List.of("reload", "preview", "show", "clear");
+            if (context.arg(0).equalsIgnoreCase("preview")) return plugin.screenTextManager() == null ? List.of() : plugin.screenTextManager().registry().templateIds();
+            if (context.arg(0).equalsIgnoreCase("show") && context.args().length == 2) return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
+            if (context.arg(0).equalsIgnoreCase("show") && context.args().length == 3) return plugin.screenTextManager() == null ? List.of() : plugin.screenTextManager().registry().templateIds();
+            if (context.arg(0).equalsIgnoreCase("clear")) return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
+            return List.of();
+        }
+    }
     private final class SapphireRootCommand implements SubCommand { public String name() { return "sapphire"; } public String permission() { return "3smpcore.sapphires.use"; } public String description() { return "Sapphire system"; } public void execute(CommandContext context) { sapphireService.handleCommand(context.sender(), context.args()); } public List<String> tabComplete(CommandContext context) { return List.of("shop", "bal", "ballance", "balance", "give", "remove", "take", "set", "reset", "commands"); } }
     private final class SpawnRootCommand implements SubCommand { public String name() { return "spawn"; } public String permission() { return "3smpcore.spawn.use"; } public String description() { return "Teleport to spawn"; } public void execute(CommandContext context) { if (!(context.sender() instanceof Player player)) { Text.send(context.sender(), "<red>Players only.</red>"); return; } if (context.args().length > 0 && context.arg(0).equalsIgnoreCase("set")) { if (!player.hasPermission("3smpcore.spawn.admin")) { Text.send(player, "<red>No permission.</red>"); return; } spawnService.setSpawnLocation(player, player.getLocation()); return; } spawnService.sendToSpawn(player); } public List<String> tabComplete(CommandContext context) { return context.args().length <= 1 ? List.of("set") : List.of(); } }
     private final class GiveRootCommand implements SubCommand { public String name() { return "give"; } public String permission() { return "3smpcore.admin"; } public String description() { return "Future-proof utility commands"; } public void execute(CommandContext context) { if (context.args().length == 0) { Text.send(context.sender(), "<yellow>Use: /3smpcore give sapphire <give|take|set|reset> <player> [amount]</yellow>"); return; } if (!context.arg(0).equalsIgnoreCase("sapphire")) { Text.send(context.sender(), "<yellow>Use /sapphire shop, /sapphire bal, /sapphire pay, /sapphire give, /sapphire remove, /sapphire take, /sapphire set, /sapphire reset, or /sapphire commands.</yellow>"); return; } if (context.args().length < 3) { Text.send(context.sender(), "<red>Usage: /3smpcore give sapphire <give|take|set|reset> <player> [amount]</red>"); return; } String action = context.arg(1); String playerName = context.arg(2); long amount = context.args().length >= 4 ? Long.parseLong(context.arg(3)) : 0L; sapphireService.executeConfigured(action, context.sender(), playerName, amount); } }
@@ -313,7 +392,7 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
         public String description() { return "License tools"; }
         public void execute(CommandContext context) {
             if (context.args().length == 0) {
-                Text.send(context.sender(), "<gray>Use /3smpcore license status|reload</gray>");
+                Text.send(context.sender(), "<gray>License tools are available.</gray>");
                 return;
             }
             String sub = context.arg(0).toLowerCase(Locale.ROOT);
@@ -321,15 +400,42 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
                 case "status" -> {
                     boolean valid = plugin.getLicenseManager() != null && plugin.getLicenseManager().validate();
                     Text.send(context.sender(), valid ? "<green>License is valid.</green>" : "<red>License is invalid.</red>");
+                    if (plugin.getLicenseManager() != null) {
+                        Text.send(context.sender(), "<gray>Owner:</gray> <white>" + plugin.getLicenseManager().owner() + "</white>");
+                        Text.send(context.sender(), "<gray>Server ID:</gray> <white>" + plugin.getLicenseManager().serverId() + "</white>");
+                    }
                 }
                 case "reload" -> {
-                    boolean valid = plugin.getLicenseManager() != null && plugin.getLicenseManager().validate();
+                    boolean valid = plugin.getLicenseManager() != null && plugin.getLicenseManager().validate(true);
                     Text.send(context.sender(), valid ? "<green>License revalidated successfully.</green>" : "<red>License is invalid.</red>");
+                    if (valid && plugin.getLicenseManager() != null) plugin.getLicenseManager().startRemoteMonitor();
                     if (!valid) plugin.getServer().getPluginManager().disablePlugin(plugin);
                 }
-                default -> Text.send(context.sender(), "<gray>Use /3smpcore license status|reload</gray>");
+                case "check" -> {
+                    boolean valid = plugin.getLicenseManager() != null && plugin.getLicenseManager().validate(true);
+                    Text.send(context.sender(), valid ? "<green>License is still active.</green>" : "<red>License is inactive.</red>");
+                    if (!valid) plugin.getServer().getPluginManager().disablePlugin(plugin);
+                }
+                case "id" -> {
+                    if (plugin.getLicenseManager() == null) {
+                        Text.send(context.sender(), "<red>License manager is not loaded.</red>");
+                        return;
+                    }
+                    Text.send(context.sender(), "<gray>License key:</gray> <white>" + plugin.getLicenseManager().key() + "</white>");
+                    Text.send(context.sender(), "<gray>Server ID:</gray> <white>" + plugin.getLicenseManager().serverId() + "</white>");
+                }
+                case "deactivate" -> {
+                    if (plugin.getLicenseManager() == null) {
+                        Text.send(context.sender(), "<red>License manager is not loaded.</red>");
+                        return;
+                    }
+                    plugin.getLicenseManager().deactivateLocal(context.args().length > 1 ? String.join(" ", java.util.Arrays.copyOfRange(context.args(), 1, context.args().length)) : "manual");
+                    Text.send(context.sender(), "<red>License deactivated locally. Disabling plugin.</red>");
+                    plugin.getServer().getPluginManager().disablePlugin(plugin);
+                }
+                default -> Text.send(context.sender(), "<gray>License tools are available.</gray>");
             }
         }
-        public List<String> tabComplete(CommandContext context) { return context.args().length <= 1 ? List.of("status", "reload") : List.of(); }
+        public List<String> tabComplete(CommandContext context) { return List.of(); }
     }
 }

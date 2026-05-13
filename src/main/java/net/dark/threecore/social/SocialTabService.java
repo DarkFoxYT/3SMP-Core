@@ -2,6 +2,7 @@ package net.dark.threecore.social;
 
 import net.dark.threecore.chat.ChatFormatService;
 import net.dark.threecore.config.ConfigFiles;
+import net.dark.threecore.duels.DuelService;
 import net.dark.threecore.dungeons.DungeonService;
 import net.dark.threecore.party.PartyService;
 import net.dark.threecore.text.Text;
@@ -24,6 +25,7 @@ import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.ScoreboardManager;
 import org.bukkit.scoreboard.Team;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
@@ -181,6 +183,7 @@ public final class SocialTabService implements Listener {
 
     private void updateNames() {
         for (Player player : Bukkit.getOnlinePlayers()) {
+            if (DuelService.isDuelPlayer(player)) continue;
             String format = rankFormat(player, "player-format", config().getString("friends.tab.player-format", "<rank_image> <tab_display>"));
             player.playerListName(deserialize(player, format));
             player.displayName(deserialize(player, format));
@@ -194,6 +197,7 @@ public final class SocialTabService implements Listener {
     }
 
     private void applySidebar(Player player) {
+        if (DuelService.isDuelPlayer(player)) return;
         if (!config().getBoolean("friends.scoreboards.enabled", true)) return;
         String boardId = config().getString("friends.scoreboards.active", "default");
         String path = "friends.scoreboards.boards." + boardId;
@@ -204,10 +208,10 @@ public final class SocialTabService implements Listener {
         Scoreboard board = scoreboards.computeIfAbsent(player.getUniqueId(), ignored -> manager.getNewScoreboard());
         Objective old = board.getObjective("smpcore");
         if (old != null) old.unregister();
-        Objective objective = board.registerNewObjective("smpcore", "dummy", deserialize(player, config().getString(path + ".title", "&6&l3SMP")));
+        Objective objective = board.registerNewObjective("smpcore", "dummy", deserialize(player, config().getString(path + ".title", "{grad:gold}&l3SMP{/grad}")));
         objective.setDisplaySlot(DisplaySlot.SIDEBAR);
-        int score = Math.min(15, lines.size());
-        for (String raw : lines.stream().limit(15).toList()) {
+        int score = lines.size();
+        for (String raw : lines) {
             String line = safeScoreboardLine(board, plainLegacy(player, raw));
             objective.getScore(line).setScore(score--);
         }
@@ -306,7 +310,7 @@ public final class SocialTabService implements Listener {
         if (configured != null && !configured.isBlank()) return sanitizeConfiguredRankDot(configured);
         return switch (group) {
             case "owner", "admin" -> "<#F87171>●</#F87171>";
-            case "ultra" -> "<#F59E0B>●</#F59E0B>";
+            case "ultra" -> "<gradient:#f4cd2a:#eda323:#d28d0d>●</gradient>";
             case "mvp" -> "<#C084FC>●</#C084FC>";
             case "pro" -> "<#5B8DD9>●</#5B8DD9>";
             case "vip", "3rank", "3smp" -> "<#D6E8F7>●</#D6E8F7>";
@@ -337,6 +341,7 @@ public final class SocialTabService implements Listener {
     }
 
     private boolean shouldApplyVisuals() {
+        if (!config().getBoolean("friends.tab.legacy-visuals-enabled", false)) return false;
         if (!config().getBoolean("friends.tab.visuals.enabled", true)) return false;
         if (!isTabPluginPresent()) return true;
         return config().getBoolean("friends.tab.visuals.override-tab-plugin", true) || config().getBoolean("friends.tab.visuals.force-over-tab-plugin", true);
@@ -352,7 +357,7 @@ public final class SocialTabService implements Listener {
         input = input
                 .replace("%online%", String.valueOf(Bukkit.getOnlinePlayers().size()))
                 .replace("%world%", player.getWorld() == null ? "" : player.getWorld().getName())
-                .replace("%ping%", String.valueOf(player.getPing()))
+                .replace("%ping%", player.getPing() + "ms")
                 .replace("%player_name%", player.getName());
         if (Bukkit.getPluginManager().getPlugin("PlaceholderAPI") == null) return input;
         try {
@@ -373,7 +378,7 @@ public final class SocialTabService implements Listener {
         if (preserveMiniTags) {
             return input.replace("&0", "<black>").replace("&1", "<dark_blue>").replace("&2", "<dark_green>")
                     .replace("&3", "<dark_aqua>").replace("&4", "<dark_red>").replace("&5", "<dark_purple>")
-                    .replace("&6", "<gold>").replace("&7", "<gray>").replace("&8", "<dark_gray>")
+                    .replace("&6", "<gradient:#f4cd2a:#eda323:#d28d0d>").replace("&7", "<gray>").replace("&8", "<dark_gray>")
                     .replace("&9", "<blue>").replace("&a", "<green>").replace("&b", "<aqua>")
                     .replace("&c", "<red>").replace("&d", "<light_purple>").replace("&e", "<yellow>")
                     .replace("&f", "<white>").replace("&l", "<bold>").replace("&o", "<italic>")
@@ -381,7 +386,7 @@ public final class SocialTabService implements Listener {
         }
         return input.replace("&0", "<black>").replace("&1", "<dark_blue>").replace("&2", "<dark_green>")
                 .replace("&3", "<dark_aqua>").replace("&4", "<dark_red>").replace("&5", "<dark_purple>")
-                .replace("&6", "<gold>").replace("&7", "<gray>").replace("&8", "<dark_gray>")
+                .replace("&6", "<gradient:#f4cd2a:#eda323:#d28d0d>").replace("&7", "<gray>").replace("&8", "<dark_gray>")
                 .replace("&9", "<blue>").replace("&a", "<green>").replace("&b", "<aqua>")
                 .replace("&c", "<red>").replace("&d", "<light_purple>").replace("&e", "<yellow>")
                 .replace("&f", "<white>").replace("&l", "<bold>").replace("&o", "<italic>")
@@ -478,7 +483,7 @@ public final class SocialTabService implements Listener {
         StringBuffer buffer = new StringBuffer();
         while (matcher.find()) {
             String[] colors = gradientColors(player, matcher.group(1));
-            matcher.appendReplacement(buffer, java.util.regex.Matcher.quoteReplacement(legacyGradient(matcher.group(2), colors[0], colors[1])));
+            matcher.appendReplacement(buffer, java.util.regex.Matcher.quoteReplacement(legacyGradient(matcher.group(2), colors)));
         }
         matcher.appendTail(buffer);
         return buffer.toString();
@@ -487,24 +492,59 @@ public final class SocialTabService implements Listener {
     private String[] gradientColors(Player player, String id) {
         String key = id == null || id.isBlank() || id.equalsIgnoreCase("rank") ? primaryGroup(player).toLowerCase(Locale.ROOT) : id.toLowerCase(Locale.ROOT);
         String configured = config().getString("friends.tab.gradients." + key, config().getString("friends.tab.gradients.default", "#6aaed6:#1fb8e0"));
-        String[] parts = configured.split(":", 2);
-        return new String[] { parts.length > 0 ? parts[0] : "#6aaed6", parts.length > 1 ? parts[1] : "#1fb8e0" };
+        String[] parts = configured.split(":");
+        List<String> colors = new ArrayList<>();
+        for (String part : parts) {
+            if (part != null && !part.isBlank()) colors.add(part.trim());
+        }
+        if (colors.size() < 2) return new String[] { "#6aaed6", "#1fb8e0" };
+        return colors.toArray(String[]::new);
     }
 
     private String legacyGradient(String text, String fromHex, String toHex) {
+        return legacyGradient(text, new String[] { fromHex, toHex });
+    }
+
+    private String legacyGradient(String text, String[] colors) {
         if (text == null || text.isEmpty()) return "";
-        int[] from = rgb(fromHex);
-        int[] to = rgb(toHex);
+        if (colors == null || colors.length < 2) colors = new String[] { "#6aaed6", "#1fb8e0" };
         StringBuilder out = new StringBuilder();
-        int visible = Math.max(1, text.length() - 1);
+        int visible = Math.max(1, visibleGradientCharacters(text) - 1);
+        int colored = 0;
         for (int i = 0; i < text.length(); i++) {
-            double t = visible == 0 ? 0.0 : (double) i / visible;
-            int r = (int) Math.round(from[0] + (to[0] - from[0]) * t);
-            int g = (int) Math.round(from[1] + (to[1] - from[1]) * t);
-            int b = (int) Math.round(from[2] + (to[2] - from[2]) * t);
-            out.append(legacyHex(String.format("%02x%02x%02x", r, g, b))).append(text.charAt(i));
+            char ch = text.charAt(i);
+            if (ch == '&' && i + 1 < text.length() && isLegacyFormatCode(text.charAt(i + 1))) {
+                out.append(ch).append(text.charAt(++i));
+                continue;
+            }
+            double t = visible == 0 ? 0.0 : (double) colored++ / visible;
+            double scaled = t * (colors.length - 1);
+            int segment = Math.min(colors.length - 2, Math.max(0, (int) Math.floor(scaled)));
+            double local = scaled - segment;
+            int[] from = rgb(colors[segment]);
+            int[] to = rgb(colors[segment + 1]);
+            int r = (int) Math.round(from[0] + (to[0] - from[0]) * local);
+            int g = (int) Math.round(from[1] + (to[1] - from[1]) * local);
+            int b = (int) Math.round(from[2] + (to[2] - from[2]) * local);
+            out.append(legacyHex(String.format("%02x%02x%02x", r, g, b))).append(ch);
         }
         return out.toString();
+    }
+
+    private int visibleGradientCharacters(String text) {
+        int visible = 0;
+        for (int i = 0; i < text.length(); i++) {
+            if (text.charAt(i) == '&' && i + 1 < text.length() && isLegacyFormatCode(text.charAt(i + 1))) {
+                i++;
+                continue;
+            }
+            visible++;
+        }
+        return visible;
+    }
+
+    private boolean isLegacyFormatCode(char code) {
+        return "0123456789abcdefklmnorABCDEFKLMNOR".indexOf(code) >= 0;
     }
 
     private int[] rgb(String hex) {

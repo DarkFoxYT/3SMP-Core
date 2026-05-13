@@ -18,13 +18,23 @@ duels:
     require-party-leader: true
 
   queue-item:
-    enabled: true
+    enabled: false
     slot: 0
     name: "<gradient:#60a5fa:#c084fc>Duel Queue</gradient>"
     prevent-drop: true
     restore-on-join: true
     restore-on-respawn: true
     restore-on-world-change: true
+
+  layout-editor:
+    enabled: false
+    slot: 8
+    name: "<gradient:#D6E8F7:#60a5fa>Kit Layout</gradient>"
+
+  health-indicator:
+    enabled: true
+    per-kit-toggle: false
+    update-ticks: 5
 
   matchmaking:
     solo-pair-size: 2
@@ -34,25 +44,216 @@ duels:
     skill-window-rating: 150
     expand-after-seconds: 60
 
+  ffa:
+    # FFA matches use only the configured ffa-spawn. Extra players are spread
+    # around that point instead of falling back to red/blue team spawns.
+    spawn-spread-radius: 2.5
+    spawn-spread-points: 12
+
+  ranked:
+    enabled: true
+    default-mmr: 1000
+    k-factor: 32
+    min-change: 5
+    max-change: 32
+    matchmaking:
+      initial-range: 100
+      range-step: 100
+      expand-interval-seconds: 10
+      max-range: 600
+    validation:
+      minimum-duration-seconds: 20
+      max-matches-vs-same-player: 4
+      same-player-window-minutes: 60
+      queue-dodge-cooldown-seconds: 30
+      repeated-forfeit-threshold: 3
+      repeated-win-threshold: 3
+      block-same-ip-mmr: true
+    ranks:
+      bronze:
+        name: Bronze
+        display: "<#CD7F32>Bronze</#CD7F32>"
+        min: 0
+      silver:
+        name: Silver
+        display: "<#C0C0C0>Silver</#C0C0C0>"
+        min: 1100
+      gold:
+        name: Gold
+        display: "<gradient:#f4cd2a:#eda323:#d28d0d>Gold</gradient>"
+        min: 1250
+      platinum:
+        name: Platinum
+        display: "<#67E8F9>Platinum</#67E8F9>"
+        min: 1400
+      diamond:
+        name: Diamond
+        display: "<#60A5FA>Diamond</#60A5FA>"
+        min: 1600
+      master:
+        name: Master
+        display: "<#A855F7>Master</#A855F7>"
+        min: 1800
+      grandmaster:
+        name: Grandmaster
+        display: "<gradient:#f4cd2a:#eda323:#d28d0d>Grandmaster</gradient>"
+        min: 2100
+
+  spectators:
+    allow-ranked: true
+    permission: "3smpcore.duel.spectate"
+
   countdown:
     seconds: 5
     freeze-during-countdown: true
+
+  gates:
+    enabled: true
+    required: false
+    countdown-open-delay-ticks: 0
+    slide-distance-blocks: 5
+    slide-duration-ticks: 80
+    collision-release-delay-ticks: 5
+    despawn-displays-after-open: false
+    auto-close: true
+    auto-close-delay-ticks: 100
+    close-slide-duration-ticks: 80
+    teleport-players-before-close: true
+    safe-teleport-distance: 2.0
+    prevent-dark-displays: true
+    display-brightness:
+      block-light: 15
+      sky-light: 15
+    sound-start: "minecraft:block.piston.extend"
+    sound-loop: "minecraft:block.stone.place"
+    sound-open-loop: "minecraft:block.stone.place"
+    sound-end: "minecraft:block.piston.contract"
+    sound-full-open: "minecraft:block.iron_door.open"
+    sound-close-start: "minecraft:block.piston.contract"
+    sound-close-loop: "minecraft:block.stone.place"
+    sound-close-end: "minecraft:block.stone.place"
+    loop-sound-interval-ticks: 8
+    sound-volume: 1.0
+    sound-pitch: 0.75
+    particles: false
+    debug-close-zones: false
 
   rounds:
     # Delay after a round ends before resetting everyone for the next round.
     next-round-delay-ticks: 40
 
+  kit-editor:
+    # Saved kits keep full ItemStack metadata through Bukkit serialization, including attributes.
+    allow-attribute-swapping: true
+    preserve-attribute-items: true
+
+  pvp:
+    enabled: true
+    disable-item-durability-loss: false
+    # Hunger and saturation are vanilla during duels. These only define the round start state.
+    start-food-level: 20
+    start-saturation: 0.0
+    fire-tick-cap: -1
+    remove-projectiles-on-hit: true
+    projectile-remove-delay-ticks: 40
+    cooldowns:
+      ender-pearl-ticks: 200
+      golden-apple-ticks: 0
+      enchanted-golden-apple-ticks: 0
+    damage:
+      global-multiplier: 1.0
+      melee-multiplier: 1.0
+      projectile-multiplier: 1.0
+      sword-multiplier: 1.0
+      axe-multiplier: 1.0
+      mace-multiplier: 1.0
+      arrow-multiplier: 1.0
+      trident-multiplier: 1.0
+      wind-charge-multiplier: 1.0
+
+  ui:
+    round-win-title: true
+    score-actionbar: true
+    score-bossbar: false
+    score-format: "<#f87171>Red %red_score%</#f87171> <#dbeafe>-</#dbeafe> <#60a5fa>%blue_score% Blue</#60a5fa>"
+    scoreboard:
+      enabled: true
+      update-ticks: 20
+      hide-line-numbers: true
+      centered: true
+      center-width: 30
+      # ItemsAdder/PAPI image placeholder. <img:solo_text> also works if it is mapped in social/friends.yml.
+      title: "%img_solo_text%"
+      lines:
+        - ""
+        - ""
+        - "<dark_gray>----------------</dark_gray>"
+        - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>DUEL LIVE</bold></gradient>"
+        - "<gray>Round <white>%round%</white><dark_gray>/</dark_gray><yellow>%rounds_to_win%</yellow> <dark_gray>|</dark_gray> <yellow>%duration%</yellow></gray>"
+        - "<gray>Kit <gradient:#f4cd2a:#eda323:#d28d0d>%kit%</gradient></gray>"
+        - "<gray>Arena <white>%arena%</white></gray>"
+        - ""
+        - "<gradient:#ef4444:#fca5a5><bold>RED</bold></gradient> <white>%red_score%</white><dark_gray>/</dark_gray><yellow>%rounds_to_win%</yellow> <dark_gray>|</dark_gray> <#fecaca>%red_alive% alive</#fecaca>"
+        - "<#fecaca>%red_team%</#fecaca>"
+        - "<gradient:#2563eb:#93c5fd><bold>BLUE</bold></gradient> <white>%blue_score%</white><dark_gray>/</dark_gray><yellow>%rounds_to_win%</yellow> <dark_gray>|</dark_gray> <#dbeafe>%blue_alive% alive</#dbeafe>"
+        - "<#dbeafe>%blue_team%</#dbeafe>"
+      solo-lines:
+        - ""
+        - "<gradient:#f4cd2a:#eda323:#d28d0d>Opponent</gradient>"
+        - "<white>%opponent%</white> <dark_gray>|</dark_gray> <gradient:#f4cd2a:#eda323:#d28d0d>%opponent_ping%ms</gradient>"
+      ffa-lines:
+        - ""
+        - ""
+        - "<dark_gray>----------------</dark_gray>"
+        - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>FFA DUEL</bold></gradient>"
+        - "<gray>Round <white>%round%</white><dark_gray>/</dark_gray><yellow>%rounds_to_win%</yellow> <dark_gray>|</dark_gray> <yellow>%duration%</yellow></gray>"
+        - "<gray>Kit <gradient:#f4cd2a:#eda323:#d28d0d>%kit%</gradient></gray>"
+        - "<gray>Arena <white>%arena%</white></gray>"
+        - ""
+        - "<gradient:#f4cd2a:#eda323:#d28d0d>Leader</gradient>"
+        - "%ffa_leader%"
+        - "<gray>Remaining <white>%remaining%</white><dark_gray>/</dark_gray><yellow>%players%</yellow></gray>"
+        - ""
+        - "<gray>Your Ping <aqua>%player_ping%ms</aqua></gray>"
+
+  messages:
+    ranked-disabled: "<red>Ranked duels are currently disabled.</red>"
+    ranked-dodge-cooldown: "<red>You must wait <white>{seconds}s</white> before joining ranked again.</red>"
+    ranked-search: "<gradient:#00FBFF:#A855F7>Searching</gradient> <gray>for opponent within</gray> <yellow>+/-{range} MMR</yellow><gray>...</gray>"
+    ranked-search-expanded: "<gradient:#00FBFF:#A855F7>Search expanded</gradient> <gray>to</gray> <yellow>+/-{range} MMR</yellow><gray>...</gray>"
+    spectator-no-permission: "<red>You do not have permission to spectate duels.</red>"
+    spectator-ranked-disabled: "<red>Spectators are disabled for ranked matches.</red>"
+    post-match:
+      lines:
+        - "<gradient:#00FBFF:#A855F7><bold>DUEL COMPLETE</bold></gradient>"
+        - "<dark_gray>----------------------------</dark_gray>"
+        - "<gray>Winner: <green>{winner}</green>"
+        - "<gray>Loser: <red>{loser}</red>"
+        - "<gray>Kit: <aqua>{kit}</aqua> <dark_gray>|</dark_gray> <gray>Arena: <white>{arena}</white>"
+        - "<gray>Duration: <yellow>{duration}</yellow>"
+        - ""
+        - "<gradient:#22C55E:#84CC16>Your Stats</gradient>"
+        - "<gray>Damage Dealt: <green>{damage_dealt}</green> <dark_gray>|</dark_gray> <gray>Taken: <red>{damage_taken}</red>"
+        - "<gray>Hits: <yellow>{hits_landed}</yellow><dark_gray>/</dark_gray><yellow>{hits_received}</yellow> <dark_gray>|</dark_gray> <gray>Accuracy: <aqua>{accuracy}%</aqua>"
+        - "<gray>Projectiles: <aqua>{projectiles_hit}</aqua><dark_gray>/</dark_gray><aqua>{projectiles_launched}</aqua> <dark_gray>|</dark_gray> <gray>Potions: <light_purple>{potions_used}</light_purple>"
+        - "<gray>Gapples: <gradient:#f4cd2a:#eda323:#d28d0d>{golden_apples}</gradient> <dark_gray>|</dark_gray> <gray>Totems: <yellow>{totems_popped}</yellow> <dark_gray>|</dark_gray> <gray>Crystals: <red>{crystals_placed}</red><dark_gray>/</dark_gray><red>{crystals_broken}</red>"
+      ranked-lines:
+        - ""
+        - "<gradient:#f4cd2a:#eda323:#d28d0d>Ranked</gradient>"
+        - "<gray>MMR: <yellow>{old_mmr}</yellow> <dark_gray>-></dark_gray> <green>{new_mmr}</green> <gray>({mmr_change})</gray>"
+        - "<gray>Rank: {old_rank} <dark_gray>-></dark_gray> {new_rank}"
+      ranked-invalid-lines:
+        - ""
+        - "<gradient:#f4cd2a:#eda323:#d28d0d>Ranked</gradient>"
+        - "<yellow>MMR was not changed.</yellow> <gray>Reason: {ranked_invalid_reasons}</gray>"
+      footer-lines:
+        - "<dark_gray>----------------------------</dark_gray>"
+        - "<gray><click:run_command:'{rematch_command}'><hover:show_text:'Click to open a rematch challenge'><gradient:#00FBFF:#A855F7>[Rematch]</gradient></hover></click>"
+
   tab:
     team-red-commands: []
     team-blue-commands: []
-
-  projectiles:
-    # Duel-only assist so wind charges can actually catch nearby ender pearls.
-    wind-charge-pearl-catch-radius: 1.15
-    wind-charge-pearl-high-air-catch-radius: 1.9
-    wind-charge-pearl-high-air-y-difference: 6.0
-    wind-charge-pearl-catch-ticks: 30
-    wind-charge-pearl-teleport-delay-ticks: 0
+    team-ffa-commands: []
 
   world-instances:
     enabled: true
@@ -60,6 +261,7 @@ duels:
     # If Multiverse-Core is installed, 3SMPCore imports/registers editor and match worlds with Multiverse.
     # Each fight gets a temporary copied world and that folder is deleted after cleanup.
     prefix: arena_
+    cleanup-old-published-arenas: true
     generator: VoidGen
     full-copy-for-matches: true
     preload-chunk-radius: 3
@@ -75,7 +277,14 @@ duels:
       skip-entities: false
       skip-plugin-data: false
     disable-mob-spawning: true
+    difficulty: NORMAL
     disable-weather: true
+    force-daylight: true
+    locked-time: 6000
+    disable-random-ticks: true
+    disable-fire-tick: true
+    disable-mob-griefing: true
+    disable-chiseled-bookshelves: true
     multiverse:
       register-worlds: true
       # Temporary duel match worlds are loaded directly by Bukkit so Multiverse does not
@@ -92,7 +301,14 @@ duels:
     generator: VoidGen
     auto-save: true
     disable-mob-spawning: true
+    difficulty: NORMAL
     disable-weather: true
+    force-daylight: true
+    locked-time: 6000
+    disable-random-ticks: true
+    disable-fire-tick: true
+    disable-mob-griefing: true
+    disable-chiseled-bookshelves: true
   leaderboard:
     period: monthly
     reset-manual: true
@@ -119,5 +335,5 @@ duels:
         y: 102.0
         z: 0.5
         lines:
-          - "<gradient:#1A2A4A:#f59e0b>Top Duel Streaks</gradient>"
+          - "<gradient:#f4cd2a:#eda323:#d28d0d>Top Duel Streaks</gradient>"
           - "<gray>Use PlaceholderAPI:</gray> <white>%smpcore_duel_winstreak%</white>"

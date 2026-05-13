@@ -1,6 +1,6 @@
-prefix: "<gray>[<gradient:#1A2A4A:#D6E8F7>3SMP</gradient>]</gray>"
+prefix: "<gray>[<gradient:#f4cd2a:#eda323:#d28d0d>3SMP</gradient>]</gray>"
 no-permission: "<red>You do not have permission.</red>"
-reloaded: "<gradient:#1A2A4A:#D6E8F7>Reloaded successfully.</gradient>"
+reloaded: "<gradient:#f4cd2a:#eda323:#d28d0d>Reloaded successfully.</gradient>"
 usage:
   players-only: "<red>Players only.</red>"
   unknown-command: "<red>Unknown subcommand.</red>"

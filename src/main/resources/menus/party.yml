@@ -1,13 +1,13 @@
 menus:
   duel:
-    title: "<gradient:#1A2A4A:#D6E8F7>3SMP Duels</gradient>"
+    title: "<gradient:#f4cd2a:#eda323:#d28d0d>3SMP Duels</gradient>"
     size: 54
     frame: "GRAY_STAINED_GLASS_PANE"
   party:
-    title: "<gradient:#1A2A4A:#D6E8F7>3SMP Party</gradient>"
+    title: "<gradient:#f4cd2a:#eda323:#d28d0d>3SMP Party</gradient>"
     size: 27
     frame: "LIGHT_BLUE_STAINED_GLASS_PANE"
   dev:
-    title: "<gradient:#1A2A4A:#D6E8F7>3SMP Dev</gradient>"
+    title: "<gradient:#f4cd2a:#eda323:#d28d0d>3SMP Dev</gradient>"
     size: 54
     frame: "GRAY_STAINED_GLASS_PANE"

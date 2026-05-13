@@ -162,8 +162,8 @@ public final class AuctionHouseService implements Listener {
         if (item.getType().isEdible() || name.endsWith("POTION")) return "consumables";
         return "misc";
     }
-    private ItemStack categoryIcon(Material material, String category, String active) { return pane(material, (active.equals(category) ? "<green>" : "<gray>") + category.substring(0,1).toUpperCase(Locale.ROOT) + category.substring(1) + "</" + (active.equals(category) ? "green" : "gray") + ">"); }
-    private ItemStack pane() { return pane(Material.BLUE_STAINED_GLASS_PANE, " "); }
+    private ItemStack categoryIcon(Material material, String category, String active) { return pane(material, (active.equals(category) ? "<gradient:#f4cd2a:#eda323:#d28d0d>" : "<gray>") + category.substring(0,1).toUpperCase(Locale.ROOT) + category.substring(1) + (active.equals(category) ? "</gradient>" : "</gray>")); }
+    private ItemStack pane() { return pane(Material.BLACK_STAINED_GLASS_PANE, " "); }
     private ItemStack pane(Material material, String name) { ItemStack stack = new ItemStack(material); ItemMeta meta = stack.getItemMeta(); meta.displayName(Text.mm(name)); stack.setItemMeta(meta); return stack; }
     private int slotIndex(int slot) { int[] slots = {10,11,12,13,14,15,16,19,20,21,22,23,24,25,28,29,30,31,32,33,34,37,38,39,40,41,42,43}; for (int i=0;i<slots.length;i++) if (slots[i]==slot) return i; return -1; }
     private record Auction(String id, UUID seller, double price, ItemStack item) {}

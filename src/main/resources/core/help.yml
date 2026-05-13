@@ -1,4 +1,4 @@
-﻿# 3SMPCore Help Configuration
+# 3SMPCore Help Configuration
 #
 # This file controls the custom /help command.
 # It overrides Minecraft/Paper's normal /help through plugin.yml.
@@ -6,7 +6,7 @@
 # Text formatting uses MiniMessage:
 # - Hex color: <#D6E8F7>Hello</#D6E8F7>
 # - Named color: <red>Error</red>, <white>Text</white>, <gray>Muted</gray>
-# - Gradient: <gradient:#1A2A4A:#f59e0b>3SMP</gradient>
+# - Gradient: <gradient:#f4cd2a:#eda323:#d28d0d>3SMP</gradient>
 # - Style: <bold>Bold</bold>, <italic>Italic</italic>, <underlined>Underlined</underlined>
 #
 # Placeholders available here:
@@ -35,7 +35,7 @@ menu:
       header:
         material: "NETHER_STAR"
         itemsadder: "3smp:help_logo"
-        name: "<gradient:#1A2A4A:#f59e0b><bold>{server} Help</bold></gradient>"
+        name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>{server} Help</bold></gradient>"
         lore:
           - "<gray>Everything useful in one place.</gray>"
           - "<dark_gray>Click a category below.</dark_gray>"
@@ -50,7 +50,7 @@ menu:
         - "<yellow>Click to print the command list.</yellow>"
       action: "message"
       messages:
-        - "<gradient:#1A2A4A:#f59e0b><bold>Useful Commands</bold></gradient>"
+        - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Useful Commands</bold></gradient>"
         - "<#D6E8F7>/spawn</#D6E8F7> <gray>Return to spawn.</gray>"
         - "<#D6E8F7>/rtp</#D6E8F7> <gray>Random teleport.</gray>"
         - "<#D6E8F7>/warp</#D6E8F7> <gray>Open warps.</gray>"
@@ -61,7 +61,7 @@ menu:
       slot: 12
       material: "DIAMOND_SWORD"
       itemsadder: "3smp:help_duels"
-      name: "<gradient:#60a5fa:#c084fc><bold>Duels</bold></gradient>"
+      name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Duels</bold></gradient>"
       lore:
         - "<gray>Queues, kits, spectating, parties.</gray>"
         - "<yellow>Click to open /duel.</yellow>"
@@ -71,7 +71,7 @@ menu:
       slot: 14
       material: "ENDER_EYE"
       itemsadder: "3smp:help_dungeons"
-      name: "<gradient:#4c1d95:#a78bfa><bold>Dungeons</bold></gradient>"
+      name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Dungeons</bold></gradient>"
       lore:
         - "<gray>Dungeon runs, bosses, difficulties.</gray>"
         - "<yellow>Click to open /dungeon.</yellow>"
@@ -81,13 +81,13 @@ menu:
       slot: 16
       material: "EMERALD"
       itemsadder: "3smp:help_economy"
-      name: "<gradient:#16a34a:#facc15><bold>Economy</bold></gradient>"
+      name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Economy</bold></gradient>"
       lore:
         - "<gray>Money, sapphires, gems, souls, market.</gray>"
         - "<yellow>Click for economy commands.</yellow>"
       action: "message"
       messages:
-        - "<gradient:#16a34a:#facc15><bold>Economy Help</bold></gradient>"
+        - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Economy Help</bold></gradient>"
         - "<#D6E8F7>/bal</#D6E8F7> <gray>Check money.</gray>"
         - "<#D6E8F7>/pay player amount</#D6E8F7> <gray>Pay another player.</gray>"
         - "<#D6E8F7>/sapphires</#D6E8F7> <gray>Open Sapphire balance/shop.</gray>"
@@ -109,24 +109,24 @@ menu:
       slot: 30
       material: "COMPASS"
       itemsadder: "3smp:help_website"
-      name: "<gradient:#38bdf8:#f59e0b><bold>Website</bold></gradient>"
+      name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Website</bold></gradient>"
       lore:
         - "<gray>Store, rules, and server info.</gray>"
         - "<yellow>Click to get the link.</yellow>"
       action: "message"
       messages:
-        - "<gradient:#38bdf8:#f59e0b><bold>Website:</bold></gradient> <click:open_url:'https://3smp.net'><underlined>https://3smp.net</underlined></click>"
+        - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Website:</bold></gradient> <click:open_url:'https://3smp.net'><underlined>https://3smp.net</underlined></click>"
     socials:
       slot: 32
       material: "PLAYER_HEAD"
       itemsadder: "3smp:help_socials"
-      name: "<gradient:#f97316:#ec4899><bold>Socials</bold></gradient>"
+      name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Socials</bold></gradient>"
       lore:
         - "<gray>TikTok, YouTube, and community links.</gray>"
         - "<yellow>Click to show links.</yellow>"
       action: "message"
       messages:
-        - "<gradient:#f97316:#ec4899><bold>3SMP Socials</bold></gradient>"
+        - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>3SMP Socials</bold></gradient>"
         - "<gray>TikTok:</gray> <white>Update in core/help.yml</white>"
         - "<gray>YouTube:</gray> <white>Update in core/help.yml</white>"
         - "<gray>Store:</gray> <white>Update in core/help.yml</white>"
@@ -160,7 +160,7 @@ pages:
     permission: ""
     lines:
       - ""
-      - "<gradient:#1A2A4A:#f59e0b><bold>{server} Help</bold></gradient> <dark_gray>|</dark_gray> <#D6E8F7>Use <white>/help commands</white> for commands.</#D6E8F7>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>{server} Help</bold></gradient> <dark_gray>|</dark_gray> <#D6E8F7>Use <white>/help commands</white> for commands.</#D6E8F7>"
       - "<#D6E8F7>/spawn</#D6E8F7> <gray>Go back to spawn.</gray>"
       - "<#D6E8F7>/rtp</#D6E8F7> <gray>Random teleport in supported worlds.</gray>"
       - "<#D6E8F7>/warp</#D6E8F7> <gray>Open the warp menu.</gray>"
@@ -173,7 +173,7 @@ pages:
     permission: ""
     lines:
       - ""
-      - "<gradient:#1A2A4A:#f59e0b><bold>Useful Commands</bold></gradient>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Useful Commands</bold></gradient>"
       - "<#D6E8F7>/sapphire shop</#D6E8F7> <gray>Open the Sapphire shop link.</gray>"
       - "<#D6E8F7>/gems</#D6E8F7> <gray>Open the gem menu.</gray>"
       - "<#D6E8F7>/duel</#D6E8F7> <gray>Open duel queues and kits.</gray>"
@@ -184,7 +184,7 @@ pages:
     permission: ""
     lines:
       - ""
-      - "<gradient:#1A2A4A:#f59e0b><bold>Perks</bold></gradient>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Perks</bold></gradient>"
       - "<#D6E8F7>/perks</#D6E8F7> <gray>Choose prefixes, tags, trims, message colors, and cosmetics.</gray>"
       - "<gray>Message colors support gradients, hex colors, and styled previews.</gray>"
       - "<gray>Particle cosmetics are opt-in and only activate when selected.</gray>"
@@ -193,7 +193,7 @@ pages:
     permission: "3smpcore.admin"
     lines:
       - ""
-      - "<gradient:#1A2A4A:#f59e0b><bold>Admin Help</bold></gradient> <dark_gray>v{version}</dark_gray>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Admin Help</bold></gradient> <dark_gray>v{version}</dark_gray>"
       - "<#D6E8F7>/3smpcore reload</#D6E8F7> <gray>Reload configs and managers.</gray>"
       - "<#D6E8F7>/3smpcore devpanel</#D6E8F7> <gray>Open developer tools.</gray>"
       - "<#D6E8F7>/launchpad menu</#D6E8F7> <gray>Edit placed launchpads.</gray>"

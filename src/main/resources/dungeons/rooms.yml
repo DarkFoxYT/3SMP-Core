@@ -1,1 +1,233 @@
-rooms: {}
+rooms:
+  jungle_start_01:
+    schematic: "jungle/start_01.schem"
+    type: START
+    weight: 1
+    base-facing: SOUTH
+    facing-marker:
+      pos: [16, 4, 16]
+      facing: SOUTH
+    rotation-origin:
+      mode: ROOM_MIN
+      pos: [0, 0, 0]
+    size: { x: 32, y: 16, z: 32 }
+    exits:
+      main:
+        pos: [16, 4, 0]
+        facing: NORTH
+        width: 3
+        height: 4
+        connector: NORMAL
+        snap-mode: CONNECTOR_FACE
+        anchor-pos: [16, 4, 0]
+        required: true
+    spawns:
+      mobs: {}
+
+  jungle_hall_01:
+    schematic: "jungle/hall_01.schem"
+    type: NORMAL
+    weight: 10
+    base-facing: SOUTH
+    facing-marker:
+      pos: [16, 4, 16]
+      facing: SOUTH
+    rotation-origin:
+      mode: ROOM_MIN
+      pos: [0, 0, 0]
+    size: { x: 32, y: 16, z: 32 }
+    entrances:
+      main:
+        pos: [16, 4, 31]
+        facing: SOUTH
+        width: 3
+        height: 4
+        connector: NORMAL
+        snap-mode: CONNECTOR_FACE
+        anchor-pos: [16, 4, 31]
+        required: true
+      side_west:
+        pos: [0, 4, 16]
+        facing: WEST
+        width: 3
+        height: 4
+        connector: NORMAL
+        snap-mode: CONNECTOR_FACE
+        anchor-pos: [0, 4, 16]
+        required: true
+    exits:
+      north:
+        pos: [16, 4, 0]
+        facing: NORTH
+        width: 3
+        height: 4
+        connector: NORMAL
+        snap-mode: CONNECTOR_FACE
+        anchor-pos: [16, 4, 0]
+        required: false
+      east:
+        pos: [31, 4, 16]
+        facing: EAST
+        width: 3
+        height: 4
+        connector: NORMAL
+        snap-mode: CONNECTOR_FACE
+        anchor-pos: [31, 4, 16]
+        required: false
+    spawns:
+      mobs:
+        skeleton_pack:
+          id: "CryptSkeleton"
+          pos: [10, 4, 12]
+          amount: 3
+          level: 1
+          trigger: ON_ROOM_ENTER
+          fallback: SKELETON
+    traps:
+      boulder_1:
+        enabled: false
+        type: boulder
+        pos: [16, 8, 4]
+        facing: NORTH
+        mythicmob-id: "DungeonBoulder"
+      spike_1:
+        enabled: false
+        type: spike
+        pos: [12, 4, 12]
+        facing: SOUTH
+        mythicmob-id: "DungeonSpikeTrap"
+      bridge_1:
+        enabled: false
+        type: bridge
+        pos: [20, 4, 12]
+        facing: SOUTH
+        mythicmob-id: "DungeonBridgeTrap"
+    boulder-traps:
+      main_rolling_boulder:
+        enabled: false
+        spawn:
+          pos: [16, 8, 4]
+          yaw: 180
+          pitch: 0
+        trigger:
+          min: [13, 4, 2]
+          max: [19, 8, 8]
+        path:
+          - [16, 8, 4]
+          - [16, 8, 18]
+          - [16, 7, 30]
+        speed: 0.42
+        acceleration: 0.02
+        max-speed: 0.85
+        kill-radius: 1.6
+        vertical-radius: 1.8
+        destroy-at-end: true
+
+  jungle_stairs_down_01:
+    schematic: "jungle/stairs_down_01.schem"
+    type: STAIRS_DOWN
+    weight: 4
+    base-facing: SOUTH
+    facing-marker:
+      pos: [16, 8, 16]
+      facing: SOUTH
+    rotation-origin:
+      mode: ROOM_MIN
+      pos: [0, 0, 0]
+    size: { x: 32, y: 20, z: 32 }
+    entrances:
+      main:
+        pos: [16, 8, 31]
+        facing: SOUTH
+        width: 3
+        height: 4
+        connector: NORMAL
+        snap-mode: CONNECTOR_FACE
+        anchor-pos: [16, 8, 31]
+        required: true
+    exits:
+      down:
+        pos: [16, 4, 0]
+        facing: NORTH
+        width: 3
+        height: 4
+        connector: STAIRS_DOWN
+        vertical-direction: DOWN
+        target-y-offset: -8
+        snap-mode: ANCHOR
+        anchor-pos: [16, 4, 0]
+        required-match: STAIRS_UP
+        required: false
+
+  jungle_treasure_01:
+    schematic: "jungle/treasure_01.schem"
+    type: TREASURE
+    weight: 3
+    base-facing: SOUTH
+    facing-marker:
+      pos: [12, 4, 12]
+      facing: SOUTH
+    rotation-origin:
+      mode: ROOM_MIN
+      pos: [0, 0, 0]
+    size: { x: 24, y: 14, z: 24 }
+    entrances:
+      main:
+        pos: [12, 4, 23]
+        facing: SOUTH
+        width: 3
+        height: 4
+        connector: NORMAL
+        required: true
+
+  jungle_dead_end_01:
+    schematic: "jungle/dead_end_01.schem"
+    type: DEAD_END
+    weight: 5
+    base-facing: SOUTH
+    facing-marker:
+      pos: [12, 4, 12]
+      facing: SOUTH
+    rotation-origin:
+      mode: ROOM_MIN
+      pos: [0, 0, 0]
+    size: { x: 24, y: 14, z: 24 }
+    entrances:
+      main:
+        pos: [12, 4, 23]
+        facing: SOUTH
+        width: 3
+        height: 4
+        connector: NORMAL
+        required: true
+
+  jungle_boss_01:
+    schematic: "jungle/boss_01.schem"
+    type: BOSS
+    weight: 1
+    base-facing: SOUTH
+    facing-marker:
+      pos: [24, 5, 24]
+      facing: SOUTH
+    rotation-origin:
+      mode: ROOM_MIN
+      pos: [0, 0, 0]
+    size: { x: 48, y: 24, z: 48 }
+    entrances:
+      gate:
+        pos: [24, 4, 47]
+        facing: SOUTH
+        width: 3
+        height: 4
+        connector: NORMAL
+        required-match: NORMAL
+        required: true
+    spawns:
+      mobs:
+        boss:
+          id: "JungleBossNormal"
+          pos: [24, 5, 24]
+          amount: 1
+          level: 5
+          trigger: ON_BOSS_START
+          fallback: WARDEN

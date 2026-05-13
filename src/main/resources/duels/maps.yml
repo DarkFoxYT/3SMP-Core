@@ -1,32 +1,310 @@
-# Duel arenas. Three arenas are included as examples.
+# Duel arenas. These are the bundled defaults.
 # Staff can edit in-game with /duel map setspawna <id>, /duel map setspawnb <id>, etc.
 # Coordinates may be either section format below or legacy list format.
+# gates are the physical moving gate blocks.
+# gate-zones are separate player-detection areas used while gates close.
 
 maps:
   colosseum:
-    display-name: "<gradient:#f59e0b:#f97316>Colosseum</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Colosseum</bold></gradient>"
     enabled: true
     icon: SANDSTONE
-    world: world
-    lobby: { world: world, x: 0.5, y: 100.0, z: 0.5, yaw: 0.0, pitch: 0.0 }
-    spawn-a: { world: world, x: 12.5, y: 100.0, z: 0.5, yaw: 90.0, pitch: 0.0 }
-    spawn-b: { world: world, x: -12.5, y: 100.0, z: 0.5, yaw: -90.0, pitch: 0.0 }
-    spectator: { world: world, x: 0.5, y: 106.0, z: 14.5, yaw: 180.0, pitch: 20.0 }
+    world: colosseum_arena_2
+    lobby:
+      world: colosseum_arena_2
+      x: 1.5
+      y: 66.0
+      z: -0.5
+      yaw: 0
+      pitch: 0
+    spawn-a:
+      world: colosseum_arena_2
+      x: 57.5
+      y: 61.0
+      z: -0.5
+      yaw: 90
+      pitch: -35
+    spawn-b:
+      world: colosseum_arena_2
+      x: -54.5
+      y: 61.0
+      z: -0.5
+      yaw: -90
+      pitch: -45
+    ffa-spawn:
+      world: colosseum_arena_2
+      x: 1.5
+      y: 66.0
+      z: -0.5
+      yaw: 180
+      pitch: 0
+    spectator:
+      world: colosseum_arena_2
+      x: 1.5
+      y: 66.0
+      z: -0.5
+      yaw: 0
+      pitch: 45
+    gates:
+      red:
+        world: colosseum_arena_2
+        pos1:
+          - 48
+          - 72
+          - -3
+        pos2:
+          - 49
+          - 66
+          - 1
+        min:
+          - 48
+          - 72
+          - -3
+        max:
+          - 49
+          - 66
+          - 1
+      blue:
+        world: colosseum_arena_2
+        pos1:
+          - -46
+          - 72
+          - 1
+        pos2:
+          - -47
+          - 66
+          - -3
+        min:
+          - -46
+          - 72
+          - 1
+        max:
+          - -47
+          - 66
+          - -3
+    gate-zones:
+      red:
+        world: colosseum_arena_2
+        pos1:
+          - 48
+          - 72
+          - -7
+        pos2:
+          - 61
+          - 58
+          - 4
+        min:
+          - 48
+          - 72
+          - -7
+        max:
+          - 61
+          - 58
+          - 4
+      blue:
+        world: colosseum_arena_2
+        pos1:
+          - -46
+          - 72
+          - 5
+        pos2:
+          - -59
+          - 55
+          - -6
+        min:
+          - -46
+          - 72
+          - 5
+        max:
+          - -59
+          - 55
+          - -6
+    gate-exits:
+      red:
+        world: colosseum_arena_2
+        x: 46.5
+        y: 66.0
+        z: -0.5
+        yaw: 90
+        pitch: 0
+      blue:
+        world: colosseum_arena_2
+        x: -43.5
+        y: 66.0
+        z: -0.5
+        yaw: -90
+        pitch: 0
   frostbite:
-    display-name: "<gradient:#D6E8F7:#60a5fa>Frostbite</gradient>"
+    display-name: "<gradient:#F8FAFC:#A5F3FC:#38BDF8:#2563EB><bold>Frostbite</bold></gradient>"
     enabled: true
     icon: PACKED_ICE
-    world: world
-    lobby: { world: world, x: 80.5, y: 100.0, z: 0.5, yaw: 0.0, pitch: 0.0 }
-    spawn-a: { world: world, x: 92.5, y: 100.0, z: 0.5, yaw: 90.0, pitch: 0.0 }
-    spawn-b: { world: world, x: 68.5, y: 100.0, z: 0.5, yaw: -90.0, pitch: 0.0 }
-    spectator: { world: world, x: 80.5, y: 106.0, z: 14.5, yaw: 180.0, pitch: 20.0 }
-  basalt:
-    display-name: "<gradient:#334155:#ef4444>Basalt Rift</gradient>"
+    world: frostbite_arena_3
+    lobby:
+      world: frostbite_arena_3
+      x: 0.5
+      y: 87.0
+      z: 0.5
+      yaw: 0
+      pitch: 0
+    spawn-a:
+      world: frostbite_arena_3
+      x: -0.5
+      y: 83.0
+      z: -47.5
+      yaw: 0
+      pitch: -45
+    spawn-b:
+      world: frostbite_arena_3
+      x: -0.5
+      y: 83.0
+      z: 60.5
+      yaw: -180
+      pitch: -45
+    ffa-spawn:
+      world: frostbite_arena_3
+      x: 0.5
+      y: 87.0
+      z: 1.5
+      yaw: 0
+      pitch: 45
+    spectator:
+      world: frostbite_arena_3
+      x: 0.5
+      y: 87.0
+      z: -0.5
+      yaw: 0
+      pitch: 45
+    gates:
+      red:
+        world: frostbite_arena_3
+        pos1:
+          - 1
+          - 87
+          - -41
+        pos2:
+          - -3
+          - 94
+          - -42
+        min:
+          - 1
+          - 87
+          - -41
+        max:
+          - -3
+          - 94
+          - -42
+      blue:
+        world: frostbite_arena_3
+        pos1:
+          - -3
+          - 87
+          - 53
+        pos2:
+          - 1
+          - 94
+          - 54
+        min:
+          - -3
+          - 87
+          - 53
+        max:
+          - 1
+          - 94
+          - 54
+    gate-zones:
+      red:
+        world: frostbite_arena_3
+        pos1:
+          - -6
+          - 95
+          - -42
+        pos2:
+          - 5
+          - 82
+          - -53
+        min:
+          - -6
+          - 95
+          - -42
+        max:
+          - 5
+          - 82
+          - -53
+      blue:
+        world: frostbite_arena_3
+        pos1:
+          - 4
+          - 97
+          - 54
+        pos2:
+          - -7
+          - 82
+          - 65
+        min:
+          - 4
+          - 97
+          - 54
+        max:
+          - -7
+          - 82
+          - 65
+    gate-exits:
+      red:
+        world: frostbite_arena_3
+        x: -0.5
+        y: 87.0
+        z: -38.5
+        yaw: 180
+        pitch: 0
+      blue:
+        world: frostbite_arena_3
+        x: -0.5
+        y: 87.0
+        z: 51.0
+        yaw: -180
+        pitch: 0
+  cyberpunk:
+    display-name: "<gradient:#00F5FF:#FF00E6:#8B5CF6><bold>Cyberpunk</bold></gradient>"
     enabled: true
     icon: BASALT
-    world: world
-    lobby: { world: world, x: -80.5, y: 100.0, z: 0.5, yaw: 0.0, pitch: 0.0 }
-    spawn-a: { world: world, x: -68.5, y: 100.0, z: 0.5, yaw: 90.0, pitch: 0.0 }
-    spawn-b: { world: world, x: -92.5, y: 100.0, z: 0.5, yaw: -90.0, pitch: 0.0 }
-    spectator: { world: world, x: -80.5, y: 106.0, z: 14.5, yaw: 180.0, pitch: 20.0 }
+    world: cyberpunk_arena_1
+  zen:
+    display-name: "<gradient:#FFE4F1:#FF9CCF:#FBCFE8:#BBF7D0><bold>Blossom Zen</bold></gradient>"
+    enabled: true
+    icon: CHERRY_LEAF_BLOCK
+    world: zen_arena_2
+    lobby:
+      world: zen_arena_2
+      x: 2.5
+      y: -18.0
+      z: -99.5
+      yaw: 0
+      pitch: 0
+    spawn-a:
+      world: zen_arena_2
+      x: 2.5
+      y: -18.0
+      z: -145.5
+      yaw: 0
+      pitch: 0
+    spawn-b:
+      world: zen_arena_2
+      x: 2.5
+      y: -18.0
+      z: -35.5
+      yaw: -180
+      pitch: 0
+    ffa-spawn:
+      world: zen_arena_2
+      x: 2.5
+      y: -18.0
+      z: -99.5
+      yaw: -90
+      pitch: 0
+    spectator:
+      world: zen_arena_2
+      x: 2.5
+      y: -18.0
+      z: -99.5
+      yaw: 0
+      pitch: 0

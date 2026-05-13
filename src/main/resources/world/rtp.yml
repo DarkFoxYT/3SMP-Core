@@ -1,15 +1,32 @@
 default-world: world
 
+hotbar:
+  enabled: false
+  slot: 8
+  name: "<gradient:#f4cd2a:#eda323:#d28d0d>Random Teleport</gradient>"
+
 defaults:
-  cooldown-seconds: 300
-  min-radius: 1000
-  max-radius: 5000
-  max-attempts: 20
+  cooldown-seconds: 120
+  min-radius: 0
+  max-radius: 15000
+  max-attempts: 80
 
 worlds:
   world:
     world: world
-    cooldown-seconds: 300
-    min-radius: 1000
-    max-radius: 5000
-    max-attempts: 20
+    cooldown-seconds: 120
+    min-radius: 0
+    max-radius: 15000
+    max-attempts: 80
+  world_nether:
+    world: world_nether
+    cooldown-seconds: 120
+    min-radius: 0
+    max-radius: 8000
+    max-attempts: 80
+  world_the_end:
+    world: world_the_end
+    cooldown-seconds: 120
+    min-radius: 0
+    max-radius: 8000
+    max-attempts: 80

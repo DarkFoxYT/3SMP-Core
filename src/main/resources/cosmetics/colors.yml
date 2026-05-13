@@ -1,6 +1,7 @@
 colors:
   default:
     type: none
+    icon: BARRIER
     display-name: "<white>Default Chat</white>"
     permission: ""
     required-rank: ""
@@ -8,6 +9,7 @@ colors:
     preview: "<white>Default</white>"
   white:
     type: hex
+    icon: WHITE_DYE
     hex: "#FFFFFF"
     display-name: "<white>White</white>"
     permission: ""
@@ -16,6 +18,7 @@ colors:
     preview: "<white>White</white>"
   aqua:
     type: hex
+    icon: CYAN_DYE
     hex: "#67e8f9"
     display-name: "<aqua>Aqua</aqua>"
     permission: "3smpcore.chat.hex"
@@ -25,24 +28,29 @@ colors:
 
   gold:
     type: gradient
-    from: "#f59e0b"
-    to: "#fbbf24"
-    display-name: "<gradient:#f59e0b:#fbbf24>Gold</gradient>"
+    icon: YELLOW_DYE
+    from: "#f4cd2a"
+    middle: "#eda323"
+    to: "#d28d0d"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Gold</gradient>"
     permission: "3smpcore.chat.hex"
     required-rank: "vip"
     default-unlocked: false
-    preview: "<gradient:#f59e0b:#fbbf24>Gold</gradient>"
+    preview: "<gradient:#f4cd2a:#eda323:#d28d0d>Gold</gradient>"
   aqua_gold:
     type: gradient
-    from: "#22d3ee"
-    to: "#f59e0b"
-    display-name: "<gradient:#22d3ee:#f59e0b>Aqua Gold</gradient>"
+    icon: LIGHT_BLUE_DYE
+    from: "#f4cd2a"
+    middle: "#eda323"
+    to: "#d28d0d"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Aqua Gold</gradient>"
     permission: "3smpcore.chat.gradient"
     required-rank: "vip"
     default-unlocked: false
-    preview: "<gradient:#22d3ee:#f59e0b>Aqua Gold</gradient>"
+    preview: "<gradient:#f4cd2a:#eda323:#d28d0d>Aqua Gold</gradient>"
   navy_blue:
     type: gradient
+    icon: BLUE_DYE
     from: "#1A2A4A"
     to: "#60a5fa"
     display-name: "<gradient:#1A2A4A:#60a5fa>Navy Blue</gradient>"
@@ -52,6 +60,7 @@ colors:
     preview: "<gradient:#1A2A4A:#60a5fa>Navy Blue</gradient>"
   rose:
     type: gradient
+    icon: PINK_DYE
     from: "#fb7185"
     to: "#f472b6"
     display-name: "<gradient:#fb7185:#f472b6>Rose</gradient>"
@@ -61,6 +70,7 @@ colors:
     preview: "<gradient:#fb7185:#f472b6>Rose</gradient>"
   emerald:
     type: gradient
+    icon: LIME_DYE
     from: "#34d399"
     to: "#22c55e"
     display-name: "<gradient:#34d399:#22c55e>Emerald</gradient>"
@@ -70,6 +80,7 @@ colors:
     preview: "<gradient:#34d399:#22c55e>Emerald</gradient>"
   violet:
     type: gradient
+    icon: PURPLE_DYE
     from: "#a78bfa"
     to: "#c084fc"
     display-name: "<gradient:#a78bfa:#c084fc>Violet</gradient>"
@@ -79,6 +90,7 @@ colors:
     preview: "<gradient:#a78bfa:#c084fc>Violet</gradient>"
   sunset:
     type: gradient
+    icon: ORANGE_DYE
     from: "#f97316"
     to: "#fb7185"
     display-name: "<gradient:#f97316:#fb7185>Sunset</gradient>"
@@ -88,6 +100,7 @@ colors:
     preview: "<gradient:#f97316:#fb7185>Sunset</gradient>"
   ocean:
     type: gradient
+    icon: LIGHT_BLUE_DYE
     from: "#0ea5e9"
     to: "#22d3ee"
     display-name: "<gradient:#0ea5e9:#22d3ee>Ocean</gradient>"
@@ -97,6 +110,7 @@ colors:
     preview: "<gradient:#0ea5e9:#22d3ee>Ocean</gradient>"
   mint:
     type: gradient
+    icon: LIME_DYE
     from: "#86efac"
     to: "#34d399"
     display-name: "<gradient:#86efac:#34d399>Mint</gradient>"
@@ -106,6 +120,7 @@ colors:
     preview: "<gradient:#86efac:#34d399>Mint</gradient>"
   ember:
     type: gradient
+    icon: ORANGE_DYE
     from: "#f59e0b"
     to: "#ef4444"
     display-name: "<gradient:#f59e0b:#ef4444>Ember</gradient>"
@@ -116,6 +131,7 @@ colors:
 
   amethyst:
     type: gradient
+    icon: AMETHYST_SHARD
     from: "#7c3aed"
     to: "#c084fc"
     display-name: "<gradient:#7c3aed:#c084fc>Amethyst</gradient>"
@@ -125,6 +141,7 @@ colors:
     preview: "<gradient:#7c3aed:#c084fc>Amethyst</gradient>"
   ice:
     type: gradient
+    icon: LIGHT_BLUE_DYE
     from: "#d6e8f7"
     to: "#67e8f9"
     display-name: "<gradient:#d6e8f7:#67e8f9>Ice</gradient>"
@@ -134,6 +151,7 @@ colors:
     preview: "<gradient:#d6e8f7:#67e8f9>Ice</gradient>"
   lava:
     type: gradient
+    icon: RED_DYE
     from: "#ef4444"
     to: "#f59e0b"
     display-name: "<gradient:#ef4444:#f59e0b>Lava</gradient>"
@@ -143,6 +161,7 @@ colors:
     preview: "<gradient:#ef4444:#f59e0b>Lava</gradient>"
   storm:
     type: gradient
+    icon: GRAY_DYE
     from: "#334155"
     to: "#d6e8f7"
     display-name: "<gradient:#334155:#d6e8f7>Storm</gradient>"
@@ -150,6 +169,148 @@ colors:
     required-rank: "vip"
     default-unlocked: false
     preview: "<gradient:#334155:#d6e8f7>Storm</gradient>"
+  royal_gold:
+    type: gradient
+    icon: GOLD_INGOT
+    from: "#f4cd2a"
+    middle: "#eda323"
+    to: "#d28d0d"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Royal Gold</gradient>"
+    permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
+    default-unlocked: false
+    preview: "<gradient:#f4cd2a:#eda323:#d28d0d>Royal Gold</gradient>"
+  honey:
+    type: gradient
+    icon: HONEYCOMB
+    from: "#f97316"
+    to: "#fde68a"
+    display-name: "<gradient:#f97316:#fde68a>Honey</gradient>"
+    permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
+    default-unlocked: false
+    preview: "<gradient:#f97316:#fde68a>Honey</gradient>"
+  sapphire:
+    type: gradient
+    icon: DIAMOND
+    from: "#1d4ed8"
+    to: "#60a5fa"
+    display-name: "<gradient:#1d4ed8:#60a5fa>Sapphire</gradient>"
+    permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
+    default-unlocked: false
+    preview: "<gradient:#1d4ed8:#60a5fa>Sapphire</gradient>"
+  ruby:
+    type: gradient
+    icon: RED_DYE
+    from: "#7f1d1d"
+    to: "#ef4444"
+    display-name: "<gradient:#7f1d1d:#ef4444>Ruby</gradient>"
+    permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
+    default-unlocked: false
+    preview: "<gradient:#7f1d1d:#ef4444>Ruby</gradient>"
+  aurora:
+    type: gradient
+    icon: PRISMARINE_CRYSTALS
+    from: "#22c55e"
+    to: "#38bdf8"
+    display-name: "<gradient:#22c55e:#38bdf8>Aurora</gradient>"
+    permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
+    default-unlocked: false
+    preview: "<gradient:#22c55e:#38bdf8>Aurora</gradient>"
+  cotton_candy:
+    type: gradient
+    icon: PINK_DYE
+    from: "#f9a8d4"
+    to: "#93c5fd"
+    display-name: "<gradient:#f9a8d4:#93c5fd>Cotton Candy</gradient>"
+    permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
+    default-unlocked: false
+    preview: "<gradient:#f9a8d4:#93c5fd>Cotton Candy</gradient>"
+  toxic:
+    type: gradient
+    icon: SLIME_BALL
+    from: "#84cc16"
+    to: "#d9f99d"
+    display-name: "<gradient:#84cc16:#d9f99d>Toxic</gradient>"
+    permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
+    default-unlocked: false
+    preview: "<gradient:#84cc16:#d9f99d>Toxic</gradient>"
+  galaxy:
+    type: gradient
+    icon: NETHER_STAR
+    from: "#4c1d95"
+    to: "#ec4899"
+    display-name: "<gradient:#4c1d95:#2563eb:#ec4899>Galaxy</gradient>"
+    permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
+    default-unlocked: false
+    preview: "<gradient:#4c1d95:#2563eb:#ec4899>Galaxy</gradient>"
+  frostbite:
+    type: gradient
+    icon: PACKED_ICE
+    from: "#e0f2fe"
+    to: "#38bdf8"
+    display-name: "<gradient:#e0f2fe:#38bdf8>Frostbite</gradient>"
+    permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
+    default-unlocked: false
+    preview: "<gradient:#e0f2fe:#38bdf8>Frostbite</gradient>"
+  cherry:
+    type: gradient
+    icon: CHERRY_LEAVES
+    from: "#fb7185"
+    to: "#fbcfe8"
+    display-name: "<gradient:#fb7185:#fbcfe8>Cherry</gradient>"
+    permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
+    default-unlocked: false
+    preview: "<gradient:#fb7185:#fbcfe8>Cherry</gradient>"
+  crimson_gold:
+    type: gradient
+    icon: REDSTONE
+    from: "#f4cd2a"
+    middle: "#eda323"
+    to: "#d28d0d"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Crimson Gold</gradient>"
+    permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
+    default-unlocked: false
+    preview: "<gradient:#f4cd2a:#eda323:#d28d0d>Crimson Gold</gradient>"
+  peach:
+    type: gradient
+    icon: ORANGE_DYE
+    from: "#fb923c"
+    to: "#fed7aa"
+    display-name: "<gradient:#fb923c:#fed7aa>Peach</gradient>"
+    permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
+    default-unlocked: false
+    preview: "<gradient:#fb923c:#fed7aa>Peach</gradient>"
+  steel:
+    type: gradient
+    icon: IRON_INGOT
+    from: "#64748b"
+    to: "#e2e8f0"
+    display-name: "<gradient:#64748b:#e2e8f0>Steel</gradient>"
+    permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
+    default-unlocked: false
+    preview: "<gradient:#64748b:#e2e8f0>Steel</gradient>"
+  watermelon:
+    type: gradient
+    icon: MELON_SLICE
+    from: "#ef4444"
+    to: "#86efac"
+    display-name: "<gradient:#ef4444:#86efac>Watermelon</gradient>"
+    permission: "3smpcore.chat.gradient"
+    required-rank: "vip"
+    default-unlocked: false
+    preview: "<gradient:#ef4444:#86efac>Watermelon</gradient>"
 
 rank-colors:
   vip:

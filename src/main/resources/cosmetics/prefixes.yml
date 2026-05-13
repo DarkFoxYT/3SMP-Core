@@ -16,13 +16,13 @@ prefixes:
       - "<gray>Clean premium sapphire prefix.</gray>"
     preview: "<gradient:#1A2A4A:#D6E8F7>[SAPPHIRE]</gradient>"
   mythic:
-    display-name: "<gradient:#f59e0b:#f97316>Mythic</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Mythic</gradient>"
     permission: "3smpcore.perk.prefix.mythic"
     default-unlocked: false
     icon: NETHER_STAR
     lore:
       - "<gray>Bright gold mythic prefix.</gray>"
-    preview: "<gradient:#f59e0b:#f97316>[MYTHIC]</gradient>"
+    preview: "<gradient:#f4cd2a:#eda323:#d28d0d>[MYTHIC]</gradient>"
   eclipse:
     display-name: "<gradient:#334155:#c084fc>Eclipse</gradient>"
     permission: "3smpcore.perk.prefix.eclipse"
