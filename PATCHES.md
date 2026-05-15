@@ -3,6 +3,8 @@
 ## 2026-04-21
 
 ### Fixed
+- Added `admin/ranks.yml` as the canonical rank setup/delivery config, auto-creating missing LuckPerms groups and syncing missing chat/visual rank entries for existing servers.
+- Routed `/rank give`, `/rank sub`, and `/3smpcore rankperms apply` through the new rank service while keeping legacy `admin/permissions.yml` rank packages as fallback.
 - Fixed duel countdown task repeating `beginFight()` and resetting players every second.
 - Fixed duel result messages so winners are shown only to match participants.
 - Fixed duplicated party manager ownership by keeping party hotbar items inside PartyService.

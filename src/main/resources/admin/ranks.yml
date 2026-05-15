@@ -1,0 +1,351 @@
+settings:
+  ensure-luckperms-groups: true
+  ensure-delay-ticks: 20
+  sync-chat-styles: true
+  sync-visual-ranks: true
+  default-subscription-duration: "30d"
+  permanent-parent-command: "lp user {player} parent add {group}"
+  subscription-parent-command: "lp user {player} parent addtemp {group} {duration} accumulate"
+  remove-parent-command: "lp user {player} parent remove {group}"
+  broadcast-deliveries: true
+
+messages:
+  delivery-received: "<gradient:#f4cd2a:#eda323:#d28d0d>Store delivery received:</gradient> <white>{rank}</white>"
+  delivery-broadcast: "<gradient:#f4cd2a:#eda323:#d28d0d>{player}</gradient> <gray>bought</gray> <white>{rank}</white> <gray>in-game!</gray>"
+  rank-removed: "<gray>Your {rank} rank was removed.</gray>"
+
+ranks:
+  default:
+    enabled: true
+    luckperms-group: "default"
+    display-name: "Member"
+    weight: 999
+    visual:
+      image: ""
+      image-id: ""
+      gradient: "member"
+      gradient-colors: "#e2e8f0:#94a3b8"
+      sort-weight: 999
+  member:
+    enabled: true
+    luckperms-group: "member"
+    display-name: "Member"
+    weight: 100
+    visual:
+      image: ""
+      image-id: ""
+      gradient: "member"
+      gradient-colors: "#e2e8f0:#94a3b8"
+      sort-weight: 100
+  vip:
+    enabled: true
+    luckperms-group: "vip"
+    display-name: "VIP"
+    weight: 30
+    permissions:
+      - "essentials.sethome.multiple.vip"
+      - "essentials.hat"
+      - "3smpcore.chat.color.vip"
+      - "3smpcore.queue.priority.vip"
+      - "3smpcore.perks.use"
+      - "3smpcore.sapphires.use"
+      - "3smpcore.gems.use"
+      - "3smpcore.souls.use"
+      - "3smpcore.daily.use"
+    setup-commands:
+      - "lp group {group} meta setsuffix 10 \"&aVIP\""
+      - "lp group {group} meta sethomes 5"
+    chat:
+      priority: 150
+      name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
+      name-color: "gold"
+      tag-format: "<gradient:#f4cd2a:#eda323:#d28d0d><tag></gradient>"
+      tag-color: "gold"
+      message-color: "white"
+    visual:
+      image: "<img:vip>"
+      image-id: "vip"
+      gradient: "vip"
+      gradient-colors: "#f4cd2a:#eda323:#d28d0d"
+      sort-weight: 30
+  pro:
+    enabled: true
+    luckperms-group: "pro"
+    display-name: "PRO"
+    weight: 35
+    permissions:
+      - "essentials.sethome.multiple.pro"
+      - "essentials.hat"
+      - "essentials.fly"
+      - "essentials.ec"
+      - "essentials.ec.others"
+      - "essentials.tpa"
+      - "essentials.tpahere"
+      - "essentials.workbench"
+      - "essentials.enderchest"
+      - "essentials.back"
+      - "3smpcore.chat.color.vip"
+      - "3smpcore.chat.color.mvp"
+      - "3smpcore.queue.priority.vip"
+      - "3smpcore.perks.use"
+      - "3smpcore.sapphires.use"
+      - "3smpcore.gems.use"
+      - "3smpcore.souls.use"
+      - "3smpcore.daily.use"
+    setup-commands:
+      - "lp group {group} meta setsuffix 20 \"&bPRO\""
+      - "lp group {group} meta sethomes 10"
+    chat:
+      priority: 175
+      name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
+      name-color: "gold"
+      tag-format: "<gradient:#f4cd2a:#eda323:#d28d0d><tag></gradient>"
+      tag-color: "gold"
+      message-color: "white"
+    visual:
+      image: "<img:pro>"
+      image-id: "pro"
+      gradient: "vip"
+      gradient-colors: "#f4cd2a:#eda323:#d28d0d"
+      sort-weight: 35
+    delivery:
+      permanent:
+        commands:
+          - "eco give {player} 500000"
+          - "giveclaim {player} 7500"
+          - "lp user {player} permission set essentials.sethome.multiple.20 true"
+          - "lp user {player} permission set auctionhouse.maxsell.4 true"
+          - "lp user {player} permission set essentials.nick true"
+          - "lp user {player} permission set essentials.workbench true"
+          - "lp user {player} permission set essentials.enderchest true"
+          - "lp user {player} permission set essentials.smoker true"
+          - "lp user {player} permission set essentials.ptime true"
+          - "lp user {player} permission set essentials.pweather true"
+          - "lp user {player} meta set player-shops 250"
+          - "vs backpack give {player} 1"
+  mvp:
+    enabled: true
+    luckperms-group: "mvp"
+    display-name: "MVP"
+    weight: 20
+    permissions:
+      - "essentials.sethome.multiple.mvp"
+      - "essentials.hat"
+      - "essentials.fly"
+      - "essentials.ec"
+      - "essentials.ec.others"
+      - "essentials.tpa"
+      - "essentials.tpahere"
+      - "essentials.workbench"
+      - "essentials.enderchest"
+      - "essentials.back"
+      - "essentials.anvil"
+      - "essentials.smithingtable"
+      - "essentials.grindstone"
+      - "3smpcore.chat.color.vip"
+      - "3smpcore.chat.color.mvp"
+      - "3smpcore.queue.priority.vip"
+      - "3smpcore.perks.use"
+      - "3smpcore.sapphires.use"
+      - "3smpcore.gems.use"
+      - "3smpcore.souls.use"
+      - "3smpcore.daily.use"
+    setup-commands:
+      - "lp group {group} meta setsuffix 30 \"&dMVP\""
+      - "lp group {group} meta sethomes 15"
+    chat:
+      priority: 200
+      name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
+      name-color: "gold"
+      tag-format: "<gradient:#f4cd2a:#eda323:#d28d0d><tag></gradient>"
+      tag-color: "gold"
+      message-color: "aqua"
+    visual:
+      image: "<img:mvp>"
+      image-id: "mvp"
+      gradient: "mvp"
+      gradient-colors: "#f4cd2a:#eda323:#d28d0d"
+      sort-weight: 20
+    delivery:
+      permanent:
+        commands:
+          - "eco give {player} 750000"
+          - "giveclaim {player} 10000"
+          - "lp user {player} permission set essentials.sethome.multiple.35 true"
+          - "lp user {player} permission set auctionhouse.maxsell.6 true"
+          - "lp user {player} permission set essentials.skull true"
+          - "lp user {player} permission set essentials.feed true"
+          - "lp user {player} permission set essentials.anvil true"
+          - "lp user {player} permission set essentials.stonecutter true"
+          - "lp user {player} permission set essentials.blastfurnace true"
+          - "lp user {player} permission set essentials.smithingtable true"
+          - "lp user {player} permission set essentials.workbench true"
+          - "lp user {player} permission set essentials.enderchest true"
+          - "lp user {player} meta set player-shops 500"
+          - "vs backpack give {player} 2"
+          - "lp user {player} permission set 3smpcore.command.fly true"
+  ultra:
+    enabled: true
+    luckperms-group: "ultra"
+    display-name: "ULTRA"
+    weight: 10
+    permissions:
+      - "essentials.sethome.multiple.ultra"
+      - "essentials.hat"
+      - "essentials.fly"
+      - "essentials.ec"
+      - "essentials.ec.others"
+      - "essentials.tpa"
+      - "essentials.tpahere"
+      - "essentials.workbench"
+      - "essentials.enderchest"
+      - "essentials.back"
+      - "essentials.anvil"
+      - "essentials.smithingtable"
+      - "essentials.grindstone"
+      - "essentials.loom"
+      - "essentials.nick"
+      - "3smpcore.chat.color.vip"
+      - "3smpcore.chat.color.mvp"
+      - "3smpcore.chat.color.elite"
+      - "3smpcore.queue.priority.vip"
+      - "3smpcore.perks.use"
+      - "3smpcore.sapphires.use"
+      - "3smpcore.gems.use"
+      - "3smpcore.souls.use"
+      - "3smpcore.daily.use"
+    setup-commands:
+      - "lp group {group} meta setsuffix 40 \"<gradient:#f4cd2a:#eda323:#d28d0d>ULTRA</gradient>\""
+      - "lp group {group} meta sethomes 30"
+    chat:
+      priority: 220
+      name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
+      name-color: "gold"
+      tag-format: "<gradient:#f4cd2a:#eda323:#d28d0d><tag></gradient>"
+      tag-color: "gold"
+      message-color: "gold"
+    visual:
+      image: "<img:ultra>"
+      image-id: "ultra"
+      gradient: "ultra"
+      gradient-colors: "#f4cd2a:#eda323:#d28d0d"
+      sort-weight: 10
+    delivery:
+      permanent:
+        commands:
+          - "eco give {player} 1000000"
+          - "giveclaim {player} 15000"
+          - "lp user {player} permission set essentials.sethome.multiple.unlimited true"
+          - "lp user {player} permission set auctionhouse.maxsell.8 true"
+          - "lp user {player} permission set essentials.heal true"
+          - "lp user {player} permission set essentials.skull true"
+          - "lp user {player} permission set essentials.feed true"
+          - "lp user {player} permission set essentials.anvil true"
+          - "lp user {player} permission set essentials.stonecutter true"
+          - "lp user {player} permission set essentials.blastfurnace true"
+          - "lp user {player} permission set essentials.smithingtable true"
+          - "lp user {player} permission set essentials.workbench true"
+          - "lp user {player} permission set essentials.enderchest true"
+          - "lp user {player} permission set 3smpcore.command.fly true"
+          - "lp user {player} meta set player-shops unlimited"
+          - "vs backpack give {player} 3"
+  3rank:
+    enabled: true
+    luckperms-group: "3rank"
+    display-name: "3RANK"
+    weight: 15
+    permissions:
+      - "3smpcore.chat.color.vip"
+      - "3smpcore.chat.color.mvp"
+      - "3smpcore.chat.color.elite"
+      - "3smpcore.queue.priority.vip"
+      - "3smpcore.perks.use"
+      - "3smpcore.sapphires.use"
+      - "3smpcore.gems.use"
+      - "3smpcore.souls.use"
+      - "3smpcore.daily.use"
+    chat:
+      priority: 210
+      name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
+      name-color: "gold"
+      tag-format: "<gradient:#f4cd2a:#eda323:#d28d0d><tag></gradient>"
+      tag-color: "gold"
+      message-color: "gold"
+    visual:
+      image: "<img:3smp>"
+      image-id: "3smp"
+      gradient: "3smp"
+      gradient-colors: "#f4cd2a:#eda323:#d28d0d"
+      sort-weight: 15
+    delivery:
+      subscriptions:
+        duration: "30d"
+        commands:
+          - "sapphire give {player} 1000"
+          - "crate key give {player} prophecy 1"
+          - "eco give {player} 350000"
+          - "giveclaim {player} 5000"
+          - "lp user {player} permission set essentials.sethome.multiple.15 true"
+          - "lp user {player} permission set auctionhouse.maxsell.3 true"
+          - "lp user {player} permission set essentials.nick true"
+          - "lp user {player} permission set essentials.workbench true"
+          - "lp user {player} permission set essentials.enderchest true"
+          - "lp user {player} permission set essentials.smoker true"
+          - "lp user {player} permission set essentials.ptime true"
+          - "lp user {player} permission set essentials.pweather true"
+          - "lp user {player} meta set player-shops 200"
+          - "vs backpack give {player} 1"
+  owner:
+    enabled: true
+    luckperms-group: "owner"
+    display-name: "Owner"
+    weight: 1
+    chat:
+      priority: 300
+      name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
+      name-color: "ember"
+      tag-format: "<gradient:#f4cd2a:#eda323:#d28d0d><tag></gradient>"
+      tag-color: "gold"
+      message-color: "gold"
+    visual:
+      image: "<img:owner>"
+      image-id: "owner"
+      gradient: "owner"
+      gradient-colors: "#f4cd2a:#eda323:#d28d0d"
+      sort-weight: 1
+  admin:
+    enabled: true
+    luckperms-group: "admin"
+    display-name: "Admin"
+    weight: 3
+    chat:
+      priority: 250
+      name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
+      name-color: "lava"
+      tag-format: "<gradient:#f4cd2a:#eda323:#d28d0d><tag></gradient>"
+      tag-color: "gold"
+      message-color: "white"
+    visual:
+      image: "<img:admin>"
+      image-id: "admin"
+      gradient: "admin"
+      gradient-colors: "#f4cd2a:#eda323:#d28d0d"
+      sort-weight: 3
+  dev:
+    enabled: true
+    luckperms-group: "dev"
+    display-name: "Developer"
+    weight: 2
+    chat:
+      priority: 240
+      name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
+      name-color: "gold"
+      tag-format: "<gradient:#f4cd2a:#eda323:#d28d0d><tag></gradient>"
+      tag-color: "gold"
+      message-color: "white"
+    visual:
+      image: "<img:dev>"
+      image-id: "dev"
+      gradient: "dev"
+      gradient-colors: "#f4cd2a:#eda323:#d28d0d"
+      sort-weight: 2

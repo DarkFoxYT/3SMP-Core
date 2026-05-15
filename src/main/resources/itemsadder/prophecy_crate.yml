@@ -1,0 +1,32 @@
+info:
+  namespace: threesmp
+
+items:
+  prophecy_crate:
+    enabled: true
+    display_name: "&6&lProphecy Crate"
+    lore:
+      - "&7A mysterious crate..."
+      - "&8Right-click to open."
+    resource:
+      material: PAPER
+      generate: false
+      model_path: item/prophecy_crate
+    specific_properties:
+      block:
+        placed_model:
+          type: REAL_TRANSPARENT
+          model: block/prophecy_crate
+        cancel_drop: true
+        directional:
+          type: ALL
+
+  prophecy_key:
+    display_name: "&6&lProphecy Key"
+    lore:
+      - "&7Unlocks the &dProphecy Crate&7."
+      - "&8Right-click a prophecy crate to open."
+    resource:
+      material: COMMAND_BLOCK
+      generate: false
+      model_path: item/prophecy_key

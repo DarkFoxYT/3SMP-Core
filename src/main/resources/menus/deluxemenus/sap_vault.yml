@@ -1,0 +1,28 @@
+menu_title: ":offset_-8::sap_vault:"
+open_command: []
+size: 54
+update_interval: 20
+
+items:
+  open_center:
+    material: PAPER
+    model_data: 1
+    slots:
+      - 13
+      - 21
+      - 22
+      - 23
+      - 29
+      - 30
+      - 31
+      - 32
+      - 33
+      - 39
+      - 40
+      - 41
+    display_name: "&r"
+    lore: []
+    left_click_commands:
+      - "[openguimenu] sap_vault_shop"
+    right_click_commands:
+      - "[openguimenu] sap_vault_shop"

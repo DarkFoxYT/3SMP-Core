@@ -18,6 +18,7 @@ import net.dark.threecore.dungeons.engine.DungeonTrapDefinition;
 import net.dark.threecore.dungeons.engine.DungeonValidationResult;
 import net.dark.threecore.dungeons.engine.DungeonValidator;
 import net.dark.threecore.dungeons.engine.MobTrigger;
+import net.dark.threecore.dungeons.engine.PlacedConnector;
 import net.dark.threecore.dungeons.engine.PlacedDungeonRoom;
 import net.dark.threecore.dungeons.engine.RoomTransform;
 import net.dark.threecore.dungeons.engine.RoomType;
@@ -59,6 +60,7 @@ import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.InventoryAction;
 import org.bukkit.event.inventory.InventoryDragEvent;
 import org.bukkit.event.entity.EntityDeathEvent;
+import org.bukkit.event.entity.EntityDamageByEntityEvent;
 import org.bukkit.event.entity.EntityExplodeEvent;
 import org.bukkit.event.entity.PlayerDeathEvent;
 import org.bukkit.event.entity.CreatureSpawnEvent;
@@ -138,7 +140,9 @@ public final class DungeonService implements Listener {
     private final Map<UUID, Location> editorPos2 = new HashMap<>();
     private final Map<UUID, BoulderEditSession> boulderEdits = new HashMap<>();
     private final Map<UUID, List<UUID>> boulderMarkerPreviews = new HashMap<>();
+    private final Map<UUID, List<UUID>> editorTrapPreviews = new HashMap<>();
     private final Set<String> physicsSuppressedWorlds = new HashSet<>();
+    private final Map<String, Long> allowedDungeonMobSpawnWindows = new java.util.concurrent.ConcurrentHashMap<>();
     private final DungeonRoomRegistry roomRegistry;
     private final DungeonGraphGenerator graphGenerator;
     private final DungeonValidator dungeonValidator = new DungeonValidator();
@@ -786,6 +790,21 @@ public final class DungeonService implements Listener {
         return new Vector(list.size() > 0 ? list.get(0) : 0, list.size() > 1 ? list.get(1) : 0, list.size() > 2 ? list.get(2) : 0);
     }
 
+    private Vector listVector(List<?> list) {
+        return new Vector(numberValue(list, 0), numberValue(list, 1), numberValue(list, 2));
+    }
+
+    private double numberValue(List<?> list, int index) {
+        if (list == null || list.size() <= index) return 0.0D;
+        Object value = list.get(index);
+        if (value instanceof Number number) return number.doubleValue();
+        try {
+            return Double.parseDouble(String.valueOf(value));
+        } catch (Exception ignored) {
+            return 0.0D;
+        }
+    }
+
     private int intValue(Object value) {
         if (value instanceof Number number) return number.intValue();
         try {
@@ -824,6 +843,8 @@ public final class DungeonService implements Listener {
                 DungeonRoomDefinition room = roomRegistry.room(args[2]);
                 if (room == null) { Text.send(sender, "<red>Unknown room.</red>"); return; }
                 Text.send(sender, "<gradient:#f4cd2a:#eda323:#d28d0d>Room:</gradient> <white>" + room.id() + "</white> <gray>type=" + room.type() + " size=" + room.size().getBlockX() + "x" + room.size().getBlockY() + "x" + room.size().getBlockZ() + "</gray>");
+                Text.send(sender, "<gray>Spawns:</gray> <white>" + room.spawns().size() + "</white> <gray>Traps:</gray> <white>" + room.traps().size() + "</white>");
+                room.traps().forEach(trap -> Text.send(sender, "<dark_gray>-</dark_gray> <white>" + trap.id() + "</white> <gray>type=" + trap.type() + " mob=" + resolvedTrapMobId(trap.type(), trap.mythicMobId()) + " pos=" + trap.localPosition() + " facing=" + trap.facing() + "</gray>"));
             }
             case "connectors" -> {
                 if (args.length < 3) { Text.send(sender, "<yellow>/3smpcore dungeon debug connectors <roomId></yellow>"); return; }
@@ -1059,8 +1080,14 @@ public final class DungeonService implements Listener {
     }
 
     public void leave(Player player) {
-        if (!isDungeonPlayer(player) && !isDungeonWorld(player.getWorld())) {
+        net.dark.threecore.dungeons.runtime.DungeonSession session = getDungeonSession(player);
+        if (session == null && !isDungeonPlayer(player) && !isDungeonWorld(player.getWorld())) {
             Text.send(player, "<gray>You are not in a dungeon.</gray>");
+            return;
+        }
+        if (session != null) {
+            leaveRuntimeDungeon(player, session, true);
+            Text.send(player, "<green>Left the dungeon.</green>");
             return;
         }
         saveDungeonProfile(player);
@@ -1074,6 +1101,7 @@ public final class DungeonService implements Listener {
     public UUID startDungeonApi(Collection<Player> players, String dungeonId) {
         if (players == null || players.isEmpty()) return null;
         Player leader = players.iterator().next();
+        prepareDungeonGeneration();
         String id = dungeonId == null || dungeonId.isBlank() ? "jungle" : dungeonId.toLowerCase(Locale.ROOT);
         String difficulty = options(leader).difficulty()[0];
         World world = createDungeonInstanceWorld(leader.getUniqueId(), id);
@@ -1081,11 +1109,18 @@ public final class DungeonService implements Listener {
         DungeonLayout layout = graphGenerator.generate(id, world.getName(), configs.get("dungeons/dungeons.yml").getInt("levels." + id + ".y", 80), debugEnabled());
         if (layout.rooms().isEmpty()) {
             debug(leader, "<red>Room-aware generation failed. See debug generate for reasons.</red>");
+            for (String line : layout.debug().stream().limit(25).toList()) debug(leader, "<gray>" + line + "</gray>");
+            cleanupDungeonInstanceIfEmpty(world);
             return null;
         }
         DungeonValidationResult validation = dungeonValidator.validate(layout, roomRegistry.settings().bossRoomRequired());
         if (!validation.valid()) {
-            debug(leader, "<red>Generated dungeon rejected:</red> <white>" + String.join("; ", validation.failures()) + "</white>");
+            debug(leader, "<yellow>Generated dungeon has validation notes, forcing usable layout:</yellow> <white>" + String.join("; ", validation.failures()) + "</white>");
+            for (String line : layout.debug().stream().limit(25).toList()) debug(leader, "<gray>" + line + "</gray>");
+        }
+        if (layout.startRoom() == null) {
+            debug(leader, "<red>Generated dungeon rejected because it has no start room.</red>");
+            cleanupDungeonInstanceIfEmpty(world);
             return null;
         }
         pasteGeneratedLayout(layout);
@@ -1121,6 +1156,12 @@ public final class DungeonService implements Listener {
         return sessionId;
     }
 
+    private void prepareDungeonGeneration() {
+        if (!configs.get("dungeons/dungeons.yml").getBoolean("generation.force-refresh-before-run", true)) return;
+        configs.reload();
+        roomRegistry.reload();
+    }
+
     private void pasteGeneratedLayout(DungeonLayout layout) {
         if (layout == null) return;
         YamlConfiguration templates = configs.get("dungeons/templates.yml");
@@ -1138,6 +1179,117 @@ public final class DungeonService implements Listener {
                 room.origin().getBlockZ(),
                 toStructureRotation(room.rotation())
             ));
+            restoreBossDoorBlockStates(room);
+        }
+        capUnconnectedDungeonOpenings(layout);
+    }
+
+    private void restoreBossDoorBlockStates(PlacedDungeonRoom room) {
+        if (room == null) return;
+        YamlConfiguration rooms = configs.get("dungeons/rooms.yml");
+        String base = "rooms." + room.definition().id() + ".boss-door";
+        if (!rooms.getBoolean(base + ".enabled", false)) return;
+        World world = Bukkit.getWorld(room.world());
+        if (world == null) return;
+        List<String> states = rooms.getStringList(base + ".blockstates");
+        if (states.isEmpty()) return;
+        StructureRotation rotation = toStructureRotation(room.rotation());
+        int restored = 0;
+        for (String raw : states) {
+            String[] parts = raw.split("\\|", 3);
+            if (parts.length < 2) continue;
+            String[] xyz = parts[0].split(",");
+            if (xyz.length < 3) continue;
+            try {
+                int lx = Integer.parseInt(xyz[0]);
+                int ly = Integer.parseInt(xyz[1]);
+                int lz = Integer.parseInt(xyz[2]);
+                Vector worldVector = room.transform().localToWorld(new Vector(lx, ly, lz));
+                Block block = world.getBlockAt(worldVector.getBlockX(), worldVector.getBlockY(), worldVector.getBlockZ());
+                Material material = parseMaterial(parts[1]);
+                block.setType(material, false);
+                if (parts.length >= 3 && !parts[2].isBlank()) {
+                    BlockData data = Bukkit.createBlockData(parts[2]);
+                    rotateBlockData(data, rotation);
+                    block.setBlockData(data, false);
+                }
+                restored++;
+            } catch (Exception ignored) {
+            }
+        }
+        if (restored > 0) debug(null, "<gray>Restored boss door blockstates for</gray> <white>" + room.definition().id() + "</white> <gray>blocks:</gray> <white>" + restored + "</white>");
+    }
+
+    private void capUnconnectedDungeonOpenings(DungeonLayout layout) {
+        if (layout == null || layout.rooms().isEmpty()) return;
+        Set<String> connected = new HashSet<>();
+        for (var connection : layout.connections()) {
+            connected.add(connectorKey(connection.fromRoom(), connection.fromConnector()));
+            connected.add(connectorKey(connection.toRoom(), connection.toConnector()));
+        }
+        Material capMaterial = parseMaterial(configs.get("dungeons/dungeons.yml").getString(
+            "generation.room-engine.unconnected-opening-cap-material",
+            configs.get("dungeons/dungeons.yml").getString("dungeon-door.material", "POLISHED_BLACKSTONE")
+        ));
+        int capped = 0;
+        int inactiveEntrances = 0;
+        int fallbackOpenings = 0;
+        for (PlacedDungeonRoom room : layout.rooms()) {
+            World world = Bukkit.getWorld(room.world());
+            if (world == null) continue;
+            for (PlacedConnector connector : room.connectors()) {
+                if (connected.contains(connectorKey(room.graphIndex(), connector.connector().id()))) continue;
+                capConnectorOpening(world, connector, capMaterial);
+                capped++;
+                if (connector.connector().role() == net.dark.threecore.dungeons.engine.ConnectorRole.ENTRANCE) inactiveEntrances++;
+                else fallbackOpenings++;
+            }
+        }
+        if (capped > 0) debug(null, "<gray>Capped</gray> <white>" + inactiveEntrances + "</white> <gray>inactive entrance(s) and</gray> <white>" + fallbackOpenings + "</white> <gray>fallback opening(s) after paste.</gray>");
+    }
+
+    private String connectorKey(int roomIndex, String connectorId) {
+        return roomIndex + ":" + (connectorId == null ? "" : connectorId.toLowerCase(Locale.ROOT));
+    }
+
+    private void capConnectorOpening(World world, PlacedConnector connector, Material material) {
+        if (world == null || connector == null || material == null || material.isAir()) return;
+        int x = connector.worldPosition().getBlockX();
+        int y = connector.worldPosition().getBlockY();
+        int z = connector.worldPosition().getBlockZ();
+        int width = Math.max(1, connector.connector().width());
+        int height = Math.max(1, connector.connector().height());
+        BlockFace facing = connector.facing() == null ? BlockFace.NORTH : connector.facing();
+        int depth = Math.max(1, configs.get("dungeons/dungeons.yml").getInt("generation.room-engine.unconnected-opening-cap-depth", 2));
+        for (int layer = 0; layer < depth; layer++) {
+            fillConnectorCapLayer(world, x, y, z, width, height, facing, material, layer);
+        }
+    }
+
+    private void fillConnectorCapLayer(World world, int x, int y, int z, int width, int height, BlockFace facing, Material material, int layer) {
+        int inwardX = -facing.getModX() * layer;
+        int inwardY = -facing.getModY() * layer;
+        int inwardZ = -facing.getModZ() * layer;
+        if (facing == BlockFace.NORTH || facing == BlockFace.SOUTH) {
+            for (int dx = 0; dx < width; dx++) {
+                for (int dy = 0; dy < height; dy++) {
+                    world.getBlockAt(x + dx + inwardX, y + dy + inwardY, z + inwardZ).setType(material, false);
+                }
+            }
+            return;
+        }
+        if (facing == BlockFace.EAST || facing == BlockFace.WEST) {
+            for (int dz = 0; dz < width; dz++) {
+                for (int dy = 0; dy < height; dy++) {
+                    world.getBlockAt(x + inwardX, y + dy + inwardY, z + dz + inwardZ).setType(material, false);
+                }
+            }
+            return;
+        }
+        for (int dx = 0; dx < width; dx++) {
+            for (int dz = 0; dz < width; dz++) {
+                world.getBlockAt(x + dx + inwardX, y + inwardY, z + dz + inwardZ).setType(material, false);
+            }
         }
     }
 
@@ -1157,15 +1309,52 @@ public final class DungeonService implements Listener {
         cleanupRuntimeEntities(sessionId);
         spawnedRuntimeRooms.remove(sessionId);
         spawnedRuntimeBossRooms.remove(sessionId);
+        Set<World> worlds = new HashSet<>();
         for (UUID uuid : session.players()) {
+            World world = instanceWorldsByPlayer.get(uuid);
+            if (world != null) worlds.add(world);
             playerRuntimeSessions.remove(uuid);
-            ACTIVE_DUNGEON_PLAYERS.remove(uuid);
-            resetHealthScore(uuid);
+            clearDungeonRunState(uuid);
             Player player = Bukkit.getPlayer(uuid);
-            if (player != null) inventoryService.restore(player);
+            if (player != null) returnRuntimeDungeonPlayer(player, true);
         }
         doorManager.cleanup();
+        for (World world : worlds) cleanupDungeonInstanceIfEmpty(world);
         return true;
+    }
+
+    private void leaveRuntimeDungeon(Player player, net.dark.threecore.dungeons.runtime.DungeonSession session, boolean restoreAndTeleport) {
+        if (player == null || session == null) return;
+        UUID uuid = player.getUniqueId();
+        UUID sessionId = session.id();
+        World world = instanceWorldsByPlayer.get(uuid);
+        playerRuntimeSessions.remove(uuid);
+        session.removePlayer(uuid);
+        clearDungeonRunState(uuid);
+        if (restoreAndTeleport) returnRuntimeDungeonPlayer(player, true);
+        if (session.isEmpty()) {
+            runtimeSessions.remove(sessionId);
+            Bukkit.getPluginManager().callEvent(new DungeonEndEvent(session));
+            cleanupRuntimeEntities(sessionId);
+            spawnedRuntimeRooms.remove(sessionId);
+            spawnedRuntimeBossRooms.remove(sessionId);
+            doorManager.cleanup();
+        }
+        cleanupDungeonInstanceIfEmpty(world);
+    }
+
+    private void returnRuntimeDungeonPlayer(Player player, boolean restoreInventory) {
+        if (player == null) return;
+        clearDungeonVision(player);
+        player.setGameMode(GameMode.SURVIVAL);
+        Location spawn = readConfiguredLocation("spawn");
+        if (spawn != null) {
+            player.teleport(spawn);
+        }
+        if (restoreInventory) inventoryService.restore(player);
+        player.setGameMode(GameMode.SURVIVAL);
+        if (spawn != null) applyDungeonSpawnBuffs(player);
+        player.updateInventory();
     }
 
     public net.dark.threecore.dungeons.runtime.DungeonSession getDungeonSession(Player player) {
@@ -1225,25 +1414,10 @@ public final class DungeonService implements Listener {
         }
         if (configs.get("dungeons/dungeons.yml").getBoolean("levels." + id + ".coming-soon", false)) { Text.send(player, "<red>That dungeon level is coming soon.</red>"); return; }
         if (!canStartDifficulty(player, id, options(player).difficulty()[0])) return;
-        World world = createDungeonInstanceWorld(player.getUniqueId(), id); if (world == null) { Text.send(player, "<red>Dungeon world could not be loaded.</red>"); return; }
-        List<String> plan = buildRoomPlan(id, options(player).difficulty()[0]);
-        if (plan.isEmpty()) { Text.send(player, "<red>No saved room templates for level " + id + ". Use /d save <id> " + id + ".</red>"); return; }
-        RoomReservation start = runStart(player.getUniqueId(), id, world);
-        List<RoomReservation> placed = pasteRoomPlan(plan, start);
-        Location spawn = placed.isEmpty() ? null : markerSpawn(plan.get(0), placed.get(0));
-        saveCurrentInventoryForCurrentWorld(player);
-        clearPlayerState(player);
-        clearDungeonVision(player);
-        player.setGameMode(GameMode.SURVIVAL);
-        player.teleport(spawn == null ? new Location(world, start.centerX() + 0.5, start.y() + 2, start.centerZ() + 0.5) : spawn);
-        loadDungeonProfileWithStarterKit(player);
-        activeRuns.put(player.getUniqueId(), new ActiveDungeonRun(id, options(player).difficulty()[0], false, 0));
-        activeLayouts.put(player.getUniqueId(), buildPlacedRooms(plan, placed));
-        instanceWorldsByPlayer.put(player.getUniqueId(), world);
-        ACTIVE_DUNGEON_PLAYERS.add(player.getUniqueId());
-        startHealthIndicatorTask();
-        debug(player, "<gray>Dungeon run started:</gray> <white>" + id + "</white> <gray>difficulty</gray> <white>" + options(player).difficulty()[0] + "</white> <gray>rooms</gray> <white>" + plan.size() + "</white>");
-        Text.send(player, "<green>Entered " + id + " dungeon.</green> <gray>Rooms:</gray> <white>" + plan.size() + "</white>");
+        UUID sessionId = startDungeonApi(List.of(player), id);
+        if (sessionId == null) {
+            Text.send(player, "<red>Dungeon generation failed.</red> <gray>It needs a full path with a boss room and exit. Check /d debug generate for details.</gray>");
+        }
     }
 
     private void giveDevTool(Player player) {
@@ -1254,43 +1428,49 @@ public final class DungeonService implements Listener {
     }
 
     private void openDevToolbox(Player player) {
-        Inventory inv = Bukkit.createInventory(new DungeonHolder("dev-toolbox"), 27, "Dungeon Dev Toolbox");
+        Inventory inv = Bukkit.createInventory(new DungeonHolder("dev-toolbox"), 54, "Dungeon Dev Toolbox");
         for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, pane());
+        inv.setItem(4, connectionPreviewItem(player));
         inv.setItem(10, tagged(Material.WOODEN_AXE, "<gradient:#34d399:#22c55e>Selection Wand</gradient>", DEV_WAND_ID));
-        inv.setItem(11, devMarker(Material.EMERALD, "Player Spawn"));
-        inv.setItem(12, devMarker(Material.GOLD_INGOT, "Entrance"));
-        inv.setItem(13, devMarker(Material.COPPER_INGOT, "Connector"));
+        inv.setItem(12, devMarker(Material.EMERALD, "Player Spawn"));
+        inv.setItem(13, devMarker(Material.COMPASS, "Room Facing"));
         inv.setItem(14, devMarker(Material.LAPIS_LAZULI, "Enemy Spawn"));
-        inv.setItem(15, devMarker(Material.REDSTONE, "Dungeon Exit"));
-        inv.setItem(16, devMarker(Material.COAL, "Boss Room"));
-        inv.setItem(18, devMarker(Material.COMPASS, "Room Facing"));
-        inv.setItem(19, devMarker(Material.CRYING_OBSIDIAN, "Boss Spawner"));
-        inv.setItem(20, devMarker(Material.DEEPSLATE, "Boulder Trap"));
-        inv.setItem(21, devMarker(Material.POINTED_DRIPSTONE, "Spike Trap"));
-        inv.setItem(23, tagged(Material.WOODEN_AXE, "<gradient:#34d399:#22c55e>Selection Wand</gradient>", DEV_WAND_ID));
-        inv.setItem(24, devMarker(Material.OAK_PLANKS, "Bridge Trap"));
-        inv.setItem(17, connectionPreviewItem(player));
-        inv.setItem(22, button(Material.ARROW, "<gray>Back</gray>", List.of()));
+        inv.setItem(16, devMarker(Material.REDSTONE, "Dungeon Exit"));
+        inv.setItem(19, devMarker(Material.GOLD_INGOT, "Entrance"));
+        inv.setItem(20, devMarker(Material.COPPER_INGOT, "Connector"));
+        inv.setItem(21, devMarker(Material.COAL, "Boss Room"));
+        inv.setItem(22, devMarker(Material.CRYING_OBSIDIAN, "Boss Spawner"));
+        inv.setItem(23, devMarker(Material.IRON_BARS, "Boss Door"));
+        inv.setItem(28, devMarker(Material.DEEPSLATE, "Boulder Trap"));
+        inv.setItem(29, devMarker(Material.POINTED_DRIPSTONE, "Spike Trap"));
+        inv.setItem(30, devMarker(Material.OAK_PLANKS, "Bridge Trap"));
+        inv.setItem(49, button(Material.ARROW, "<gray>Back</gray>", List.of()));
         player.openInventory(inv);
         debug(player, "<gray>Dev toolbox opened with live connection preview.</gray>");
     }
 
     private void handleDevToolboxClick(Player player, int raw) {
         Map<Integer, Material> markers = Map.ofEntries(
-                Map.entry(11, Material.EMERALD),
-                Map.entry(12, Material.GOLD_INGOT),
-                Map.entry(13, Material.COPPER_INGOT),
+                Map.entry(12, Material.EMERALD),
+                Map.entry(13, Material.COMPASS),
                 Map.entry(14, Material.LAPIS_LAZULI),
-                Map.entry(15, Material.REDSTONE),
-                Map.entry(16, Material.COAL),
-                Map.entry(18, Material.COMPASS),
-                Map.entry(19, Material.CRYING_OBSIDIAN),
-                Map.entry(20, Material.DEEPSLATE),
-                Map.entry(21, Material.POINTED_DRIPSTONE),
-                Map.entry(24, Material.OAK_PLANKS)
+                Map.entry(16, Material.REDSTONE),
+                Map.entry(19, Material.GOLD_INGOT),
+                Map.entry(20, Material.COPPER_INGOT),
+                Map.entry(21, Material.COAL),
+                Map.entry(22, Material.CRYING_OBSIDIAN),
+                Map.entry(23, Material.IRON_BARS),
+                Map.entry(28, Material.DEEPSLATE),
+                Map.entry(29, Material.POINTED_DRIPSTONE),
+                Map.entry(30, Material.OAK_PLANKS)
         );
         Material material = markers.get(raw);
-        if (raw == 10 || raw == 23) {
+        if (raw == 49) {
+            playBackSound(player);
+            openMenu(player);
+            return;
+        }
+        if (raw == 10) {
             player.getInventory().setItem(DEV_TOOL_SLOT - 1, tagged(Material.WOODEN_AXE, "<gradient:#34d399:#22c55e>Dungeon Selection Wand</gradient>", DEV_WAND_ID));
             Text.actionBar(player, "<green>Selection wand equipped.</green>");
             Bukkit.getScheduler().runTask(plugin, () -> openDevToolbox(player));
@@ -1307,11 +1487,11 @@ public final class DungeonService implements Listener {
         Location loc = player.getTargetBlockExact(6) == null ? player.getLocation().add(player.getLocation().getDirection().multiply(2)) : player.getTargetBlockExact(6).getLocation().add(0, 1, 0);
         String marker = markerId(material);
         if (marker == null) return;
-        if (marker.equals("exit") && player.isSneaking() && selectedBounds(player) != null) {
+        if ((marker.equals("exit") || marker.equals("boss_door")) && player.isSneaking() && selectedBounds(player) != null) {
             RoomBox box = selectedBounds(player);
             placeArmorMarker(player, new Location(player.getWorld(), box.minX(), box.minY(), box.minZ()), marker);
             placeArmorMarker(player, new Location(player.getWorld(), box.maxX(), box.maxY(), box.maxZ()), marker);
-            Text.actionBar(player, "<gray>Placed dungeon exit region from wand selection.</gray>");
+            Text.actionBar(player, marker.equals("boss_door") ? "<gray>Placed boss door region from wand selection.</gray>" : "<gray>Placed dungeon exit region from wand selection.</gray>");
             return;
         }
         placeArmorMarker(player, loc, marker);
@@ -1334,7 +1514,61 @@ public final class DungeonService implements Listener {
             s.customName(Component.text(marker));
         });
         stand.getPersistentDataContainer().set(new NamespacedKey(plugin, "dungeon_editor_marker"), PersistentDataType.STRING, marker);
+        stand.getPersistentDataContainer().set(new NamespacedKey(plugin, ROOM_MARKER_KEY), PersistentDataType.STRING, marker);
+        stand.getPersistentDataContainer().set(new NamespacedKey(plugin, ROOM_MARKER_ROOM_ID_KEY), PersistentDataType.STRING, "room_id:unsaved");
+        spawnEditorTrapPreview(stand, marker);
         Text.actionBar(player, "<gray>Placed armor stand marker:</gray> <white>" + marker + "</white>");
+    }
+
+    private void spawnEditorTrapPreview(ArmorStand markerStand, String markerId) {
+        String type = trapType(markerId);
+        if (type == null || markerStand == null || markerStand.getWorld() == null) return;
+        removeEditorTrapPreview(markerStand.getUniqueId());
+        Location location = markerStand.getLocation().clone();
+        String mobId = resolvedTrapMobId(type, trapMobId(type));
+        List<UUID> spawned = new ArrayList<>();
+        openDungeonMobSpawnWindow(location.getWorld());
+        Entity entity = mythicMobsHook.spawnMob(mobId, location);
+        if (entity == null && !mobId.contains(":")) entity = mythicMobsHook.spawnMob(mobId + ":1", location);
+        if (entity == null) {
+            entity = location.getWorld().spawn(location, ArmorStand.class, stand -> {
+                stand.setGravity(false);
+                stand.setInvulnerable(false);
+                stand.setMarker(false);
+                stand.setVisible(true);
+                stand.setGlowing(true);
+                stand.setCustomNameVisible(true);
+                stand.customName(Text.mm("<gradient:#f4cd2a:#eda323:#d28d0d>" + type + " trap preview</gradient>"));
+            });
+        }
+        entity.teleport(location);
+        entity.setPersistent(false);
+        mythicMobsHook.setNoAI(entity);
+        entity.getPersistentDataContainer().set(new NamespacedKey(plugin, "dungeon_editor_trap_preview"), PersistentDataType.STRING, markerStand.getUniqueId().toString());
+        spawned.add(entity.getUniqueId());
+        editorTrapPreviews.put(markerStand.getUniqueId(), spawned);
+        debug(null, "<gray>Editor trap preview spawned:</gray> <white>" + type + "</white> <gray>mob=</gray><white>" + mobId + "</white> <gray>at</gray> <white>" + formatLocation(location) + "</white>");
+    }
+
+    private void removeEditorTrapPreview(UUID markerId) {
+        if (markerId == null) return;
+        List<UUID> ids = editorTrapPreviews.remove(markerId);
+        if (ids == null || ids.isEmpty()) return;
+        for (UUID id : ids) {
+            Entity entity = Bukkit.getEntity(id);
+            if (entity != null) entity.remove();
+        }
+    }
+
+    private void removeEditorTrapPreviewForMarker(Entity marker) {
+        if (marker == null) return;
+        removeEditorTrapPreview(marker.getUniqueId());
+        String markerId = marker.getUniqueId().toString();
+        NamespacedKey key = new NamespacedKey(plugin, "dungeon_editor_trap_preview");
+        for (Entity entity : marker.getWorld().getNearbyEntities(marker.getLocation(), 8.0D, 8.0D, 8.0D)) {
+            String owner = entity.getPersistentDataContainer().get(key, PersistentDataType.STRING);
+            if (markerId.equals(owner)) entity.remove();
+        }
     }
 
     private void handleEditorMarkerCommand(Player player, String[] args) {
@@ -1643,6 +1877,7 @@ public final class DungeonService implements Listener {
         List<String> blocks = new ArrayList<>(); List<String> markers = new ArrayList<>(); List<String> preciseMarkers = new ArrayList<>(); List<String> entities = new ArrayList<>(); List<EditorConnector> editorConnectors = new ArrayList<>();
         for (int x=minX;x<=maxX;x++) for (int y=minY;y<=maxY;y++) for (int z=minZ;z<=maxZ;z++) {
             Block block = player.getWorld().getBlockAt(x,y,z); Material type = block.getType(); if (type.isAir()) continue;
+            if (isShulkerMarkerBlock(type)) continue;
             String rel = (x-minX)+","+(y-minY)+","+(z-minZ);
             Marker marker = marker(type); if (marker != null) { markers.add(rel+":"+marker.id()+":"+facing(block)); continue; }
             blocks.add(rel+"|"+serializeBlockData(block));
@@ -1752,6 +1987,7 @@ public final class DungeonService implements Listener {
             writeLegacyMarkerConnectors(rooms, base, preciseMarkers);
         }
         writeRoomSpawnsAndTraps(rooms, base, safeId, level, preciseMarkers);
+        writeBossDoorRegion(rooms, base, safeId, preciseMarkers);
         try {
             rooms.save(new File(plugin.getDataFolder(), "dungeons/rooms.yml"));
             configs.reload();
@@ -1840,7 +2076,7 @@ public final class DungeonService implements Listener {
             if (marker.id().equalsIgnoreCase("enemy_spawn")) {
                 String path = base + ".spawns.mobs.enemy_" + (++enemyIndex);
                 rooms.set(path + ".id", configs.get("dungeons/dungeons.yml").getString("mobs.default-id", "CryptSkeleton"));
-                rooms.set(path + ".pos", List.of(marker.x(), marker.y(), marker.z()));
+                rooms.set(path + ".pos", markerPosition(marker));
                 rooms.set(path + ".amount", 1);
                 rooms.set(path + ".level", 1);
                 rooms.set(path + ".trigger", "ON_ROOM_ENTER");
@@ -1848,7 +2084,7 @@ public final class DungeonService implements Listener {
             } else if (marker.id().equalsIgnoreCase("boss_spawner")) {
                 String path = base + ".spawns.mobs.boss_" + (++bossIndex);
                 rooms.set(path + ".id", bossMobId(level, "normal", configs.get("dungeons/dungeons.yml").getString("boss.mythicmob", "DungeonBoss")));
-                rooms.set(path + ".pos", List.of(marker.x(), marker.y(), marker.z()));
+                rooms.set(path + ".pos", markerPosition(marker));
                 rooms.set(path + ".amount", 1);
                 rooms.set(path + ".level", configs.get("dungeons/dungeons.yml").getInt("boss.levels." + level, 5));
                 rooms.set(path + ".trigger", "ON_BOSS_START");
@@ -1859,11 +2095,58 @@ public final class DungeonService implements Listener {
                 String path = base + ".traps." + trapType + "_" + (++trapIndex);
                 rooms.set(path + ".enabled", true);
                 rooms.set(path + ".type", trapType);
-                rooms.set(path + ".pos", List.of(marker.x(), marker.y(), marker.z()));
+                rooms.set(path + ".pos", markerPosition(marker));
                 rooms.set(path + ".facing", marker.facing());
                 rooms.set(path + ".mythicmob-id", trapMobId(trapType));
             }
         }
+    }
+
+    private void writeBossDoorRegion(YamlConfiguration rooms, String base, String roomId, List<String> preciseMarkers) {
+        List<SavedMarker> door = preciseMarkers.stream()
+            .map(this::parsePreciseMarker)
+            .filter(Objects::nonNull)
+            .filter(marker -> marker.id().equalsIgnoreCase("boss_door"))
+            .toList();
+        rooms.set(base + ".boss-door", null);
+        if (door.size() < 2) return;
+        SavedMarker a = door.get(0);
+        SavedMarker b = door.get(1);
+        int minX = Math.min(a.x(), b.x());
+        int minY = Math.min(a.y(), b.y());
+        int minZ = Math.min(a.z(), b.z());
+        int maxX = Math.max(a.x(), b.x());
+        int maxY = Math.max(a.y(), b.y());
+        int maxZ = Math.max(a.z(), b.z());
+        rooms.set(base + ".boss-door.enabled", true);
+        rooms.set(base + ".boss-door.pos1", List.of(minX, minY, minZ));
+        rooms.set(base + ".boss-door.pos2", List.of(maxX, maxY, maxZ));
+        List<String> blockStates = bossDoorBlockStates(roomId, minX, minY, minZ, maxX, maxY, maxZ);
+        if (!blockStates.isEmpty()) rooms.set(base + ".boss-door.blockstates", blockStates);
+        Text.send(Bukkit.getConsoleSender(), "[3SMPCore] Saved boss door for " + base + " from " + minX + "," + minY + "," + minZ + " to " + maxX + "," + maxY + "," + maxZ);
+    }
+
+    private List<String> bossDoorBlockStates(String roomId, int minX, int minY, int minZ, int maxX, int maxY, int maxZ) {
+        List<String> out = new ArrayList<>();
+        YamlConfiguration templates = configs.get("dungeons/templates.yml");
+        for (String raw : templates.getStringList("templates." + roomId + ".blocks")) {
+            String[] parts = raw.split("\\|", 3);
+            if (parts.length < 2) continue;
+            String[] xyz = parts[0].split(",");
+            if (xyz.length < 3) continue;
+            try {
+                int x = Integer.parseInt(xyz[0]);
+                int y = Integer.parseInt(xyz[1]);
+                int z = Integer.parseInt(xyz[2]);
+                if (x >= minX && x <= maxX && y >= minY && y <= maxY && z >= minZ && z <= maxZ) out.add(raw);
+            } catch (NumberFormatException ignored) {
+            }
+        }
+        return out;
+    }
+
+    private List<Double> markerPosition(SavedMarker marker) {
+        return List.of(round(marker.offsetX()), round(marker.offsetY()), round(marker.offsetZ()));
     }
 
     private String trapType(String markerId) {
@@ -1875,10 +2158,19 @@ public final class DungeonService implements Listener {
 
     private String trapMobId(String trapType) {
         return configs.get("dungeons/dungeons.yml").getString("traps.mythicmobs." + trapType.toLowerCase(Locale.ROOT), switch (trapType.toLowerCase(Locale.ROOT)) {
-            case "spike" -> "DungeonSpikeTrap";
-            case "bridge" -> "DungeonBridgeTrap";
+            case "spike" -> "Spike_Trap";
+            case "bridge" -> "Bridge_Trap";
             default -> "DungeonBoulder";
         });
+    }
+
+    private String resolvedTrapMobId(String trapType, String configuredId) {
+        if (configuredId == null || configuredId.isBlank()) return trapMobId(trapType);
+        return switch (configuredId) {
+            case "DungeonSpikeTrap" -> "Spike_Trap";
+            case "DungeonBridgeTrap" -> "Bridge_Trap";
+            default -> configuredId;
+        };
     }
 
     private EditorConnector editorConnector(Entity entity, SavedMarker marker, int minX, int minY, int minZ) {
@@ -1900,11 +2192,12 @@ public final class DungeonService implements Listener {
         World world = Bukkit.getWorld(room.world()); if (world == null) return;
         var yaml = configs.get("dungeons/templates.yml");
         RoomSize pasteSize = rotatedSize(id, room.rotation());
+        forceLoadTemplateArea(world, room, pasteSize.x(), pasteSize.z());
         beginQuietPaste(world);
         try {
             clearTemplateArea(world, room, pasteSize.x(), pasteSize.y(), pasteSize.z());
             if (!roomIsConnectable(yaml, id)) return;
-            if (pasteStructure(id, room)) {
+            if (canUseFastStructurePaste(id) && pasteStructure(id, room)) {
                 stripRuntimeMarkers(world, room, pasteSize.x(), pasteSize.y(), pasteSize.z());
                 return;
             }
@@ -1913,6 +2206,7 @@ public final class DungeonService implements Listener {
                 LocalBlockPos rotated = transformTemplateBlock(id, Integer.parseInt(xyz[0]), Integer.parseInt(xyz[1]), Integer.parseInt(xyz[2]), effectiveStructureRotation(id, room.rotation()));
                 Block target = world.getBlockAt(room.centerX()+rotated.x(), room.y()+rotated.y(), room.centerZ()+rotated.z());
                 Material mat = parseMaterial(p[1]);
+                if (isShulkerMarkerBlock(mat)) continue;
                 target.setType(mat, false);
                 if (p.length >= 3 && !p[2].isBlank()) {
                     BlockData data = Bukkit.createBlockData(p[2]);
@@ -1931,7 +2225,7 @@ public final class DungeonService implements Listener {
         int maxX = Math.max(1, sizeX);
         int maxY = Math.max(1, sizeY);
         int maxZ = Math.max(1, sizeZ);
-        for (Entity entity : new ArrayList<>(world.getEntities())) {
+        for (Entity entity : roomEntities(world, room, maxX, maxY, maxZ)) {
             if (entity instanceof Player) continue;
             Location loc = entity.getLocation();
             if (loc.getBlockX() >= room.centerX() && loc.getBlockX() < room.centerX() + maxX && loc.getBlockY() >= room.y() && loc.getBlockY() < room.y() + maxY && loc.getBlockZ() >= room.centerZ() && loc.getBlockZ() < room.centerZ() + maxZ) entity.remove();
@@ -1953,6 +2247,23 @@ public final class DungeonService implements Listener {
     private void endQuietPaste(World world) {
         if (world == null) return;
         Bukkit.getScheduler().runTaskLater(plugin, () -> physicsSuppressedWorlds.remove(world.getName()), 2L);
+    }
+
+    private List<Entity> roomEntities(World world, RoomReservation room, int sizeX, int sizeY, int sizeZ) {
+        if (world == null || room == null) return List.of();
+        org.bukkit.util.BoundingBox box = new org.bukkit.util.BoundingBox(
+            room.centerX(),
+            room.y(),
+            room.centerZ(),
+            room.centerX() + Math.max(1, sizeX),
+            room.y() + Math.max(1, sizeY),
+            room.centerZ() + Math.max(1, sizeZ)
+        );
+        try {
+            return new ArrayList<>(world.getNearbyEntities(box));
+        } catch (Throwable ignored) {
+            return new ArrayList<>(world.getEntities());
+        }
     }
 
     private void applyDungeonWorldRules(World world) {
@@ -1981,7 +2292,6 @@ public final class DungeonService implements Listener {
                 return marker.world(room).add(0.0D, 1.62D, 0.0D);
             }
         }
-        for (String entry : yaml.getStringList("templates." + id + ".markers")) if (entry.contains(":player_spawn:")) { String[] xyz = entry.split(":")[0].split(","); return new Location(world, room.centerX()+Integer.parseInt(xyz[0])+0.5, room.y()+Integer.parseInt(xyz[1])+1, room.centerZ()+Integer.parseInt(xyz[2])+0.5); }
         return null;
     }
 
@@ -2103,17 +2413,48 @@ public final class DungeonService implements Listener {
         }
         if (isItem(event.getItemDrop().getItemStack()) || isDevTool(event.getItemDrop().getItemStack()) || isDevWand(event.getItemDrop().getItemStack()) || isDevMarker(event.getItemDrop().getItemStack())) { event.setCancelled(true); if (isDungeonEditorWorld(event.getPlayer().getWorld())) Bukkit.getScheduler().runTask(plugin, () -> enforceEditorToolbar(event.getPlayer())); }
     }
-    @EventHandler public void onClick(InventoryClickEvent event) { if (event.getInventory().getHolder() instanceof DungeonHolder holder) { event.setCancelled(true); if (!(event.getWhoClicked() instanceof Player p)) return; DungeonRunOptions options = options(p); int raw = event.getRawSlot(); if (holder.context().startsWith("boulder-panel:")) { handleBoulderPanelClick(p, holder.context(), raw); return; } if (raw == 22) { playBackSound(p); openMenu(p); return; } switch (holder.context()) { case "main" -> { if (raw == 10) { playBackSound(p); openLevelMenu(p); } else if (raw == 12) { playBackSound(p); openDifficultyMenu(p); } else if (raw == 14) { playBackSound(p); openPartyMenu(p); } else if (raw == 16) enter(p, options.level()); } case "levels" -> { int[] slots={10,11,12,13,14}; int idx=-1; for(int i=0;i<slots.length;i++) if(slots[i]==raw) idx=i; List<String> levels=levelIds(); if(idx>=0&&idx<levels.size()){String level=levels.get(idx); if(!configs.get("dungeons/dungeons.yml").getBoolean("levels."+level+".coming-soon",false)) options.level(level); playBackSound(p); openMenu(p);} } case "difficulty" -> { if(raw==10) options.difficulty()[0]="easy"; else if(raw==12) options.difficulty()[0]="normal"; else if(raw==14) options.difficulty()[0]="hard"; else if(raw==16) { if (canUseNightmare(p, options.level())) options.difficulty()[0]="nightmare"; else Text.send(p, "<red>Beat Easy, Normal and Hard on this level before Nightmare.</red>"); } playBackSound(p); openMenu(p); } case "party" -> { if(raw==11) options.party()[0]=false; else if(raw==15 && partyService!=null && partyService.isLeader(p.getUniqueId())) options.party()[0]=true; else if (raw==15) Text.send(p, "<yellow>Only the party leader can choose party dungeons.</yellow>"); playBackSound(p); openMenu(p); } case "dev-toolbox" -> handleDevToolboxClick(p, raw); default -> { } } return; } if (event.getWhoClicked() instanceof Player p && shouldCancelDungeonInventoryClick(p, event)) { event.setCancelled(true); return; } if (isItem(event.getCurrentItem())) { event.setCancelled(true); clearCursor(event); if (event.getWhoClicked() instanceof Player p && event.getClickedInventory()==p.getInventory()) { p.setItemOnCursor(null); p.updateInventory(); teleportDungeonSpawn(p); } return; } if (event.getWhoClicked() instanceof Player p && isDungeonEditorWorld(p.getWorld()) && (isDevTool(event.getCurrentItem()) || isDevWand(event.getCurrentItem()) || isDevMarker(event.getCurrentItem()) || isDevTool(event.getCursor()) || isDevWand(event.getCursor()) || isDevMarker(event.getCursor()))) { event.setCancelled(true); clearCursor(event); Bukkit.getScheduler().runTask(plugin, () -> enforceEditorToolbar(p)); } }
+    @EventHandler public void onClick(InventoryClickEvent event) { if (event.getInventory().getHolder() instanceof DungeonHolder holder) { event.setCancelled(true); if (!(event.getWhoClicked() instanceof Player p)) return; DungeonRunOptions options = options(p); int raw = event.getRawSlot(); if (holder.context().startsWith("boulder-panel:")) { handleBoulderPanelClick(p, holder.context(), raw); return; } if (raw == 22 && !holder.context().equals("dev-toolbox")) { playBackSound(p); openMenu(p); return; } switch (holder.context()) { case "main" -> { if (raw == 10) { playBackSound(p); openLevelMenu(p); } else if (raw == 12) { playBackSound(p); openDifficultyMenu(p); } else if (raw == 14) { playBackSound(p); openPartyMenu(p); } else if (raw == 16) enter(p, options.level()); } case "levels" -> { int[] slots={10,11,12,13,14}; int idx=-1; for(int i=0;i<slots.length;i++) if(slots[i]==raw) idx=i; List<String> levels=levelIds(); if(idx>=0&&idx<levels.size()){String level=levels.get(idx); if(!configs.get("dungeons/dungeons.yml").getBoolean("levels."+level+".coming-soon",false)) options.level(level); playBackSound(p); openMenu(p);} } case "difficulty" -> { if(raw==10) options.difficulty()[0]="easy"; else if(raw==12) options.difficulty()[0]="normal"; else if(raw==14) options.difficulty()[0]="hard"; else if(raw==16) { if (canUseNightmare(p, options.level())) options.difficulty()[0]="nightmare"; else Text.send(p, "<red>Beat Easy, Normal and Hard on this level before Nightmare.</red>"); } playBackSound(p); openMenu(p); } case "party" -> { if(raw==11) options.party()[0]=false; else if(raw==15 && partyService!=null && partyService.isLeader(p.getUniqueId())) options.party()[0]=true; else if (raw==15) Text.send(p, "<yellow>Only the party leader can choose party dungeons.</yellow>"); playBackSound(p); openMenu(p); } case "dev-toolbox" -> handleDevToolboxClick(p, raw); default -> { } } return; } if (event.getWhoClicked() instanceof Player p && shouldCancelDungeonInventoryClick(p, event)) { event.setCancelled(true); return; } if (isItem(event.getCurrentItem())) { event.setCancelled(true); clearCursor(event); if (event.getWhoClicked() instanceof Player p && event.getClickedInventory()==p.getInventory()) { p.setItemOnCursor(null); p.updateInventory(); teleportDungeonSpawn(p); } return; } if (event.getWhoClicked() instanceof Player p && isDungeonEditorWorld(p.getWorld()) && (isDevTool(event.getCurrentItem()) || isDevWand(event.getCurrentItem()) || isDevMarker(event.getCurrentItem()) || isDevTool(event.getCursor()) || isDevWand(event.getCursor()) || isDevMarker(event.getCursor()))) { event.setCancelled(true); clearCursor(event); Bukkit.getScheduler().runTask(plugin, () -> enforceEditorToolbar(p)); } }
     @EventHandler public void onDrag(InventoryDragEvent event) { if (!(event.getWhoClicked() instanceof Player player)) return; if (isDungeonInventoryRestricted(player)) { if (!configs.get("dungeons/dungeons.yml").getBoolean("inventory.allow-drag", true) && !canBypassDungeonProtection(player)) { event.setCancelled(true); return; } if (configs.get("dungeons/dungeons.yml").getBoolean("inventory.block-external-inventories", true) && event.getRawSlots().stream().anyMatch(slot -> slot < event.getView().getTopInventory().getSize())) { event.setCancelled(true); return; } } if (!isDungeonEditorWorld(player.getWorld())) return; if (isDevTool(event.getOldCursor()) || isDevWand(event.getOldCursor()) || isDevMarker(event.getOldCursor())) { event.setCancelled(true); Bukkit.getScheduler().runTask(plugin, () -> enforceEditorToolbar(player)); } }
-    @EventHandler public void onMobDeath(EntityDeathEvent event) { if (event.getEntity().getKiller() == null) return; Player killer = event.getEntity().getKiller(); boolean bossKill = event.getEntity().getPersistentDataContainer().has(new NamespacedKey(plugin, DUNGEON_BOSS_KEY)); net.dark.threecore.dungeons.runtime.DungeonSession session = getDungeonSession(killer); if (session != null) { if (bossKill && !session.bossDefeated()) { session.bossDefeated(true); Text.actionBar(killer, "<green>Boss defeated. Exit unlocked.</green>"); } return; } ActiveDungeonRun run = activeRuns.get(killer.getUniqueId()); if (run == null) return; int kills = run.kills() + 1; boolean firstBossKill = bossKill && !run.bossDefeated(); boolean bossDefeated = run.bossDefeated() || bossKill; activeRuns.put(killer.getUniqueId(), new ActiveDungeonRun(run.level(), run.difficulty(), bossDefeated, kills)); double amount = moneyPerKill(run.difficulty()); repository.setMoneyBalance(killer.getUniqueId(), repository.getMoneyBalance(killer.getUniqueId()) + amount); if (firstBossKill) rewardBossClear(killer, run); Text.actionBar(killer, "<gradient:#4c1d95:#a78bfa>Dungeon kill</gradient> <gray>+ $" + amount + "</gray>" + (bossDefeated ? " <green>Boss defeated. Exit room unlocked.</green>" : "")); }
+    @EventHandler public void onEditorMarkerDamage(EntityDamageByEntityEvent event) {
+        if (!(event.getEntity() instanceof ArmorStand stand)) return;
+        if (!isDungeonEditorWorld(stand.getWorld())) return;
+        if (armorStandMarker(stand) == null) return;
+        removeEditorTrapPreviewForMarker(stand);
+    }
+    @EventHandler public void onEditorMarkerDeath(EntityDeathEvent event) {
+        if (!(event.getEntity() instanceof ArmorStand stand)) return;
+        if (!isDungeonEditorWorld(stand.getWorld())) return;
+        if (armorStandMarker(stand) == null) return;
+        removeEditorTrapPreviewForMarker(stand);
+    }
+    @EventHandler public void onMobDeath(EntityDeathEvent event) { if (event.getEntity().getKiller() == null) return; Player killer = event.getEntity().getKiller(); boolean bossKill = event.getEntity().getPersistentDataContainer().has(new NamespacedKey(plugin, DUNGEON_BOSS_KEY)); net.dark.threecore.dungeons.runtime.DungeonSession session = getDungeonSession(killer); if (session != null) { if (bossKill && !session.bossDefeated()) { session.bossDefeated(true); openRuntimeBossDoors(session); Text.actionBar(killer, "<green>Boss defeated. Exit unlocked.</green>"); } return; } ActiveDungeonRun run = activeRuns.get(killer.getUniqueId()); if (run == null) return; int kills = run.kills() + 1; boolean firstBossKill = bossKill && !run.bossDefeated(); boolean bossDefeated = run.bossDefeated() || bossKill; activeRuns.put(killer.getUniqueId(), new ActiveDungeonRun(run.level(), run.difficulty(), bossDefeated, kills)); double amount = moneyPerKill(run.difficulty()); repository.setMoneyBalance(killer.getUniqueId(), repository.getMoneyBalance(killer.getUniqueId()) + amount); if (firstBossKill) rewardBossClear(killer, run); Text.actionBar(killer, "<gradient:#4c1d95:#a78bfa>Dungeon kill</gradient> <gray>+ $" + amount + "</gray>" + (bossDefeated ? " <green>Boss defeated. Exit room unlocked.</green>" : "")); }
     @EventHandler public void onCreatureSpawn(CreatureSpawnEvent event) {
         if (!isDungeonWorld(event.getLocation().getWorld())) return;
+        if (isDungeonMobSpawnWindowOpen(event.getLocation().getWorld())) return;
         List<String> allowedReasons = configs.get("dungeons/dungeons.yml").getStringList("world-generation.allowed-spawn-reasons");
         String reason = event.getSpawnReason().name();
         if (allowedReasons.stream().anyMatch(value -> value.equalsIgnoreCase(reason))) {
             return;
         }
         event.setCancelled(true);
+    }
+
+    private boolean isDungeonMobSpawnWindowOpen(World world) {
+        if (world == null) return false;
+        Long until = allowedDungeonMobSpawnWindows.get(world.getName());
+        if (until == null) return false;
+        if (until >= System.currentTimeMillis()) return true;
+        allowedDungeonMobSpawnWindows.remove(world.getName());
+        return false;
+    }
+
+    private void openDungeonMobSpawnWindow(World world) {
+        if (world == null) return;
+        allowedDungeonMobSpawnWindows.put(world.getName(), System.currentTimeMillis() + 2_500L);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            Long until = allowedDungeonMobSpawnWindows.get(world.getName());
+            if (until != null && until < System.currentTimeMillis()) allowedDungeonMobSpawnWindows.remove(world.getName());
+        }, 80L);
     }
 
     @EventHandler public void onPlayerDeath(PlayerDeathEvent event) {
@@ -2141,6 +2482,11 @@ public final class DungeonService implements Listener {
 
     @EventHandler public void onQuit(PlayerQuitEvent event) {
         readyManager.removePlayer(event.getPlayer());
+        net.dark.threecore.dungeons.runtime.DungeonSession session = getDungeonSession(event.getPlayer());
+        if (session != null) {
+            leaveRuntimeDungeon(event.getPlayer(), session, false);
+            return;
+        }
         if (isDungeonWorld(event.getPlayer().getWorld()) && !isDungeonEditorWorld(event.getPlayer().getWorld())) saveDungeonProfile(event.getPlayer());
         World instance = instanceWorldsByPlayer.get(event.getPlayer().getUniqueId());
         clearDungeonRunState(event.getPlayer().getUniqueId());
@@ -2153,10 +2499,19 @@ public final class DungeonService implements Listener {
         String difficulty = options(player).difficulty()[0];
         java.util.LinkedHashSet<UUID> members = new java.util.LinkedHashSet<>(partyService.partyMembers(player.getUniqueId()));
         if (members.isEmpty()) members.add(player.getUniqueId());
-        java.util.List<Player> onlineMembers = members.stream().map(Bukkit::getPlayer).filter(java.util.Objects::nonNull).toList();
-        if (onlineMembers.size() != members.size()) { Text.send(player, "<red>All party members must be online to start a party dungeon.</red>"); return; }
+        java.util.LinkedHashSet<UUID> onlineIds = new java.util.LinkedHashSet<>(partyService.onlinePartyMembers(player.getUniqueId()));
+        onlineIds.add(player.getUniqueId());
+        java.util.List<Player> onlineMembers = onlineIds.stream().map(Bukkit::getPlayer).filter(java.util.Objects::nonNull).filter(Player::isOnline).toList();
+        if (onlineMembers.isEmpty()) { Text.send(player, "<red>No online party members were found.</red>"); return; }
+        if (onlineMembers.size() < members.size()) {
+            Text.send(player, "<yellow>Starting with online party members only.</yellow> <gray>Offline members stay in the party and will be skipped for this run.</gray>");
+        }
         for (Player member : onlineMembers) {
             if (!canStartDifficulty(member, level, difficulty)) return;
+            if (getDungeonSession(member) != null || activeRuns.containsKey(member.getUniqueId()) || ACTIVE_DUNGEON_PLAYERS.contains(member.getUniqueId())) {
+                Text.send(player, "<red>" + member.getName() + " is already in a dungeon.</red>");
+                return;
+            }
         }
         UUID sessionId = startDungeonApi(onlineMembers, level);
         if (sessionId == null) {
@@ -2166,7 +2521,7 @@ public final class DungeonService implements Listener {
         for (Player member : onlineMembers) {
             activeRuns.put(member.getUniqueId(), new ActiveDungeonRun(level, difficulty, false, 0));
             activeLayouts.put(member.getUniqueId(), List.of());
-            activeGroups.put(member.getUniqueId(), new java.util.LinkedHashSet<>(members));
+            activeGroups.put(member.getUniqueId(), new java.util.LinkedHashSet<>(onlineIds));
             Text.send(member, "<gradient:#4c1d95:#a78bfa>Party dungeon started.</gradient> <gray>Level:</gray> <white>" + level + "</white> <gray>Difficulty:</gray> <white>" + difficulty + "</white> <gray>Session:</gray> <white>" + sessionId + "</white>");
         }
         if (socialTabService != null) socialTabService.refreshAll();
@@ -2345,13 +2700,14 @@ public final class DungeonService implements Listener {
         boolean stillUsed = instanceWorldsByPlayer.values().stream().anyMatch(active -> active != null && active.getUID().equals(world.getUID()));
         if (stillUsed) return;
         String name = world.getName();
-        unregisterDungeonWorldFromMultiverse(name);
         Bukkit.unloadWorld(world, false);
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> deleteWorldFolder(Bukkit.getWorldContainer().toPath().resolve(name)));
     }
     private boolean isDungeonInstanceWorld(World world) {
-        if (world == null) return false;
-        return world.getName().startsWith(configs.get("dungeons/dungeons.yml").getString("world-generation.instance-prefix", "dungeon_run_"));
+        return world != null && isDungeonInstanceWorldName(world.getName());
+    }
+    private boolean isDungeonInstanceWorldName(String worldName) {
+        return worldName != null && worldName.startsWith(configs.get("dungeons/dungeons.yml").getString("world-generation.instance-prefix", "dungeon_run_"));
     }
     private void deleteWorldFolder(Path path) {
         if (path == null || !Files.exists(path)) return;
@@ -2366,7 +2722,6 @@ public final class DungeonService implements Listener {
         String prefix = configs.get("dungeons/dungeons.yml").getString("world-generation.instance-prefix", "dungeon_run_");
         for (World world : new ArrayList<>(Bukkit.getWorlds())) {
             if (!world.getName().startsWith(prefix)) continue;
-            unregisterDungeonWorldFromMultiverse(world.getName());
             Bukkit.unloadWorld(world, false);
         }
         Bukkit.getScheduler().runTaskAsynchronously(plugin, () -> {
@@ -2400,7 +2755,8 @@ public final class DungeonService implements Listener {
     }
 
     private List<Block> nearby(Player player, Material material) { List<Block> out = new ArrayList<>(); Location c = player.getLocation(); int r = 80; for (int x=c.getBlockX()-r;x<=c.getBlockX()+r;x++) for(int y=Math.max(player.getWorld().getMinHeight(), c.getBlockY()-r);y<=Math.min(player.getWorld().getMaxHeight()-1,c.getBlockY()+r);y++) for(int z=c.getBlockZ()-r;z<=c.getBlockZ()+r;z++) { Block b=player.getWorld().getBlockAt(x,y,z); if(b.getType()==material) out.add(b); } return out; }
-    private Marker marker(Material m) { return switch(m) { case YELLOW_SHULKER_BOX -> new Marker("entrance"); case ORANGE_SHULKER_BOX -> new Marker("connector"); case MAGENTA_SHULKER_BOX -> new Marker("up"); case BROWN_SHULKER_BOX -> new Marker("down"); case LIGHT_BLUE_SHULKER_BOX -> new Marker("enemy_spawn"); case RED_SHULKER_BOX -> new Marker("exit"); case PURPLE_SHULKER_BOX -> new Marker("trigger"); case GREEN_SHULKER_BOX -> new Marker("player_spawn"); case BLACK_SHULKER_BOX -> new Marker("boss"); case CRYING_OBSIDIAN -> new Marker("boss_spawner"); default -> null; }; }
+    private Marker marker(Material m) { return switch(m) { case CRYING_OBSIDIAN -> new Marker("boss_spawner"); default -> null; }; }
+    private boolean isShulkerMarkerBlock(Material material) { return material != null && material.name().endsWith("SHULKER_BOX"); }
     private String markerId(Material material) {
         return switch (material) {
             case EMERALD -> "player_spawn";
@@ -2414,6 +2770,7 @@ public final class DungeonService implements Listener {
             case DEEPSLATE -> "trap_boulder";
             case POINTED_DRIPSTONE -> "trap_spike";
             case OAK_PLANKS -> "trap_bridge";
+            case IRON_BARS -> "boss_door";
             default -> null;
         };
     }
@@ -2467,6 +2824,7 @@ public final class DungeonService implements Listener {
     }
     private void unregisterDungeonWorldFromMultiverse(String worldName) {
         if (worldName == null || Bukkit.getPluginManager().getPlugin("Multiverse-Core") == null) return;
+        if (isDungeonInstanceWorldName(worldName)) return;
         if (!configs.get("dungeons/dungeons.yml").getBoolean("world-generation.multiverse", true)) return;
         Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "mv remove " + worldName);
     }
@@ -2504,7 +2862,9 @@ public final class DungeonService implements Listener {
         return key == null || yaml.getBoolean("dungeon-protection." + key, true);
     }
     private boolean canBypassDungeonProtection(Player player) {
-        return player != null && player.hasPermission("3smpcore.dungeon.protection.bypass");
+        if (player == null) return false;
+        if (isDungeonInstanceWorld(player.getWorld()) && !configs.get("dungeons/dungeons.yml").getBoolean("dungeon-protection.allow-bypass-in-runs", false)) return false;
+        return player.hasPermission("3smpcore.dungeon.protection.bypass");
     }
     private boolean isDungeonInventoryRestricted(Player player) {
         return player != null && isInDungeonApi(player) && isDungeonWorld(player.getWorld()) && !isDungeonEditorWorld(player.getWorld());
@@ -2624,7 +2984,7 @@ public final class DungeonService implements Listener {
     }
     private void toggleEditorTool(Player player){ if (!player.hasPermission("3smpcore.dungeons.admin")) { Text.send(player, "<red>No permission.</red>"); return; } if (!isDungeonEditorWorld(player.getWorld())) { Text.send(player, "<red>You can only toggle the dungeon editor tool in the dungeon editor world.</red>"); return; } if (isDevTool(player.getInventory().getItem(DEV_TOOL_SLOT))) { player.getInventory().setItem(DEV_TOOL_SLOT, null); clearCursorToAir(player); Text.send(player, "<yellow>Dungeon editor tool hidden.</yellow>"); } else { giveDevTool(player); } player.updateInventory(); }
     private void giveMarker(Player player, Material material){ var marker = devMarker(material, material.name()); var leftover = player.getInventory().addItem(marker); leftover.values().forEach(item -> player.getWorld().dropItemNaturally(player.getLocation(), item)); enforceEditorToolbar(player); }
-    private boolean roomIsConnectable(YamlConfiguration yaml, String id){ List<String> markers = yaml.getStringList("templates." + id + ".markers"); if (markers.isEmpty()) return false; String role = yaml.getString("templates." + id + ".role", "normal"); boolean entrance = markers.stream().anyMatch(v -> v.contains(":entrance:") || v.contains(":player_spawn:")); boolean connector = markers.stream().anyMatch(v -> v.contains(":connector:") || v.contains(":up:") || v.contains(":down:")); boolean boss = markers.stream().anyMatch(v -> v.contains(":boss:")); boolean exit = markers.stream().anyMatch(v -> v.contains(":exit:")); if (role.equalsIgnoreCase("entrance")) return entrance || connector; if (role.equalsIgnoreCase("boss")) return boss || connector; if (role.equalsIgnoreCase("exit")) return exit || connector; return connector || entrance || boss || exit; }
+    private boolean roomIsConnectable(YamlConfiguration yaml, String id){ List<SavedMarker> markers = yaml.getStringList("templates." + id + ".precise-markers").stream().map(this::parsePreciseMarker).filter(Objects::nonNull).toList(); if (markers.isEmpty()) return false; String role = yaml.getString("templates." + id + ".role", "normal"); boolean entrance = markers.stream().anyMatch(v -> v.id().equalsIgnoreCase("entrance") || v.id().equalsIgnoreCase("player_spawn")); boolean connector = markers.stream().anyMatch(v -> v.id().equalsIgnoreCase("connector") || v.id().equalsIgnoreCase("up") || v.id().equalsIgnoreCase("down")); boolean boss = markers.stream().anyMatch(v -> v.id().equalsIgnoreCase("boss")); boolean exit = markers.stream().anyMatch(v -> v.id().equalsIgnoreCase("exit")); if (role.equalsIgnoreCase("entrance")) return entrance || connector; if (role.equalsIgnoreCase("boss")) return boss || connector; if (role.equalsIgnoreCase("exit")) return exit || connector; return connector || entrance || boss || exit; }
     private boolean roomsConnect(String previousId, String currentId){
         YamlConfiguration yaml = configs.get("dungeons/templates.yml");
         boolean previousOk = roomIsConnectable(yaml, previousId);
@@ -2713,6 +3073,11 @@ public final class DungeonService implements Listener {
         }
     }
 
+    private boolean canUseFastStructurePaste(String id) {
+        String mode = rotationOriginMode(id);
+        return mode.equals("ROOM_MIN");
+    }
+
     private boolean pasteStructure(String id, RoomReservation room) {
         YamlConfiguration dungeonConfig = configs.get("dungeons/dungeons.yml");
         YamlConfiguration templates = configs.get("dungeons/templates.yml");
@@ -2728,6 +3093,8 @@ public final class DungeonService implements Listener {
             Structure structure = Bukkit.getStructureManager().loadStructure(file);
             World world = Bukkit.getWorld(room.world());
             if (world == null) return false;
+            RoomSize pasteSize = rotatedSize(id, room.rotation());
+            forceLoadTemplateArea(world, room, pasteSize.x(), pasteSize.z());
             structure.place(new Location(world, room.centerX(), room.y(), room.centerZ()), true, effectiveStructureRotation(id, room.rotation()), Mirror.NONE, 0, 1.0F, new Random());
             return true;
         } catch (Exception ex) {
@@ -2736,11 +3103,25 @@ public final class DungeonService implements Listener {
         }
     }
 
+    private void forceLoadTemplateArea(World world, RoomReservation room, int sizeX, int sizeZ) {
+        if (world == null || room == null) return;
+        if (!configs.get("dungeons/dungeons.yml").getBoolean("generation.force-load-chunks-before-paste", true)) return;
+        int minChunkX = Math.floorDiv(room.centerX() - 2, 16);
+        int maxChunkX = Math.floorDiv(room.centerX() + Math.max(1, sizeX) + 2, 16);
+        int minChunkZ = Math.floorDiv(room.centerZ() - 2, 16);
+        int maxChunkZ = Math.floorDiv(room.centerZ() + Math.max(1, sizeZ) + 2, 16);
+        for (int chunkX = minChunkX; chunkX <= maxChunkX; chunkX++) {
+            for (int chunkZ = minChunkZ; chunkZ <= maxChunkZ; chunkZ++) {
+                world.getChunkAt(chunkX, chunkZ).load(true);
+            }
+        }
+    }
+
     private void stripRuntimeMarkers(World world, RoomReservation room, int sizeX, int sizeY, int sizeZ) {
         int maxX = Math.max(1, sizeX);
         int maxY = Math.max(1, sizeY);
         int maxZ = Math.max(1, sizeZ);
-        for (Entity entity : new ArrayList<>(world.getEntities())) {
+        for (Entity entity : roomEntities(world, room, maxX, maxY, maxZ)) {
             if (entity instanceof Player) continue;
             Location loc = entity.getLocation();
             if (loc.getBlockX() >= room.centerX() && loc.getBlockX() < room.centerX() + maxX && loc.getBlockY() >= room.y() && loc.getBlockY() < room.y() + maxY && loc.getBlockZ() >= room.centerZ() && loc.getBlockZ() < room.centerZ() + maxZ && armorStandMarker(entity) != null) {
@@ -2751,7 +3132,7 @@ public final class DungeonService implements Listener {
             for (int y = 0; y < maxY; y++) {
                 for (int z = 0; z < maxZ; z++) {
                     Block block = world.getBlockAt(room.centerX() + x, room.y() + y, room.centerZ() + z);
-                    if (marker(block.getType()) != null) block.setType(Material.AIR, false);
+                    if (isShulkerMarkerBlock(block.getType()) || marker(block.getType()) != null) block.setType(Material.AIR, false);
                 }
             }
         }
@@ -2765,7 +3146,12 @@ public final class DungeonService implements Listener {
 
     private void spawnDungeonStartContent(net.dark.threecore.dungeons.runtime.DungeonSession session) {
         if (session == null || session.layout() == null) return;
+        int trapCount = session.layout().rooms().stream().mapToInt(room -> room.definition().traps().size()).sum();
+        debug(null, "<gray>Generated dungeon content:</gray> <white>" + session.layout().rooms().size() + "</white> <gray>rooms,</gray> <white>" + trapCount + "</white> <gray>trap marker spawn(s).</gray>");
         for (PlacedDungeonRoom room : session.layout().rooms()) {
+            if (!room.definition().traps().isEmpty()) {
+                debug(null, "<gray>Room</gray> <white>" + room.definition().id() + "</white> <gray>has</gray> <white>" + room.definition().traps().size() + "</white> <gray>trap(s).</gray>");
+            }
             for (DungeonTrapDefinition trap : room.definition().traps()) {
                 spawnGeneratedTrap(session, room, trap);
             }
@@ -2791,6 +3177,47 @@ public final class DungeonService implements Listener {
         }
     }
 
+    private void openRuntimeBossDoors(net.dark.threecore.dungeons.runtime.DungeonSession session) {
+        if (session == null || session.layout() == null) return;
+        int opened = 0;
+        for (PlacedDungeonRoom room : session.layout().rooms()) {
+            if (room.definition().type() != RoomType.BOSS) continue;
+            opened += openBossDoor(room);
+        }
+        debug(null, "<green>Boss door opening complete.</green> <gray>Blocks opened:</gray> <white>" + opened + "</white>");
+    }
+
+    private int openBossDoor(PlacedDungeonRoom room) {
+        YamlConfiguration rooms = configs.get("dungeons/rooms.yml");
+        String base = "rooms." + room.definition().id() + ".boss-door";
+        if (!rooms.getBoolean(base + ".enabled", false)) return 0;
+        Vector a = listVector(rooms.getList(base + ".pos1", List.of()));
+        Vector b = listVector(rooms.getList(base + ".pos2", List.of()));
+        Vector wa = room.transform().localToWorld(a);
+        Vector wb = room.transform().localToWorld(b);
+        World world = Bukkit.getWorld(room.world());
+        if (world == null) return 0;
+        int minX = Math.min(wa.getBlockX(), wb.getBlockX());
+        int minY = Math.min(wa.getBlockY(), wb.getBlockY());
+        int minZ = Math.min(wa.getBlockZ(), wb.getBlockZ());
+        int maxX = Math.max(wa.getBlockX(), wb.getBlockX());
+        int maxY = Math.max(wa.getBlockY(), wb.getBlockY());
+        int maxZ = Math.max(wa.getBlockZ(), wb.getBlockZ());
+        int opened = 0;
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                for (int z = minZ; z <= maxZ; z++) {
+                    Block block = world.getBlockAt(x, y, z);
+                    if (!block.getType().isAir()) {
+                        block.setType(Material.AIR, false);
+                        opened++;
+                    }
+                }
+            }
+        }
+        return opened;
+    }
+
     private void spawnGeneratedMobs(net.dark.threecore.dungeons.runtime.DungeonSession session, PlacedDungeonRoom room, MobTrigger trigger, Player player) {
         if (session == null || room == null || trigger == null) return;
         for (var spawn : room.definition().spawns()) {
@@ -2799,7 +3226,8 @@ public final class DungeonService implements Listener {
             if (location == null) continue;
             String mobId = trigger == MobTrigger.ON_BOSS_START ? bossMobId(session.dungeonId(), session.difficulty(), spawn.id()) : spawn.id();
             for (int i = 0; i < spawn.amount(); i++) {
-                Entity entity = mythicMobsHook.spawnMob(mobId + ":" + Math.max(1, spawn.level()), location);
+                openDungeonMobSpawnWindow(location.getWorld());
+                Entity entity = mythicMobsHook.spawnMob(mobId.contains(":") ? mobId : mobId + ":" + Math.max(1, spawn.level()), location);
                 if (entity == null) entity = location.getWorld().spawnEntity(location, spawn.fallback(), CreatureSpawnEvent.SpawnReason.CUSTOM);
                 entity.getPersistentDataContainer().set(new NamespacedKey(plugin, DUNGEON_MOB_KEY), PersistentDataType.BYTE, (byte) 1);
                 if (trigger == MobTrigger.ON_BOSS_START) entity.getPersistentDataContainer().set(new NamespacedKey(plugin, DUNGEON_BOSS_KEY), PersistentDataType.BYTE, (byte) 1);
@@ -2812,6 +3240,7 @@ public final class DungeonService implements Listener {
         Location location = generatedLocalLocation(room, room.definition().facingMarker() == null ? new Vector(room.definition().size().getX() / 2.0D, 1.0D, room.definition().size().getZ() / 2.0D) : room.definition().facingMarker().localPosition(), BlockFace.SOUTH);
         if (location == null) return;
         String mobId = bossMobId(session.dungeonId(), session.difficulty(), configs.get("dungeons/dungeons.yml").getString("boss.mythicmob", "DungeonBoss"));
+        openDungeonMobSpawnWindow(location.getWorld());
         Entity entity = mythicMobsHook.spawnMob(mobId, location);
         if (entity == null) entity = location.getWorld().spawnEntity(location, EntityType.WARDEN, CreatureSpawnEvent.SpawnReason.CUSTOM);
         entity.getPersistentDataContainer().set(new NamespacedKey(plugin, DUNGEON_MOB_KEY), PersistentDataType.BYTE, (byte) 1);
@@ -2821,10 +3250,16 @@ public final class DungeonService implements Listener {
 
     private void spawnGeneratedTrap(net.dark.threecore.dungeons.runtime.DungeonSession session, PlacedDungeonRoom room, DungeonTrapDefinition trap) {
         Location location = generatedLocalLocation(room, trap.localPosition(), trap.facing());
-        if (location == null) return;
-        String mobId = trap.mythicMobId().isBlank() ? trapMobId(trap.type()) : trap.mythicMobId();
+        if (location == null) {
+            debug(null, "<red>Trap spawn skipped:</red> <white>" + trap.id() + "</white> <gray>room=" + room.definition().id() + " reason=no location</gray>");
+            return;
+        }
+        String mobId = resolvedTrapMobId(trap.type(), trap.mythicMobId());
+        openDungeonMobSpawnWindow(location.getWorld());
         Entity entity = mythicMobsHook.spawnMob(mobId, location);
+        if (entity == null && !mobId.contains(":")) entity = mythicMobsHook.spawnMob(mobId + ":1", location);
         if (entity == null) {
+            debug(null, "<yellow>Trap Mythic spawn failed; using visible fallback.</yellow> <gray>trap=" + trap.id() + " type=" + trap.type() + " mob=" + mobId + " world=" + location.getWorld().getName() + " xyz=" + formatLocation(location) + "</gray>");
             entity = location.getWorld().spawn(location, ArmorStand.class, stand -> {
                 stand.setGravity(false);
                 stand.setInvulnerable(true);
@@ -2833,6 +3268,8 @@ public final class DungeonService implements Listener {
                 stand.setCustomNameVisible(true);
                 stand.customName(Text.mm("<gradient:#f4cd2a:#eda323:#d28d0d>" + trap.type() + " trap</gradient>"));
             });
+        } else {
+            debug(null, "<green>Trap spawned.</green> <gray>trap=" + trap.id() + " type=" + trap.type() + " mob=" + mobId + " room=" + room.definition().id() + " xyz=" + formatLocation(location) + "</gray>");
         }
         entity.teleport(location);
         entity.getPersistentDataContainer().set(new NamespacedKey(plugin, DUNGEON_TRAP_KEY), PersistentDataType.STRING, trap.type());
@@ -2840,13 +3277,18 @@ public final class DungeonService implements Listener {
         trackRuntimeEntity(session.id(), entity);
     }
 
+    private String formatLocation(Location location) {
+        if (location == null) return "null";
+        return round(location.getX()) + "," + round(location.getY()) + "," + round(location.getZ());
+    }
+
     private Location generatedLocalLocation(PlacedDungeonRoom room, Vector local, BlockFace localFacing) {
         if (room == null || local == null) return null;
         World world = Bukkit.getWorld(room.world());
         if (world == null) return null;
-        Vector transformed = room.transform().localToWorld(local);
+        Vector transformed = room.transform().localPointToWorld(local);
         BlockFace facing = room.transform().localFacingToWorld(localFacing == null ? BlockFace.SOUTH : localFacing);
-        return new Location(world, transformed.getX() + 0.5D, transformed.getY(), transformed.getZ() + 0.5D, yawFromBlockFace(facing), 0.0F);
+        return new Location(world, transformed.getX(), transformed.getY(), transformed.getZ(), yawFromBlockFace(facing), 0.0F);
     }
 
     private float yawFromBlockFace(BlockFace facing) {
@@ -2862,10 +3304,40 @@ public final class DungeonService implements Listener {
         String level = dungeonId == null || dungeonId.isBlank() ? "jungle" : dungeonId.toLowerCase(Locale.ROOT);
         String diff = difficulty == null || difficulty.isBlank() ? "normal" : difficulty.toLowerCase(Locale.ROOT);
         String configured = configs.get("dungeons/dungeons.yml").getString("boss.mythicmobs." + level + "." + diff, "");
-        if (configured != null && !configured.isBlank()) return configured;
+        if (configured != null && !configured.isBlank()) return resolveBossMobId(configured);
         configured = configs.get("dungeons/dungeons.yml").getString("boss.mythicmobs.default." + diff, "");
-        if (configured != null && !configured.isBlank()) return configured;
-        return fallback == null || fallback.isBlank() ? configs.get("dungeons/dungeons.yml").getString("boss.mythicmob", "DungeonBoss") : fallback;
+        if (configured != null && !configured.isBlank()) return resolveBossMobId(configured);
+        return resolveBossMobId(fallback == null || fallback.isBlank() ? configs.get("dungeons/dungeons.yml").getString("boss.mythicmob", "Dungeon_Panda") : fallback);
+    }
+
+    private String resolveBossMobId(String raw) {
+        String value = raw == null ? "" : raw.trim();
+        if (value.isBlank()) return bossDefaultMobId();
+        int colon = value.indexOf(':');
+        String mob = colon >= 0 ? value.substring(0, colon) : value;
+        String suffix = colon >= 0 ? value.substring(colon) : "";
+        String alias = configs.get("dungeons/dungeons.yml").getString("boss.legacy-aliases." + mob, "");
+        if (alias != null && !alias.isBlank()) return alias.trim() + suffix;
+        if (isLegacyBossMobId(mob)) return bossDefaultMobId() + suffix;
+        return value;
+    }
+
+    private String bossDefaultMobId() {
+        String configured = configs.get("dungeons/dungeons.yml").getString("boss.mythicmob", "Dungeon_Panda");
+        if (configured == null || configured.isBlank() || isLegacyBossMobId(configured)) return "Dungeon_Panda";
+        return configured.trim();
+    }
+
+    private boolean isLegacyBossMobId(String mobId) {
+        if (mobId == null || mobId.isBlank()) return true;
+        String normalized = mobId.trim().toLowerCase(Locale.ROOT);
+        return normalized.equals("dungeonboss")
+            || normalized.equals("jungleboss")
+            || normalized.equals("junglebosseasy")
+            || normalized.equals("junglebossnormal")
+            || normalized.equals("junglebossmedium")
+            || normalized.equals("junglebosshard")
+            || normalized.equals("junglebossnightmare");
     }
 
     private void trackRuntimeEntity(UUID sessionId, Entity entity) {
@@ -2890,7 +3362,7 @@ public final class DungeonService implements Listener {
         String commandTemplate = configs.get("dungeons/dungeons.yml").getString("boss.spawn-command", "mm mobs spawn %mob% 1 %world%,%x%,%y%,%z%");
         for (SavedMarker marker : spawners) {
             Location spawn = marker.world(room);
-            boolean usedMythic = Bukkit.getPluginManager().getPlugin("MythicBukkit") != null || Bukkit.getPluginManager().getPlugin("MythicMobs") != null;
+            boolean usedMythic = mythicMobsHook.isEnabled();
             if (usedMythic) {
                 String command = commandTemplate.replace("%mob%", mythicMob).replace("%world%", spawn.getWorld().getName()).replace("%x%", String.valueOf(spawn.getBlockX())).replace("%y%", String.valueOf(spawn.getBlockY())).replace("%z%", String.valueOf(spawn.getBlockZ()));
                 Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command);
@@ -2959,6 +3431,13 @@ public final class DungeonService implements Listener {
             RoomReservation candidate = edgeAnchoredRoomCandidate(key, previousRoom, previousId, nextId, pair);
             if (!overlapsAny(candidate, nextId, placed)) return candidate;
         }
+        for (ConnectionPair pair : pairs) {
+            RoomReservation candidate = spacedRoomCandidate(key, previousRoom, previousId, nextId, pair, placed);
+            if (candidate != null) {
+                debug(null, "<yellow>Used spaced fallback for</yellow> <white>" + nextId + "</white><yellow> so the dungeon path stays complete.</yellow>");
+                return candidate;
+            }
+        }
         return null;
     }
 
@@ -2967,9 +3446,39 @@ public final class DungeonService implements Listener {
         SavedMarker next = transformMarker(pair.next(), templateSize(nextId), effectiveStructureRotation(nextId, pair.nextRotation()));
         int x = previousRoom.centerX() + previous.x() + pair.dx() - next.x();
         int z = previousRoom.centerZ() + previous.z() + pair.dz() - next.z();
-        int y = previousRoom.y() + previous.y() + pair.dy() - next.y();
+        int y = isVerticalMarker(previous) || isVerticalMarker(next)
+            ? previousRoom.y() + previous.y() + pair.dy() - next.y()
+            : previousRoom.y();
         return new RoomReservation(key, previousRoom.world(), previousRoom.level(), x, y, z, pair.nextRotation());
     }
+
+    private RoomReservation spacedRoomCandidate(String key, RoomReservation previousRoom, String previousId, String nextId, ConnectionPair pair, List<RoomReservation> placed) {
+        SavedMarker previous = transformMarker(pair.previous(), templateSize(previousId), effectiveStructureRotation(previousId, previousRoom.rotation()));
+        RoomSize previousSize = rotatedSize(previousId, previousRoom.rotation());
+        RoomSize nextSize = rotatedSize(nextId, pair.nextRotation());
+        int baseY = isVerticalMarker(previous) ? previousRoom.y() + pair.dy() * Math.max(previousSize.y(), nextSize.y()) : previousRoom.y();
+        int gap = Math.max(4, configs.get("dungeons/dungeons.yml").getInt("generation.room-engine.spaced-fallback-gap", 6));
+        int stepX = previousSize.x() + nextSize.x() + gap;
+        int stepZ = previousSize.z() + nextSize.z() + gap;
+        for (int distance = 1; distance <= 16; distance++) {
+            int x = previousRoom.centerX();
+            int z = previousRoom.centerZ();
+            switch (previous.facing().toUpperCase(Locale.ROOT)) {
+                case "EAST" -> x += stepX * distance;
+                case "WEST" -> x -= stepX * distance;
+                case "SOUTH" -> z += stepZ * distance;
+                case "NORTH" -> z -= stepZ * distance;
+                default -> {
+                    x += stepX * distance;
+                    z += stepZ * distance;
+                }
+            }
+            RoomReservation candidate = new RoomReservation(key, previousRoom.world(), previousRoom.level(), x, baseY, z, pair.nextRotation());
+            if (!overlapsAny(candidate, nextId, placed)) return candidate;
+        }
+        return null;
+    }
+
     private RoomReservation edgeAnchoredRoomCandidate(String key, RoomReservation previousRoom, String previousId, String nextId, ConnectionPair pair) {
         SavedMarker previous = transformMarker(pair.previous(), templateSize(previousId), effectiveStructureRotation(previousId, previousRoom.rotation()));
         SavedMarker next = transformMarker(pair.next(), templateSize(nextId), effectiveStructureRotation(nextId, pair.nextRotation()));
@@ -2986,7 +3495,9 @@ public final class DungeonService implements Listener {
                 default -> { }
             }
         }
-        int y = previousRoom.y() + previous.y() + pair.dy() - next.y();
+        int y = isVerticalMarker(previous) || isVerticalMarker(next)
+            ? previousRoom.y() + previous.y() + pair.dy() - next.y()
+            : previousRoom.y();
         return new RoomReservation(key, previousRoom.world(), previousRoom.level(), x, y, z, pair.nextRotation());
     }
     private int verticalDelta(String previous, String next) {
@@ -3037,7 +3548,7 @@ public final class DungeonService implements Listener {
             }
         }
         List<ConnectionPair> pool = new ArrayList<>();
-        if (!vertical.isEmpty()) pool.addAll(vertical);
+        if (configs.get("dungeons/dungeons.yml").getBoolean("generation.room-engine.allow-vertical", false) && !vertical.isEmpty()) pool.addAll(vertical);
         if (!facingMatched.isEmpty()) pool.addAll(facingMatched);
         Collections.shuffle(pool);
         return pool;
@@ -3151,10 +3662,6 @@ public final class DungeonService implements Listener {
     private List<SavedMarker> markersFor(String templateId) {
         YamlConfiguration yaml = configs.get("dungeons/templates.yml");
         List<SavedMarker> out = new ArrayList<>();
-        for (String raw : yaml.getStringList("templates." + templateId + ".markers")) {
-            SavedMarker marker = parseMarker(raw);
-            if (marker != null) out.add(normalizeConnectorFacing(marker, templateSize(templateId)));
-        }
         for (String raw : yaml.getStringList("templates." + templateId + ".precise-markers")) {
             SavedMarker marker = parsePreciseMarker(raw);
             if (marker != null) out.add(normalizeConnectorFacing(marker, templateSize(templateId)));
@@ -3229,7 +3736,9 @@ public final class DungeonService implements Listener {
         return configs.get("dungeons/templates.yml").getString("templates." + templateId + ".rotation-origin.mode", "ROOM_MIN").toUpperCase(Locale.ROOT).replace('-', '_');
     }
     private org.bukkit.util.Vector templateRotatedMin(RoomSize size, org.bukkit.util.Vector pivot, StructureRotation rotation) {
-        List<org.bukkit.util.Vector> corners = List.of(new org.bukkit.util.Vector(0, 0, 0), new org.bukkit.util.Vector(size.x(), 0, 0), new org.bukkit.util.Vector(0, 0, size.z()), new org.bukkit.util.Vector(size.x(), 0, size.z()));
+        int maxX = Math.max(0, size.x() - 1);
+        int maxZ = Math.max(0, size.z() - 1);
+        List<org.bukkit.util.Vector> corners = List.of(new org.bukkit.util.Vector(0, 0, 0), new org.bukkit.util.Vector(maxX, 0, 0), new org.bukkit.util.Vector(0, 0, maxZ), new org.bukkit.util.Vector(maxX, 0, maxZ));
         double minX = Double.MAX_VALUE;
         double minZ = Double.MAX_VALUE;
         for (org.bukkit.util.Vector corner : corners) {
@@ -3324,16 +3833,7 @@ public final class DungeonService implements Listener {
     private String markerFacing(String markerId, Location location, int minX, int maxX, int minZ, int maxZ) {
         if ("up".equalsIgnoreCase(markerId)) return "UP";
         if ("down".equalsIgnoreCase(markerId)) return "DOWN";
-        if (!markerId.equalsIgnoreCase("entrance") && !markerId.equalsIgnoreCase("connector")) return facingFromYaw(location.getYaw());
-        int west = Math.abs(location.getBlockX() - minX);
-        int east = Math.abs(maxX - location.getBlockX());
-        int north = Math.abs(location.getBlockZ() - minZ);
-        int south = Math.abs(maxZ - location.getBlockZ());
-        int closest = Math.min(Math.min(west, east), Math.min(north, south));
-        if (closest == west) return "WEST";
-        if (closest == east) return "EAST";
-        if (closest == north) return "NORTH";
-        return "SOUTH";
+        return facingFromYaw(location.getYaw());
     }
     private float yawFromFacing(String facing, float fallback) {
         return yawFromFacingStatic(facing, fallback);

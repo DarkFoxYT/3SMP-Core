@@ -15,6 +15,8 @@ generation:
   collision-search-attempts: 48
   cancel-physics-in-runs: true
   reset-before-paste: true
+  force-refresh-before-run: true
+  force-load-chunks-before-paste: true
   rooms:
     easy: 30
     normal: 50
@@ -27,17 +29,22 @@ generation:
     exit-after-boss: true
     avoid-duplicates-until-pool-exhausted: true
   room-engine:
-    max-attempts: 75
+    max-attempts: 150
+    max-placement-candidates: 96
     room-padding-blocks: 2
     connector-gap-blocks: 1
+    connector-overlap-tolerance-blocks: 2.0
     allow-touching-at-connectors: true
-    require-final-boss-room: true
+    require-final-boss-room: false
     prevent-floating-connectors: true
+    minimum-complete-rooms: 2
     seal-open-optional-connectors: true
     required-open-connector-behavior: DEAD_END_OR_RETRY
-    optional-open-connector-behavior: CAP_WITH_WALL
+    optional-open-connector-behavior: DEAD_END_OR_RETRY
     allow-extra-ending-rooms: true
-    max-extra-ending-rooms: 10
+    # 0 = no cap. Used only for filler/dead-end rooms that seal leftover connectors.
+    max-extra-ending-rooms: 0
+    unconnected-opening-cap-material: POLISHED_BLACKSTONE
     ending-room-types:
       - DEAD_END
       - TREASURE
@@ -55,9 +62,9 @@ generation:
     branch-length:
       min: 1
       max: 4
-    allow-vertical: true
+    allow-vertical: false
     max-y-level-difference: 3
-    boss-room-required: true
+    boss-room-required: false
     treasure-room-chance: 0.25
     mini-boss-room-chance: 0.15
     paste:
@@ -66,7 +73,7 @@ generation:
       preserve-blockstates: true
       preserve-block-entities: true
     vertical:
-      enabled: true
+      enabled: false
       max-levels-up: 2
       max-levels-down: 3
       max-total-y-span: 64
@@ -88,6 +95,7 @@ generation:
       debug-anchor-alignment: true
 dungeon-protection:
   enabled: true
+  allow-bypass-in-runs: false
   prevent-break: true
   prevent-place: true
   prevent-buckets: true
@@ -116,8 +124,8 @@ boulder:
 traps:
   mythicmobs:
     boulder: "DungeonBoulder"
-    spike: "DungeonSpikeTrap"
-    bridge: "DungeonBridgeTrap"
+    spike: "Spike_Trap"
+    bridge: "Bridge_Trap"
   editor:
     save-armor-stand-markers: true
 dungeons:
@@ -264,22 +272,31 @@ world-generation:
   disable-random-ticks: true
   allowed-spawn-reasons:
     - CUSTOM
+    - COMMAND
 boss:
-  mythicmob: DungeonBoss
+  mythicmob: Dungeon_Panda
   spawn-command: "mm mobs spawn %mob% 1 %world%,%x%,%y%,%z%"
   levels:
     jungle: 5
+  legacy-aliases:
+    DungeonBoss: "Dungeon_Panda"
+    JungleBoss: "Dungeon_Panda"
+    JungleBossEasy: "Dungeon_Panda"
+    JungleBossNormal: "Dungeon_Panda"
+    JungleBossMedium: "Dungeon_Panda"
+    JungleBossHard: "Dungeon_Panda"
+    JungleBossNightmare: "Dungeon_Panda"
   mythicmobs:
     jungle:
-      easy: "JungleBossEasy"
-      normal: "JungleBossNormal"
-      hard: "JungleBossHard"
-      nightmare: "JungleBossNightmare"
+      easy: "Dungeon_Panda"
+      normal: "Dungeon_Panda"
+      hard: "Dungeon_Panda"
+      nightmare: "Dungeon_Panda"
     default:
-      easy: "DungeonBoss"
-      normal: "DungeonBoss"
-      hard: "DungeonBoss"
-      nightmare: "DungeonBoss"
+      easy: "Dungeon_Panda"
+      normal: "Dungeon_Panda"
+      hard: "Dungeon_Panda"
+      nightmare: "Dungeon_Panda"
 debug:
   enabled: true
 

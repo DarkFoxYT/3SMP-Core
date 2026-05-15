@@ -288,7 +288,7 @@ public final class DuelService implements Listener {
             }
             case "leave" -> leaveDuelOrQueue(player);
             case "spec", "spectate" -> spectate(player, context.arg(1));
-            case "kiteditor" -> { if (context.args().length >= 2) openKitEditor(player, context.arg(1)); else openKitEditorSelector(player); }
+            case "kiteditor" -> openLoadoutEditor(player);
             case "devpanel", "mapeditor" -> openDevMenu(player);
             case "test" -> runTestDuel(player);
             case "admin" -> handleAdmin(player, context);
@@ -1467,8 +1467,9 @@ public final class DuelService implements Listener {
         yaml.set(path + ".rounds", existing.rounds());
         yaml.set(path + ".health-indicator", existing.healthIndicator());
         if (!saveKitYaml(player, yaml)) return;
+        int reset = repository.deleteInventoryProfile(loadoutProfileKey(existing.id()));
         reload();
-        Text.send(player, "<green>Saved duel kit:</green> <white>" + existing.id() + "</white>");
+        Text.send(player, "<green>Saved duel kit:</green> <white>" + existing.id() + "</white> <gray>Reset</gray> <white>" + reset + "</white> <gray>saved player layout(s) to the new default.</gray>");
         openKitEditorSelector(player);
     }
 
@@ -2359,7 +2360,7 @@ public final class DuelService implements Listener {
         DuelMatch match = matchesByPlayer.get(player.getUniqueId());
         if (match == null) return;
         if (event.getFinalDamage() < player.getHealth()) return;
-        if (hasUsableTotem(player)) return;
+        if (hasDuelDeathSaveItem(player)) return;
         Player killer = validDuelKiller(match, player, killerFromDamage(event));
         playKillEffect(killer);
         event.setCancelled(true);
@@ -2389,9 +2390,28 @@ public final class DuelService implements Listener {
         clearHealthIndicatorEntry(event.getPlayer());
     }
 
-    private boolean hasUsableTotem(Player player) {
-        return player.getInventory().getItemInMainHand().getType() == Material.TOTEM_OF_UNDYING
-                || player.getInventory().getItemInOffHand().getType() == Material.TOTEM_OF_UNDYING;
+    private boolean hasDuelDeathSaveItem(Player player) {
+        return isDuelDeathSaveItem(player.getInventory().getItemInMainHand())
+                || isDuelDeathSaveItem(player.getInventory().getItemInOffHand());
+    }
+
+    private boolean isDuelDeathSaveItem(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR) return false;
+        if (item.getType() == Material.TOTEM_OF_UNDYING) return true;
+        if (!item.hasItemMeta()) return false;
+        ItemMeta meta = item.getItemMeta();
+        if (meta == null) return false;
+        if (meta.getPersistentDataContainer().has(new NamespacedKey(plugin, "third_life_lives"), PersistentDataType.INTEGER)) return true;
+        if (item.getType() != Material.COMMAND_BLOCK) return false;
+        net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer plain = net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer.plainText();
+        if (meta.hasDisplayName() && meta.displayName() != null && plain.serialize(meta.displayName()).toLowerCase(Locale.ROOT).contains("third life")) return true;
+        if (meta.hasLore() && meta.lore() != null) {
+            for (var line : meta.lore()) {
+                String text = plain.serialize(line).toLowerCase(Locale.ROOT);
+                if (text.contains("third life") || text.contains("lives remaining") || text.contains("uses remaining")) return true;
+            }
+        }
+        return false;
     }
 
     private Player killerFromDamage(EntityDamageEvent event) {

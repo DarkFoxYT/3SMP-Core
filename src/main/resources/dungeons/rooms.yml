@@ -95,13 +95,13 @@ rooms:
         type: spike
         pos: [12, 4, 12]
         facing: SOUTH
-        mythicmob-id: "DungeonSpikeTrap"
+        mythicmob-id: "Spike_Trap"
       bridge_1:
         enabled: false
         type: bridge
         pos: [20, 4, 12]
         facing: SOUTH
-        mythicmob-id: "DungeonBridgeTrap"
+        mythicmob-id: "Bridge_Trap"
     boulder-traps:
       main_rolling_boulder:
         enabled: false
@@ -222,10 +222,21 @@ rooms:
         connector: NORMAL
         required-match: NORMAL
         required: true
+    exits:
+      boss_exit:
+        pos: [24, 4, 0]
+        facing: NORTH
+        width: 3
+        height: 4
+        connector: NORMAL
+        required-match: NORMAL
+        snap-mode: CONNECTOR_FACE
+        anchor-pos: [24, 4, 0]
+        required: true
     spawns:
       mobs:
         boss:
-          id: "JungleBossNormal"
+          id: "Dungeon_Panda"
           pos: [24, 5, 24]
           amount: 1
           level: 5

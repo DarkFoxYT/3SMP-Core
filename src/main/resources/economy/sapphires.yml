@@ -6,31 +6,49 @@ sapphire:
   command-aliases: [ sap, sapphires ]
   shop-items:
     crate_keys:
-      display-name: "Cosmic Crate Key"
+      display-name: "Prophecy Crate Key"
+      material: TRIPWIRE_HOOK
+      slot: 20
       currency: sapphires
       price: 100
       amount: 1
-      give-command: "crate key give {player} cosmic {amount}"
+      give-command: "crate givekey {player} {amount} prophecy"
     gem_extractor:
       display-name: "Gem Extractor"
+      material: PRISMARINE_SHARD
+      slot: 22
       currency: sapphires
       price: 250
       amount: 1
       give-command: "gems giveextractor {player} {amount}"
     gem_capsule:
       display-name: "Rough Gem Capsule"
+      material: ENDER_CHEST
+      slot: 24
       currency: sapphires
       price: 400
       amount: 1
       give-command: "gems givecapsule {player} rough {amount}"
     cosmetics:
       display-name: "Cosmetic Unlock"
+      material: ENDER_EYE
+      slot: 29
       currency: sapphires
       price: 500
       amount: 1
       give-command: "perks unlock {player} cosmetics"
+    prophecy_armor:
+      display-name: "Prophecy Armor Set"
+      material: NETHERITE_CHESTPLATE
+      slot: 31
+      currency: sapphires
+      price: 1500
+      amount: 1
+      give-command: "sapphire givearmor {player}"
     donor_rank:
       display-name: "VIP Rank"
+      material: NETHER_STAR
+      slot: 33
       currency: sapphires
       price: 2000
       amount: 1

@@ -91,6 +91,9 @@ public final class DungeonRoomRegistry {
             List<DungeonConnector> exits = connectors(section.getConfigurationSection("exits"), ConnectorRole.EXIT);
             exits.addAll(connectors(section.getConfigurationSection("vertical-connectors"), ConnectorRole.VERTICAL));
             RoomType type = enumValue(RoomType.class, section.getString("type", "NORMAL"), RoomType.NORMAL);
+            if (type == RoomType.BOSS && exits.isEmpty() && !entrances.isEmpty()) {
+                exits.add(inferredBossExit(entrances.get(0), size));
+            }
             DungeonRoomDefinition room = new DungeonRoomDefinition(
                 id,
                 section.getString("schematic", id + ".schem"),
@@ -103,7 +106,7 @@ public final class DungeonRoomRegistry {
                 new HashSet<>(section.getStringList("blocked-tags")),
                 section.getInt("difficulty-weight", 1),
                 spawns(section.getConfigurationSection("spawns.mobs")),
-                traps(section.getConfigurationSection("traps")),
+                traps(id, section.getConfigurationSection("traps")),
                 boulderTraps(section.getConfigurationSection("boulder-traps")),
                 enumValue(BlockFace.class, section.getString("base-facing", "SOUTH"), BlockFace.SOUTH),
                 facingMarker(section.getConfigurationSection("facing-marker")),
@@ -150,16 +153,55 @@ public final class DungeonRoomRegistry {
         return out;
     }
 
+    private DungeonConnector inferredBossExit(DungeonConnector entrance, Vector size) {
+        int maxX = Math.max(1, size.getBlockX()) - 1;
+        int maxZ = Math.max(1, size.getBlockZ()) - 1;
+        int x = clamp(entrance.localPosition().getBlockX(), 0, maxX);
+        int y = Math.max(0, entrance.localPosition().getBlockY());
+        int z = clamp(entrance.localPosition().getBlockZ(), 0, maxZ);
+        BlockFace facing = entrance.facing().getOppositeFace();
+        switch (entrance.facing()) {
+            case NORTH -> z = maxZ;
+            case SOUTH -> z = 0;
+            case EAST -> x = 0;
+            case WEST -> x = maxX;
+            default -> {
+                z = 0;
+                facing = BlockFace.NORTH;
+            }
+        }
+        Vector pos = new Vector(x, y, z);
+        return new DungeonConnector(
+            "boss_exit",
+            ConnectorRole.EXIT,
+            pos,
+            facing,
+            entrance.width(),
+            entrance.height(),
+            ConnectorType.NORMAL,
+            ConnectorType.NORMAL,
+            true,
+            DungeonConnector.VerticalDirection.NONE,
+            0,
+            DungeonConnector.SnapMode.CONNECTOR_FACE,
+            pos
+        );
+    }
+
+    private int clamp(int value, int min, int max) {
+        return Math.max(min, Math.min(max, value));
+    }
+
     private List<DungeonMobSpawn> spawns(ConfigurationSection section) {
         List<DungeonMobSpawn> out = new ArrayList<>();
         if (section == null) return out;
         for (String key : section.getKeys(false)) {
             ConfigurationSection spawn = section.isConfigurationSection(key) ? section.getConfigurationSection(key) : null;
             if (spawn == null) continue;
-            List<Integer> pos = spawn.getIntegerList("pos");
+            Vector pos = numberVector(spawn.getList("pos", List.of()));
             out.add(new DungeonMobSpawn(
                 spawn.getString("id", key),
-                new Vector(pos.size() > 0 ? pos.get(0) : 0, pos.size() > 1 ? pos.get(1) : 0, pos.size() > 2 ? pos.get(2) : 0),
+                pos,
                 spawn.getInt("amount", 1),
                 spawn.getInt("level", 1),
                 enumValue(MobTrigger.class, spawn.getString("trigger", "ON_ROOM_ENTER"), MobTrigger.ON_ROOM_ENTER),
@@ -169,24 +211,124 @@ public final class DungeonRoomRegistry {
         return out;
     }
 
-    private List<DungeonTrapDefinition> traps(ConfigurationSection section) {
+    private List<DungeonTrapDefinition> traps(String roomId, ConfigurationSection section) {
         List<DungeonTrapDefinition> out = new ArrayList<>();
-        if (section == null) return out;
-        for (String key : section.getKeys(false)) {
-            ConfigurationSection trap = section.getConfigurationSection(key);
-            if (trap == null || !trap.getBoolean("enabled", true)) continue;
-            List<Integer> pos = trap.getIntegerList("pos");
-            String type = trap.getString("type", key);
-            String defaultMob = configs.get("dungeons/dungeons.yml").getString("traps.mythicmobs." + type.toLowerCase(Locale.ROOT), "");
+        if (section != null) {
+            for (String key : section.getKeys(false)) {
+                ConfigurationSection trap = section.getConfigurationSection(key);
+                if (trap == null || !trap.getBoolean("enabled", true)) continue;
+                Vector pos = numberVector(trap.getList("pos", List.of()));
+                String type = trap.getString("type", key);
+                String defaultMob = configs.get("dungeons/dungeons.yml").getString("traps.mythicmobs." + type.toLowerCase(Locale.ROOT), "");
+                out.add(new DungeonTrapDefinition(
+                    key,
+                    type,
+                    pos,
+                    enumValue(BlockFace.class, trap.getString("facing", "SOUTH"), BlockFace.SOUTH),
+                    trap.getString("mythicmob-id", defaultMob)
+                ));
+            }
+        }
+        addTemplateMarkerTraps(roomId, out);
+        return out;
+    }
+
+    private void addTemplateMarkerTraps(String roomId, List<DungeonTrapDefinition> out) {
+        if (roomId == null || roomId.isBlank()) return;
+        YamlConfiguration templates = configs.get("dungeons/templates.yml");
+        String base = "templates." + roomId;
+        if (!templates.isConfigurationSection(base)) return;
+        Set<String> existing = new HashSet<>();
+        for (DungeonTrapDefinition trap : out) {
+            existing.add(trap.type() + "@" + round(trap.localPosition().getX()) + "," + round(trap.localPosition().getY()) + "," + round(trap.localPosition().getZ()));
+        }
+        int index = out.size();
+        for (String raw : templates.getStringList(base + ".precise-markers")) {
+            MarkerData marker = parsePreciseMarker(raw);
+            if (marker == null) continue;
+            String type = trapType(marker.id());
+            if (type == null) continue;
+            String key = type + "@" + round(marker.x()) + "," + round(marker.y()) + "," + round(marker.z());
+            if (!existing.add(key)) continue;
             out.add(new DungeonTrapDefinition(
-                key,
+                type + "_" + (++index),
                 type,
-                new Vector(pos.size() > 0 ? pos.get(0) : 0, pos.size() > 1 ? pos.get(1) : 0, pos.size() > 2 ? pos.get(2) : 0),
-                enumValue(BlockFace.class, trap.getString("facing", "SOUTH"), BlockFace.SOUTH),
-                trap.getString("mythicmob-id", defaultMob)
+                new Vector(marker.x(), marker.y(), marker.z()),
+                enumValue(BlockFace.class, marker.facing(), BlockFace.SOUTH),
+                trapMobId(type)
             ));
         }
-        return out;
+        for (String raw : templates.getStringList(base + ".markers")) {
+            MarkerData marker = parseLegacyMarker(raw);
+            if (marker == null) continue;
+            String type = trapType(marker.id());
+            if (type == null) continue;
+            String key = type + "@" + round(marker.x()) + "," + round(marker.y()) + "," + round(marker.z());
+            if (!existing.add(key)) continue;
+            out.add(new DungeonTrapDefinition(
+                type + "_" + (++index),
+                type,
+                new Vector(marker.x(), marker.y(), marker.z()),
+                enumValue(BlockFace.class, marker.facing(), BlockFace.SOUTH),
+                trapMobId(type)
+            ));
+        }
+    }
+
+    private MarkerData parsePreciseMarker(String raw) {
+        if (raw == null || raw.isBlank()) return null;
+        String[] parts = raw.split("\\|");
+        if (parts.length < 5) return null;
+        try {
+            return new MarkerData(
+                Double.parseDouble(parts[0]),
+                Double.parseDouble(parts[1]),
+                Double.parseDouble(parts[2]),
+                parts[3],
+                parts[4]
+            );
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private MarkerData parseLegacyMarker(String raw) {
+        if (raw == null || raw.isBlank()) return null;
+        String[] parts = raw.split(":");
+        if (parts.length < 2) return null;
+        String[] xyz = parts[0].split(",");
+        if (xyz.length != 3) return null;
+        try {
+            return new MarkerData(
+                Integer.parseInt(xyz[0]) + 0.5D,
+                Integer.parseInt(xyz[1]),
+                Integer.parseInt(xyz[2]) + 0.5D,
+                parts[1],
+                parts.length >= 3 ? parts[2] : "SOUTH"
+            );
+        } catch (NumberFormatException ex) {
+            return null;
+        }
+    }
+
+    private String trapType(String markerId) {
+        if (markerId == null) return null;
+        if ("trap_boulder".equalsIgnoreCase(markerId)) return "boulder";
+        if ("trap_spike".equalsIgnoreCase(markerId)) return "spike";
+        if ("trap_bridge".equalsIgnoreCase(markerId)) return "bridge";
+        return null;
+    }
+
+    private String trapMobId(String trapType) {
+        return configs.get("dungeons/dungeons.yml").getString("traps.mythicmobs." + trapType.toLowerCase(Locale.ROOT), switch (trapType.toLowerCase(Locale.ROOT)) {
+            case "spike" -> "Spike_Trap";
+            case "bridge" -> "Bridge_Trap";
+            default -> "DungeonBoulder";
+        });
+    }
+
+    private double round(double value) {
+        return Math.round(value * 1000.0D) / 1000.0D;
     }
 
     private List<net.dark.threecore.dungeons.boulder.BoulderTrapDefinition> boulderTraps(ConfigurationSection section) {
@@ -227,6 +369,21 @@ public final class DungeonRoomRegistry {
 
     private Vector vectorList(List<Integer> list) {
         return new Vector(list.size() > 0 ? list.get(0) : 0, list.size() > 1 ? list.get(1) : 0, list.size() > 2 ? list.get(2) : 0);
+    }
+
+    private Vector numberVector(List<?> list) {
+        return new Vector(numberValue(list, 0), numberValue(list, 1), numberValue(list, 2));
+    }
+
+    private double numberValue(List<?> list, int index) {
+        if (list == null || list.size() <= index) return 0.0D;
+        Object value = list.get(index);
+        if (value instanceof Number number) return number.doubleValue();
+        try {
+            return Double.parseDouble(String.valueOf(value));
+        } catch (Exception ignored) {
+            return 0.0D;
+        }
     }
 
     private int intValue(Object value) {
@@ -320,8 +477,28 @@ public final class DungeonRoomRegistry {
                     }
                 }
             }
+            if (!connectorOpensOutOfRoom(connector, roomWidth, roomHeight, roomLength)) {
+                plugin.getLogger().warning("Room " + room.id() + " connector " + connector.id() + " is not on the outside face it points toward.");
+                return false;
+            }
         }
         return true;
+    }
+
+    private boolean connectorOpensOutOfRoom(DungeonConnector connector, int roomWidth, int roomHeight, int roomLength) {
+        Vector p = connector.localPosition();
+        int width = Math.max(1, connector.width());
+        int height = Math.max(1, connector.height());
+        if (p.getBlockY() + height > roomHeight) return false;
+        return switch (connector.facing()) {
+            case NORTH -> p.getBlockZ() == 0 && p.getBlockX() + width <= roomWidth;
+            case SOUTH -> p.getBlockZ() == roomLength - 1 && p.getBlockX() + width <= roomWidth;
+            case EAST -> p.getBlockX() == roomWidth - 1 && p.getBlockZ() + width <= roomLength;
+            case WEST -> p.getBlockX() == 0 && p.getBlockZ() + width <= roomLength;
+            case UP -> p.getBlockY() == roomHeight - 1;
+            case DOWN -> p.getBlockY() == 0;
+            default -> false;
+        };
     }
 
     public List<String> deadEndConnectorRoomTypes() {
@@ -353,19 +530,27 @@ public final class DungeonRoomRegistry {
             yaml.getBoolean(path + "vertical.require-stair-connector-types", defaults.requireStairConnectorTypes()),
             yaml.getInt(path + "room-padding-blocks", defaults.roomPaddingBlocks()),
             Math.max(1, yaml.getInt(path + "connector-gap-blocks", defaults.connectorGapBlocks())),
+            Math.max(0.0D, yaml.getDouble(path + "connector-overlap-tolerance-blocks", defaults.connectorOverlapToleranceBlocks())),
             yaml.getBoolean(path + "allow-touching-at-connectors", defaults.allowTouchingAtConnectors()),
             yaml.getBoolean(path + "require-final-boss-room", defaults.requireFinalBossRoom()),
             yaml.getBoolean(path + "boss-room-required", defaults.bossRoomRequired()),
+            Math.max(1, yaml.getInt(path + "minimum-complete-rooms", defaults.minimumCompleteRooms())),
             yaml.getBoolean(path + "prevent-floating-connectors", defaults.preventFloatingConnectors()),
             yaml.getBoolean(path + "seal-open-optional-connectors", defaults.sealOpenOptionalConnectors()),
+            yaml.getBoolean(path + "allow-extra-ending-rooms", defaults.allowExtraEndingRooms()),
+            Math.max(0, yaml.getInt(path + "max-extra-ending-rooms", defaults.maxExtraEndingRooms())),
             yaml.getString(path + "required-open-connector-behavior", defaults.requiredOpenConnectorBehavior()),
             yaml.getString(path + "optional-open-connector-behavior", defaults.optionalOpenConnectorBehavior()),
             yaml.getBoolean(path + "paste.apply-physics", defaults.applyPhysics()),
             yaml.getBoolean(path + "paste.update-neighbors", defaults.updateNeighbors()),
             yaml.getBoolean(path + "paste.preserve-blockstates", defaults.preserveBlockstates()),
             yaml.getBoolean(path + "paste.preserve-block-entities", defaults.preserveBlockEntities()),
+            Math.max(4, yaml.getInt(path + "max-placement-candidates", defaults.maxPlacementCandidates())),
             yaml.getDouble(path + "treasure-room-chance", defaults.treasureChance()),
             yaml.getDouble(path + "mini-boss-room-chance", defaults.miniBossChance())
         );
+    }
+
+    private record MarkerData(double x, double y, double z, String id, String facing) {
     }
 }

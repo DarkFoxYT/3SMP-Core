@@ -23,6 +23,7 @@ import net.dark.threecore.money.MoneyService;
 import net.dark.threecore.clearlag.ClearLagManager;
 import net.dark.threecore.afk.AfkZoneManager;
 import net.dark.threecore.hologram.HologramManager;
+import net.dark.threecore.ranks.RankService;
 import net.dark.threecore.text.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -35,12 +36,15 @@ import org.bukkit.entity.Player;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public final class CoreCommandManager implements CommandExecutor, TabCompleter {
     private final ThreeSMPCorePlugin plugin;
     private final ConfigFiles configs;
+    private final RankService rankService;
     private final PerkService perkService;
     private final SapphireService sapphireService;
     private final GemService gemService;
@@ -61,8 +65,8 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
     private final CitizensNpcPresetManager npcPresetManager;
     private CommandTree root;
 
-    public CoreCommandManager(ThreeSMPCorePlugin plugin, ConfigFiles configs, PerkService perkService, SapphireService sapphireService, GemService gemService, ChatFormatService chatFormatService, SpawnService spawnService, LaunchpadService launchpadService, CommandSpyManager commandSpyManager, WarpManager warpManager, MoneyService moneyService, ClearLagManager clearLagManager, DuelService duelService, DungeonService dungeonService, AfkZoneManager afkZoneManager, DailyRewardManager dailyRewardManager, SoulManager soulManager, MarketPlotManager marketPlotManager, HologramManager hologramManager) {
-        this.plugin = plugin; this.configs = configs; this.perkService = perkService; this.sapphireService = sapphireService; this.gemService = gemService; this.chatFormatService = chatFormatService; this.spawnService = spawnService; this.launchpadService = launchpadService; this.commandSpyManager = commandSpyManager; this.warpManager = warpManager; this.moneyService = moneyService; this.clearLagManager = clearLagManager; this.duelService = duelService; this.dungeonService = dungeonService; this.afkZoneManager = afkZoneManager; this.dailyRewardManager = dailyRewardManager; this.soulManager = soulManager; this.marketPlotManager = marketPlotManager; this.hologramManager = hologramManager;
+    public CoreCommandManager(ThreeSMPCorePlugin plugin, ConfigFiles configs, RankService rankService, PerkService perkService, SapphireService sapphireService, GemService gemService, ChatFormatService chatFormatService, SpawnService spawnService, LaunchpadService launchpadService, CommandSpyManager commandSpyManager, WarpManager warpManager, MoneyService moneyService, ClearLagManager clearLagManager, DuelService duelService, DungeonService dungeonService, AfkZoneManager afkZoneManager, DailyRewardManager dailyRewardManager, SoulManager soulManager, MarketPlotManager marketPlotManager, HologramManager hologramManager) {
+        this.plugin = plugin; this.configs = configs; this.rankService = rankService; this.perkService = perkService; this.sapphireService = sapphireService; this.gemService = gemService; this.chatFormatService = chatFormatService; this.spawnService = spawnService; this.launchpadService = launchpadService; this.commandSpyManager = commandSpyManager; this.warpManager = warpManager; this.moneyService = moneyService; this.clearLagManager = clearLagManager; this.duelService = duelService; this.dungeonService = dungeonService; this.afkZoneManager = afkZoneManager; this.dailyRewardManager = dailyRewardManager; this.soulManager = soulManager; this.marketPlotManager = marketPlotManager; this.hologramManager = hologramManager;
         this.npcPresetManager = new CitizensNpcPresetManager(plugin, configs);
     }
 
@@ -87,52 +91,46 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
             return true;
         }
         if (args.length < 3) {
-            Text.send(sender, "<yellow>Use /rank give <player> <rank> or /rank sub <player> <rank></yellow>");
+            Text.send(sender, "<yellow>Use /rank give <player> <rank>, /rank sub <player> <rank>, or /rank remove <player> <rank></yellow>");
             return true;
         }
         String mode = args[0].toLowerCase(Locale.ROOT);
-        if (!mode.equals("give") && !mode.equals("sub")) {
-            Text.send(sender, "<yellow>Use /rank give <player> <rank> or /rank sub <player> <rank></yellow>");
+        if (!mode.equals("give") && !mode.equals("sub") && !mode.equals("remove") && !mode.equals("take") && !mode.equals("revoke")) {
+            Text.send(sender, "<yellow>Use /rank give <player> <rank>, /rank sub <player> <rank>, or /rank remove <player> <rank></yellow>");
             return true;
         }
         String playerName = args[1];
         String rank = args[2].toLowerCase(Locale.ROOT);
-        var config = configs.get("admin/permissions.yml");
-        String path = "rank-packages." + (mode.equals("sub") ? "subscriptions" : "permanent") + "." + rank;
-        if (!config.isConfigurationSection(path)) {
+        if ((mode.equals("give") || mode.equals("sub")) && !rankService.hasPackage(mode, rank) && rankService.hasPackage(mode, args[1].toLowerCase(Locale.ROOT))) {
+            rank = args[1].toLowerCase(Locale.ROOT);
+            playerName = args[2];
+        }
+        if (mode.equals("remove") || mode.equals("take") || mode.equals("revoke")) {
+            if (!rankService.rankIds().contains(rank) && rankService.rankIds().contains(args[1].toLowerCase(Locale.ROOT))) {
+                rank = args[1].toLowerCase(Locale.ROOT);
+                playerName = args[2];
+            }
+            if (!rankService.remove(sender, playerName, rank)) {
+                Text.send(sender, "<red>Unknown rank.</red>");
+            }
+            return true;
+        }
+        if (!rankService.hasPackage(mode, rank)) {
             Text.send(sender, "<red>Unknown " + (mode.equals("sub") ? "subscription" : "permanent") + " rank package.</red>");
             return true;
         }
-        org.bukkit.OfflinePlayer target = Bukkit.getOfflinePlayer(playerName);
-        String group = config.getString(path + ".luckperms-group", rank);
-        int ran = 0;
-        for (String configured : config.getStringList(path + ".commands")) {
-            String parsed = configured
-                    .replace("{player}", playerName)
-                    .replace("{uuid}", target.getUniqueId().toString())
-                    .replace("{rank}", rank)
-                    .replace("{group}", group);
-            if (!parsed.isBlank()) {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), parsed);
-                ran++;
-            }
-        }
-        Text.send(sender, "<green>Applied " + (mode.equals("sub") ? "subscription" : "rank") + " package:</green> <white>" + rank + "</white> <gray>to</gray> <white>" + playerName + "</white> <dark_gray>(" + ran + " commands)</dark_gray>");
-        Player onlineTarget = Bukkit.getPlayerExact(playerName);
-        if (onlineTarget != null) {
-            Text.send(onlineTarget, "<gradient:#f4cd2a:#eda323:#d28d0d>Store delivery received:</gradient> <white>" + rank.toUpperCase(Locale.ROOT) + "</white>");
-        }
+        rankService.deliver(sender, mode, playerName, rank);
         return true;
     }
 
     private List<String> completeRank(CommandSender sender, Command command, String alias, String[] args) {
         if (!sender.hasPermission("3smpcore.rank.admin")) return List.of();
-        if (args.length == 1) return List.of("give", "sub");
+        if (args.length == 1) return List.of("give", "sub", "remove");
         if (args.length == 2) return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
         if (args.length == 3) {
+            if (args[0].equalsIgnoreCase("remove") || args[0].equalsIgnoreCase("take") || args[0].equalsIgnoreCase("revoke")) return rankService.rankIds();
             String mode = args[0].equalsIgnoreCase("sub") ? "subscriptions" : "permanent";
-            var section = configs.get("admin/permissions.yml").getConfigurationSection("rank-packages." + mode);
-            return section == null ? List.of() : new ArrayList<>(section.getKeys(false));
+            return rankService.packageIds(mode);
         }
         return List.of();
     }
@@ -295,9 +293,31 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
             return List.of();
         }
     }
-    private final class SapphireRootCommand implements SubCommand { public String name() { return "sapphire"; } public String permission() { return "3smpcore.sapphires.use"; } public String description() { return "Sapphire system"; } public void execute(CommandContext context) { sapphireService.handleCommand(context.sender(), context.args()); } public List<String> tabComplete(CommandContext context) { return List.of("shop", "bal", "ballance", "balance", "give", "remove", "take", "set", "reset", "commands"); } }
+    private final class SapphireRootCommand implements SubCommand { public String name() { return "sapphire"; } public String permission() { return "3smpcore.sapphires.use"; } public String description() { return "Sapphire system"; } public void execute(CommandContext context) { sapphireService.handleCommand(context.sender(), context.args()); } public List<String> tabComplete(CommandContext context) { return List.of("shop", "vault", "buy", "purchase", "bal", "ballance", "balance", "give", "remove", "take", "set", "reset", "commands", "givearmor"); } }
     private final class SpawnRootCommand implements SubCommand { public String name() { return "spawn"; } public String permission() { return "3smpcore.spawn.use"; } public String description() { return "Teleport to spawn"; } public void execute(CommandContext context) { if (!(context.sender() instanceof Player player)) { Text.send(context.sender(), "<red>Players only.</red>"); return; } if (context.args().length > 0 && context.arg(0).equalsIgnoreCase("set")) { if (!player.hasPermission("3smpcore.spawn.admin")) { Text.send(player, "<red>No permission.</red>"); return; } spawnService.setSpawnLocation(player, player.getLocation()); return; } spawnService.sendToSpawn(player); } public List<String> tabComplete(CommandContext context) { return context.args().length <= 1 ? List.of("set") : List.of(); } }
-    private final class GiveRootCommand implements SubCommand { public String name() { return "give"; } public String permission() { return "3smpcore.admin"; } public String description() { return "Future-proof utility commands"; } public void execute(CommandContext context) { if (context.args().length == 0) { Text.send(context.sender(), "<yellow>Use: /3smpcore give sapphire <give|take|set|reset> <player> [amount]</yellow>"); return; } if (!context.arg(0).equalsIgnoreCase("sapphire")) { Text.send(context.sender(), "<yellow>Use /sapphire shop, /sapphire bal, /sapphire pay, /sapphire give, /sapphire remove, /sapphire take, /sapphire set, /sapphire reset, or /sapphire commands.</yellow>"); return; } if (context.args().length < 3) { Text.send(context.sender(), "<red>Usage: /3smpcore give sapphire <give|take|set|reset> <player> [amount]</red>"); return; } String action = context.arg(1); String playerName = context.arg(2); long amount = context.args().length >= 4 ? Long.parseLong(context.arg(3)) : 0L; sapphireService.executeConfigured(action, context.sender(), playerName, amount); } }
+    private final class GiveRootCommand implements SubCommand {
+        public String name() { return "give"; }
+        public String permission() { return "3smpcore.admin"; }
+        public String description() { return "Future-proof utility commands"; }
+        public void execute(CommandContext context) {
+            if (context.args().length == 0) {
+                Text.send(context.sender(), "<yellow>Use: /3smpcore give sapphire <give|take|set|reset> <player> [amount]</yellow>");
+                return;
+            }
+            if (!context.arg(0).equalsIgnoreCase("sapphire")) {
+                Text.send(context.sender(), "<yellow>Use /sapphire shop, /sapphire bal, /sapphire pay, /sapphire give, /sapphire remove, /sapphire take, /sapphire set, /sapphire reset, or /sapphire commands.</yellow>");
+                return;
+            }
+            if (context.args().length < 3) {
+                Text.send(context.sender(), "<red>Usage: /3smpcore give sapphire <give|take|set|reset> <player> [amount]</red>");
+                return;
+            }
+            String action = context.arg(1);
+            String playerName = context.arg(2);
+            long amount = context.args().length >= 4 ? sapphireService.parseAmountInput(context.arg(3)) : 0L;
+            sapphireService.executeConfigured(action, context.sender(), playerName, amount);
+        }
+    }
     private final class AfkZoneCommand implements SubCommand {
         public String name() { return "afkzone"; }
         public String permission() { return "3smpcore.afkzone.admin"; }
@@ -329,26 +349,19 @@ public final class CoreCommandManager implements CommandExecutor, TabCompleter {
                 return;
             }
             String rank = context.arg(1).toLowerCase(Locale.ROOT);
-            var config = configs.get("admin/permissions.yml");
-            String path = "rank-presets." + rank;
-            if (!config.isConfigurationSection(path)) {
+            if (!rankService.rankIds().contains(rank) && !configs.get("admin/permissions.yml").isConfigurationSection("rank-presets." + rank)) {
                 Text.send(context.sender(), "<red>Unknown rank preset.</red>");
                 return;
             }
-            String lpGroup = config.getString(path + ".luckperms-group", rank);
-            for (String permission : config.getStringList(path + ".permissions")) {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), "lp group " + lpGroup + " permission set " + permission + " true");
-            }
-            for (String command : config.getStringList(path + ".commands")) {
-                Bukkit.dispatchCommand(Bukkit.getConsoleSender(), command.replace("{group}", lpGroup).replace("{rank}", rank));
-            }
-            Text.send(context.sender(), "<green>Applied rank permission preset:</green> <white>" + rank + "</white>");
+            rankService.applyPreset(context.sender(), rank);
         }
         public List<String> tabComplete(CommandContext context) {
             if (context.args().length <= 1) return List.of("apply");
             if (context.args().length == 2 && context.arg(0).equalsIgnoreCase("apply")) {
+                Set<String> ids = new LinkedHashSet<>(rankService.rankIds());
                 var section = configs.get("admin/permissions.yml").getConfigurationSection("rank-presets");
-                return section == null ? List.of() : new ArrayList<>(section.getKeys(false));
+                if (section != null) ids.addAll(section.getKeys(false));
+                return new ArrayList<>(ids);
             }
             return List.of();
         }

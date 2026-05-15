@@ -43,6 +43,12 @@ commands:
     aliases: [ visual, visduals ]
   devpanel:
     description: Open the duel developer panel
+  kiteditor:
+    description: Open the public duel kit editor
+  veilcutter:
+    description: Veilcutter admin command
+  itempower:
+    description: Toggle or give powered custom items
   perks:
     description: Open the cosmetics menu
     aliases: [ cosmetics ]
@@ -52,6 +58,9 @@ commands:
     description: Sapphire commands
   sapphires:
     description: Sapphire commands
+  storesap:
+    description: Store sapphire delivery command
+    aliases: [ paynowsap, sapphiredeliver ]
   gem:
     description: Gem commands
   gems:
@@ -127,6 +136,12 @@ commands:
     description: Change a gamerule
   rank:
     description: Give configured rank packages
+  storerank:
+    description: Store rank delivery command
+    aliases: [ paynowrank, rankdeliver ]
+  crate:
+    description: Custom crate system
+    aliases: [ crates, prophecycrate ]
 permissions:
   3smpcore.admin:
     default: op
@@ -155,6 +170,10 @@ permissions:
   3smpcore.sapphires.use:
     default: true
   3smpcore.sapphires.admin:
+    default: op
+  3smpcore.veilcutter.admin:
+    default: op
+  3smpcore.itempower.admin:
     default: op
   3smpcore.gems.use:
     default: true
@@ -211,6 +230,10 @@ permissions:
   3smpcore.rankperms.admin:
     default: op
   3smpcore.rank.admin:
+    default: op
+  3smpcore.crates.use:
+    default: true
+  3smpcore.crates.admin:
     default: op
   3smpcore.daily.use:
     default: true

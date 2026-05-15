@@ -17,6 +17,9 @@ repositories {
 
 dependencies {
     compileOnly("io.papermc.paper:paper-api:1.21.11-R0.1-SNAPSHOT")
+    compileOnly("org.apache.logging.log4j:log4j-api:2.24.1")
+    compileOnly("org.apache.logging.log4j:log4j-core:2.24.1")
+    compileOnly(files("C:/Users/darkf/Desktop/old stuff/stuff/MythicMobs-5.7.2.jar"))
     implementation("org.xerial:sqlite-jdbc:3.46.1.3")
     compileOnly("me.clip:placeholderapi:2.11.6")
     compileOnly("com.sk89q.worldguard:worldguard-bukkit:7.0.13")

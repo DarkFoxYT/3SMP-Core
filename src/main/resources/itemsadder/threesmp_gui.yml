@@ -37,6 +37,14 @@ font_images:
     scale_ratio: 48
     y_position: 13
 
+  sap_vault:
+    path: gui/sap_vault.png
+    symbol: "ꐥ"
+    show_in_gui: true
+    suggest_in_command: false
+    scale_ratio: 235
+    y_position: 52
+
 items:
   gui_clickzone:
     display_name: "&r"

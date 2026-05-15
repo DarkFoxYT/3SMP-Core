@@ -198,6 +198,15 @@ public final class PlayerDataRepository {
         }
     }
 
+    public int deleteInventoryProfile(String profile) {
+        try (PreparedStatement ps = database.connection().prepareStatement("DELETE FROM player_inventory_profiles WHERE profile = ?")) {
+            ps.setString(1, profile);
+            return ps.executeUpdate();
+        } catch (SQLException e) {
+            throw new IllegalStateException("Failed to delete inventory profile", e);
+        }
+    }
+
     public DuelKitStats loadDuelKitStats(UUID uuid, String kitId, int defaultMmr) {
         String normalizedKit = normalizeKit(kitId);
         try (PreparedStatement ps = database.connection().prepareStatement("SELECT wins, losses, ranked_wins, ranked_losses, current_streak, best_streak, mmr FROM player_duel_kit_stats WHERE uuid = ? AND kit_id = ?")) {

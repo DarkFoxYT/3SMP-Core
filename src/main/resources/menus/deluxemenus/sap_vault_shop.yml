@@ -1,0 +1,81 @@
+menu_title: ":offset_-8::sap_vault:"
+open_command: []
+size: 54
+update_interval: 20
+
+items:
+  balance:
+    material: EMERALD
+    slot: 13
+    display_name: "&#f4cd2a&lSapphire Balance"
+    lore:
+      - "&7Current balance: &f%3smpcore_sapphires%"
+      - "&8Your vault is open."
+
+  crate_keys:
+    material: TRIPWIRE_HOOK
+    slot: 20
+    display_name: "&#eda323&lProphecy Crate Key"
+    lore:
+      - "&7Price: &f100 sapphires"
+      - "&8Click to purchase."
+    left_click_commands:
+      - "[player] sapphire deluxe buy crate_keys"
+
+  gem_extractor:
+    material: PRISMARINE_SHARD
+    slot: 22
+    display_name: "&#eda323&lGem Extractor"
+    lore:
+      - "&7Price: &f250 sapphires"
+      - "&8Click to purchase."
+    left_click_commands:
+      - "[player] sapphire deluxe buy gem_extractor"
+
+  gem_capsule:
+    material: ENDER_CHEST
+    slot: 24
+    display_name: "&#eda323&lRough Gem Capsule"
+    lore:
+      - "&7Price: &f400 sapphires"
+      - "&8Click to purchase."
+    left_click_commands:
+      - "[player] sapphire deluxe buy gem_capsule"
+
+  cosmetics:
+    material: ENDER_EYE
+    slot: 29
+    display_name: "&#eda323&lCosmetic Unlock"
+    lore:
+      - "&7Price: &f500 sapphires"
+      - "&8Click to purchase."
+    left_click_commands:
+      - "[player] sapphire deluxe buy cosmetics"
+
+  prophecy_armor:
+    material: NETHERITE_CHESTPLATE
+    slot: 31
+    display_name: "&#f4cd2a&lProphecy Armor Set"
+    lore:
+      - "&7Full ItemsAdder armor set."
+      - "&7Price: &f1500 sapphires"
+      - "&8Click to purchase."
+    left_click_commands:
+      - "[player] sapphire deluxe buy prophecy_armor"
+
+  donor_rank:
+    material: NETHER_STAR
+    slot: 33
+    display_name: "&#eda323&lVIP Rank"
+    lore:
+      - "&7Price: &f2000 sapphires"
+      - "&8Click to purchase."
+    left_click_commands:
+      - "[player] sapphire deluxe buy donor_rank"
+
+  close:
+    material: BARRIER
+    slot: 53
+    display_name: "&cClose"
+    left_click_commands:
+      - "[close]"

@@ -1,0 +1,279 @@
+settings:
+  default-crate: prophecy
+  broadcast-tiers:
+    - legendary
+    - epic
+  opening:
+    ticks: 45
+    interval-ticks: 2
+
+crates:
+  prophecy:
+    display-name: "<gradient:#f4cd2a:#7c3aed><bold>Prophecy Crate</bold></gradient>"
+    key-item: "threesmp:prophecy_key"
+    block-item: "threesmp:prophecy_crate"
+    model-engine-model: "prophecy_crate"
+    fallback-block: "ENDER_CHEST"
+    hologram-y-offset: 2.35
+    protect-block: true
+    description:
+      - "<gray>Contains exclusive gear, ranks, cosmetics,</gray>"
+      - "<gray>boosters, and sapphire-themed rewards.</gray>"
+    hologram:
+      - "<gradient:#f4cd2a:#7c3aed><bold>Prophecy Crate</bold></gradient>"
+      - "<gray>Exclusive gear, ranks, cosmetics, and boosters</gray>"
+      - "<#f4cd2a>Right-click</#f4cd2a> <gray>with a Prophecy Key</gray>"
+      - "<#c084fc>Shift Right-click</#c084fc> <gray>to preview rewards</gray>"
+    rewards:
+      prophecy_key:
+        tier: legendary
+        chance: 0.5
+        display: "<gradient:#f4cd2a:#7c3aed>Prophecy Key</gradient>"
+        material: TRIPWIRE_HOOK
+        amount: 2
+        itemsadder: "threesmp:prophecy_key"
+        commands:
+          - "crate givekey %player% 2 prophecy"
+        lore:
+          - "<gray>Gives two more rolls."
+      forsaken_elytra:
+        tier: legendary
+        chance: 0.5
+        display: "<gradient:#4169e1:#f4cd2a>Forsaken Elytra</gradient>"
+        material: ELYTRA
+        commands:
+          - "itempower give %player% forsaken_elytra"
+        lore:
+          - "<gray>Custom elytra with launch and trail power.</gray>"
+      veilcutter:
+        tier: legendary
+        chance: 1
+        display: "<gradient:#38bdf8:#2563eb>Veilcutter</gradient>"
+        material: NETHERITE_SWORD
+        commands:
+          - "veilcutter give %player%"
+        lore:
+          - "<gray>Custom sword reward."
+      pandoras_pick:
+        tier: legendary
+        chance: 1
+        display: "<gradient:#f4cd2a:#38bdf8>Pandora's Pick</gradient>"
+        material: NETHERITE_PICKAXE
+        commands:
+          - "itempower give %player% pandoras_pick"
+        lore:
+          - "<gray>Vein mining custom pickaxe."
+      lazurite:
+        tier: legendary
+        chance: 1
+        display: "<gradient:#38bdf8:#4169e1>Lazurite</gradient>"
+        material: BLAZE_ROD
+        commands:
+          - "itempower give %player% lazurite"
+        lore:
+          - "<gray>Custom projectile item."
+      founding_gem_blade:
+        tier: legendary
+        chance: 1
+        display: "<#facc15>Founding Gem Blade</#facc15>"
+        material: NETHERITE_SWORD
+        commands:
+          - "give %player% netherite_sword[enchantments={levels:{sharpness:7,unbreaking:3,mending:1,fire_aspect:2}}] 1"
+        lore:
+          - "<gray>A maxed event sword."
+      sapphire_crown:
+        tier: legendary
+        chance: 1
+        display: "<#38bdf8>Sapphire Crown</#38bdf8>"
+        material: NETHERITE_HELMET
+        commands:
+          - "give %player% netherite_helmet[enchantments={levels:{protection:5,unbreaking:3,mending:1}}] 1"
+        lore:
+          - "<gray>Armor piece."
+      sapphire_bastion:
+        tier: legendary
+        chance: 1
+        display: "<#38bdf8>Sapphire Bastion</#38bdf8>"
+        material: NETHERITE_CHESTPLATE
+        commands:
+          - "give %player% netherite_chestplate[enchantments={levels:{protection:5,unbreaking:3,mending:1}}] 1"
+        lore:
+          - "<gray>Armor piece."
+      sapphire_veil:
+        tier: legendary
+        chance: 1
+        display: "<#38bdf8>Sapphire Veil</#38bdf8>"
+        material: NETHERITE_LEGGINGS
+        commands:
+          - "give %player% netherite_leggings[enchantments={levels:{protection:5,unbreaking:3,mending:1}}] 1"
+        lore:
+          - "<gray>Armor piece."
+      sapphire_stride:
+        tier: legendary
+        chance: 1
+        display: "<#38bdf8>Sapphire Stride</#38bdf8>"
+        material: NETHERITE_BOOTS
+        commands:
+          - "give %player% netherite_boots[enchantments={levels:{protection:5,unbreaking:3,mending:1,feather_falling:4}}] 1"
+        lore:
+          - "<gray>Armor piece."
+      eldra_rank:
+        tier: legendary
+        chance: 0.5
+        display: "<gradient:#f4cd2a:#ef4444>ELDRA Rank</gradient>"
+        material: NETHER_STAR
+        give-item: false
+        commands:
+          - "rank give %player% eldra"
+        lore:
+          - "<gray>Rank grant via configured rank command."
+      sapphire_edge:
+        tier: epic
+        chance: 2.5
+        display: "<#38bdf8>Sapphire Edge</#38bdf8>"
+        material: DIAMOND_SWORD
+        commands:
+          - "give %player% diamond_sword[enchantments={levels:{sharpness:5,unbreaking:3,mending:1}}] 1"
+      sapphire_pick:
+        tier: epic
+        chance: 2.5
+        display: "<#38bdf8>Sapphire Pick</#38bdf8>"
+        material: DIAMOND_PICKAXE
+        commands:
+          - "give %player% diamond_pickaxe[enchantments={levels:{efficiency:5,fortune:3,unbreaking:3,mending:1}}] 1"
+      sapphire_pulse:
+        tier: epic
+        chance: 2.5
+        display: "<#38bdf8>Sapphire Pulse</#38bdf8>"
+        material: BOW
+        commands:
+          - "give %player% bow[enchantments={levels:{power:5,punch:2,flame:1,unbreaking:3,mending:1}}] 1"
+      sapphire_excavator:
+        tier: epic
+        chance: 2.5
+        display: "<#38bdf8>Sapphire Excavator</#38bdf8>"
+        material: DIAMOND_SHOVEL
+        commands:
+          - "give %player% diamond_shovel[enchantments={levels:{efficiency:5,unbreaking:3,mending:1}}] 1"
+      sapphire_tiller:
+        tier: epic
+        chance: 2.5
+        display: "<#38bdf8>Sapphire Tiller</#38bdf8>"
+        material: DIAMOND_HOE
+        commands:
+          - "give %player% diamond_hoe[enchantments={levels:{efficiency:5,unbreaking:3,mending:1}}] 1"
+      sapphire_rod:
+        tier: epic
+        chance: 2.5
+        display: "<#38bdf8>Sapphire Rod</#38bdf8>"
+        material: FISHING_ROD
+        commands:
+          - "give %player% fishing_rod[enchantments={levels:{luck_of_the_sea:4,lure:3,unbreaking:3,mending:1}}] 1"
+      sapphire_quiver:
+        tier: epic
+        chance: 2.5
+        display: "<#38bdf8>Sapphire Quiver</#38bdf8>"
+        material: ARROW
+        amount: 64
+      sapphire_bulwark:
+        tier: epic
+        chance: 2.5
+        display: "<#38bdf8>Sapphire Bulwark</#38bdf8>"
+        material: SHIELD
+        commands:
+          - "give %player% shield[enchantments={levels:{unbreaking:3,mending:1}}] 1"
+      smp_tag:
+        tier: rare
+        chance: 5
+        display: "<#c084fc>[SMP] Tag</#c084fc>"
+        material: NAME_TAG
+        give-item: false
+        commands:
+          - "lp user %player% permission set 3smp.tag.smp true"
+      og_tag:
+        tier: rare
+        chance: 5
+        display: "<#c084fc>[OG] Tag</#c084fc>"
+        material: NAME_TAG
+        give-item: false
+        commands:
+          - "lp user %player% permission set 3smp.tag.og true"
+      trident:
+        tier: rare
+        chance: 5
+        display: "<#c084fc>Trident</#c084fc>"
+        material: TRIDENT
+        commands:
+          - "give %player% trident[enchantments={levels:{loyalty:3,unbreaking:3,mending:1}}] 1"
+      coins_100k:
+        tier: rare
+        chance: 3
+        display: "<#f4cd2a>100k Coins Voucher</#f4cd2a>"
+        material: GOLD_INGOT
+        give-item: false
+        commands:
+          - "money give %player% 100000"
+      gapples_8:
+        tier: rare
+        chance: 3
+        display: "<#f4cd2a>8x God Apples</#f4cd2a>"
+        material: ENCHANTED_GOLDEN_APPLE
+        amount: 8
+      jinxed_message:
+        tier: rare
+        chance: 3
+        display: "<#c084fc>Jinxed Join Message</#c084fc>"
+        material: WRITABLE_BOOK
+        give-item: false
+        commands:
+          - "lp user %player% permission set 3smp.joinmessage.jinxed true"
+      prophecy_gift:
+        tier: rare
+        chance: 4
+        display: "<gradient:#f4cd2a:#7c3aed>Prophecy Gift</gradient>"
+        material: CHEST
+        give-item: false
+        commands:
+          - "crate givekey %player% 1 prophecy"
+          - "money give %player% 25000"
+        lore:
+          - "<gray>One key and coins."
+      the_third_life:
+        tier: rare
+        chance: 4
+        display: "<#ef4444>The Third Life</#ef4444>"
+        material: TOTEM_OF_UNDYING
+        commands:
+          - "give %player% totem_of_undying 1"
+      sapphire_particle:
+        tier: common
+        chance: 10.5
+        display: "<#38bdf8>Sapphire Particle Effect</#38bdf8>"
+        material: AMETHYST_SHARD
+        give-item: false
+        commands:
+          - "lp user %player% permission set 3smp.particle.sapphire true"
+      xp_booster:
+        tier: common
+        chance: 10.5
+        display: "<#22c55e>XP Booster</#22c55e>"
+        material: EXPERIENCE_BOTTLE
+        amount: 32
+      skill_booster:
+        tier: common
+        chance: 10.5
+        display: "<#22c55e>Skill Booster</#22c55e>"
+        material: EMERALD
+        give-item: false
+        commands:
+          - "money give %player% 15000"
+      sapphire_glow:
+        tier: common
+        chance: 10.5
+        display: "<#38bdf8>Sapphire Glow</#38bdf8>"
+        material: GLOW_INK_SAC
+        give-item: false
+        commands:
+          - "lp user %player% permission set 3smp.glow.sapphire true"
+
+placed: {}

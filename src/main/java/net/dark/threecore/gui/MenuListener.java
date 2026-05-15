@@ -108,7 +108,7 @@ public final class MenuListener implements Listener {
             case SAPPHIRES_MAIN -> {
                 if (item == null) return;
                 if (holder.context().equalsIgnoreCase("summary")) sapphireService.handleSummaryClick(player, slot);
-                else sapphireService.handleMenuClick(player, slot);
+                else sapphireService.handleMenuClick(player, holder.context(), slot);
             }
             case DAILY_MAIN -> { if (item == null) return; dailyRewardManager.handleClick(player, slot); }
             case FISHING_MAIN -> { if (item == null || fishingRewardManager == null) return; fishingRewardManager.handleClick(player, slot); }

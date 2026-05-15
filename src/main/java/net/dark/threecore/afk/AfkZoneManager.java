@@ -40,6 +40,8 @@ public final class AfkZoneManager implements Listener {
     private final Map<UUID, GameMode> returnGameModes = new HashMap<>();
     private final Map<UUID, Boolean> returnAllowFlight = new HashMap<>();
     private final Map<UUID, Boolean> returnFlying = new HashMap<>();
+    private final Map<UUID, Float> returnWalkSpeed = new HashMap<>();
+    private final Map<UUID, Float> returnFlySpeed = new HashMap<>();
     private final Map<UUID, Long> inputGraceUntil = new HashMap<>();
     private final Map<UUID, Integer> taskIds = new HashMap<>();
     private BukkitTask task;
@@ -67,6 +69,8 @@ public final class AfkZoneManager implements Listener {
         returnGameModes.clear();
         returnAllowFlight.clear();
         returnFlying.clear();
+        returnWalkSpeed.clear();
+        returnFlySpeed.clear();
         inputGraceUntil.clear();
         taskIds.clear();
     }
@@ -212,6 +216,8 @@ public final class AfkZoneManager implements Listener {
         returnGameModes.put(player.getUniqueId(), player.getGameMode());
         returnAllowFlight.put(player.getUniqueId(), player.getAllowFlight());
         returnFlying.put(player.getUniqueId(), player.isFlying());
+        returnWalkSpeed.put(player.getUniqueId(), player.getWalkSpeed());
+        returnFlySpeed.put(player.getUniqueId(), player.getFlySpeed());
         inputGraceUntil.put(player.getUniqueId(), System.currentTimeMillis() + 5000L);
         Location target = zone.center(world).clone().add(0.5, 0.5, 0.5);
         maintainAfkPlayer(player);
@@ -238,22 +244,44 @@ public final class AfkZoneManager implements Listener {
     }
 
     private void exitZone(Player player) {
-        AfkPlayerState removed = states.remove(player.getUniqueId());
-        if (removed == null) return;
+        UUID uuid = player.getUniqueId();
+        AfkPlayerState removed = states.remove(uuid);
+        boolean wasAfkTeleported = returnLocations.containsKey(uuid);
+        if (removed == null && !wasAfkTeleported) return;
         Text.send(player, config("messages.leaving", "<gray>You left the AFK zone.</gray>"));
-        Location back = returnLocations.remove(player.getUniqueId());
-        inputGraceUntil.remove(player.getUniqueId());
-        GameMode gameMode = returnGameModes.remove(player.getUniqueId());
-        Boolean allowFlight = returnAllowFlight.remove(player.getUniqueId());
-        Boolean flying = returnFlying.remove(player.getUniqueId());
+        Location back = returnLocations.remove(uuid);
+        inputGraceUntil.remove(uuid);
+        GameMode gameMode = returnGameModes.remove(uuid);
+        Boolean allowFlight = returnAllowFlight.remove(uuid);
+        Boolean flying = returnFlying.remove(uuid);
+        Float walkSpeed = returnWalkSpeed.remove(uuid);
+        Float flySpeed = returnFlySpeed.remove(uuid);
         if (back != null && back.getWorld() != null) {
             Bukkit.getScheduler().runTask(plugin, () -> {
-                if (gameMode != null) player.setGameMode(gameMode);
-                if (allowFlight != null) player.setAllowFlight(allowFlight);
-                if (flying != null && player.getAllowFlight()) player.setFlying(flying);
+                restoreReturnedPlayer(player, gameMode, allowFlight, flying, walkSpeed, flySpeed);
                 player.teleport(back);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> restoreReturnedPlayer(player, gameMode, allowFlight, flying, walkSpeed, flySpeed), 1L);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> restoreReturnedPlayer(player, gameMode, allowFlight, flying, walkSpeed, flySpeed), 5L);
             });
         }
+    }
+
+    private void restoreReturnedPlayer(Player player, GameMode gameMode, Boolean allowFlight, Boolean flying, Float walkSpeed, Float flySpeed) {
+        if (player == null || !player.isOnline()) return;
+        if (player.getGameMode() == GameMode.SPECTATOR) player.setSpectatorTarget(null);
+        GameMode restoredMode = gameMode == null || gameMode == GameMode.SPECTATOR ? GameMode.SURVIVAL : gameMode;
+        player.setGameMode(restoredMode);
+        player.setWalkSpeed(clampSpeed(walkSpeed, 0.2F));
+        player.setFlySpeed(clampSpeed(flySpeed, 0.1F));
+        player.setAllowFlight(Boolean.TRUE.equals(allowFlight));
+        player.setFlying(Boolean.TRUE.equals(flying) && player.getAllowFlight());
+        player.setFallDistance(0.0F);
+        player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
+    }
+
+    private float clampSpeed(Float speed, float fallback) {
+        if (speed == null || !Float.isFinite(speed)) return fallback;
+        return Math.max(-1.0F, Math.min(1.0F, speed));
     }
 
     private void createZone(Player player, String[] args) {
@@ -399,8 +427,22 @@ public final class AfkZoneManager implements Listener {
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onMove(PlayerMoveEvent event) {
         if (event.getTo() == null || event.getFrom().getWorld() == null || event.getTo().getWorld() == null) return;
+        Player player = event.getPlayer();
+        if (returnLocations.containsKey(player.getUniqueId())) {
+            Long graceUntil = inputGraceUntil.get(player.getUniqueId());
+            if (graceUntil != null && System.currentTimeMillis() < graceUntil) return;
+            if (!event.getFrom().getWorld().equals(event.getTo().getWorld())) {
+                exitZone(player);
+                return;
+            }
+            if (event.getFrom().getX() == event.getTo().getX() && event.getFrom().getY() == event.getTo().getY() && event.getFrom().getZ() == event.getTo().getZ()) {
+                return;
+            }
+            if (event.getFrom().distanceSquared(event.getTo()) >= 0.01D) exitZone(player);
+            return;
+        }
         if (!event.getFrom().getWorld().equals(event.getTo().getWorld())) {
-            touch(event.getPlayer());
+            touch(player);
             return;
         }
         if (event.getFrom().getX() == event.getTo().getX() && event.getFrom().getY() == event.getTo().getY() && event.getFrom().getZ() == event.getTo().getZ()) {
@@ -408,7 +450,7 @@ public final class AfkZoneManager implements Listener {
         }
         double distance = event.getFrom().distanceSquared(event.getTo());
         if (distance < 0.01D) return;
-        touch(event.getPlayer());
+        touch(player);
     }
 
     @EventHandler(ignoreCancelled = true)
@@ -463,6 +505,8 @@ public final class AfkZoneManager implements Listener {
         returnGameModes.remove(event.getPlayer().getUniqueId());
         returnAllowFlight.remove(event.getPlayer().getUniqueId());
         returnFlying.remove(event.getPlayer().getUniqueId());
+        returnWalkSpeed.remove(event.getPlayer().getUniqueId());
+        returnFlySpeed.remove(event.getPlayer().getUniqueId());
         inputGraceUntil.remove(event.getPlayer().getUniqueId());
     }
 

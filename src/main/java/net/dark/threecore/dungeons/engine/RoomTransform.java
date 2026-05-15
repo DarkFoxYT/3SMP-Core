@@ -11,7 +11,8 @@ public final class RoomTransform {
     private final int sizeY;
     private final int sizeZ;
     private final Vector pivot;
-    private final Vector boundsMin;
+    private final Vector blockBoundsMin;
+    private final Vector pointBoundsMin;
     private final Vector rotatedSize;
 
     public RoomTransform(Vector originWorldPos, DungeonRotation rotation, int sizeX, int sizeY, int sizeZ) {
@@ -25,7 +26,8 @@ public final class RoomTransform {
         this.sizeY = Math.max(1, sizeY);
         this.sizeZ = Math.max(1, sizeZ);
         this.pivot = pivot == null ? new Vector() : pivot.clone();
-        this.boundsMin = computeBoundsMin();
+        this.blockBoundsMin = computeBlockBoundsMin();
+        this.pointBoundsMin = computePointBoundsMin();
         this.rotatedSize = computeRotatedSize();
     }
 
@@ -55,6 +57,10 @@ public final class RoomTransform {
 
     public Vector localToWorld(Vector local) {
         return originWorldPos.clone().add(rotateLocal(local));
+    }
+
+    public Vector localPointToWorld(Vector local) {
+        return originWorldPos.clone().add(rotatePoint(local));
     }
 
     public BlockFace localFacingToWorld(BlockFace facing) {
@@ -135,11 +141,11 @@ public final class RoomTransform {
     }
 
     private Vector rotateLocal(Vector local) {
-        return rotateAboutPivot(local).subtract(boundsMin);
+        return rotateAboutPivot(local).subtract(blockBoundsMin);
     }
 
     private Vector rotatePoint(Vector local) {
-        return rotateAboutPivot(local).subtract(boundsMin);
+        return rotateAboutPivot(local).subtract(pointBoundsMin);
     }
 
     private Vector rotateAboutPivot(Vector local) {
@@ -156,8 +162,20 @@ public final class RoomTransform {
         };
     }
 
-    private Vector computeBoundsMin() {
-        Vector[] corners = corners();
+    private Vector computeBlockBoundsMin() {
+        Vector[] corners = blockCorners();
+        double minX = Double.MAX_VALUE;
+        double minZ = Double.MAX_VALUE;
+        for (Vector corner : corners) {
+            Vector rotated = rotateAboutPivot(corner);
+            minX = Math.min(minX, rotated.getX());
+            minZ = Math.min(minZ, rotated.getZ());
+        }
+        return new Vector(minX, 0.0D, minZ);
+    }
+
+    private Vector computePointBoundsMin() {
+        Vector[] corners = continuousCorners();
         double minX = Double.MAX_VALUE;
         double minZ = Double.MAX_VALUE;
         for (Vector corner : corners) {
@@ -169,7 +187,7 @@ public final class RoomTransform {
     }
 
     private Vector computeRotatedSize() {
-        Vector[] corners = corners();
+        Vector[] corners = continuousCorners();
         double minX = Double.MAX_VALUE;
         double minZ = Double.MAX_VALUE;
         double maxX = -Double.MAX_VALUE;
@@ -184,12 +202,23 @@ public final class RoomTransform {
         return new Vector(Math.round(maxX - minX), sizeY(), Math.round(maxZ - minZ));
     }
 
-    private Vector[] corners() {
+    private Vector[] continuousCorners() {
         return new Vector[] {
             new Vector(0, 0, 0),
             new Vector(sizeX(), 0, 0),
             new Vector(0, 0, sizeZ()),
             new Vector(sizeX(), 0, sizeZ())
+        };
+    }
+
+    private Vector[] blockCorners() {
+        int maxX = Math.max(0, sizeX() - 1);
+        int maxZ = Math.max(0, sizeZ() - 1);
+        return new Vector[] {
+            new Vector(0, 0, 0),
+            new Vector(maxX, 0, 0),
+            new Vector(0, 0, maxZ),
+            new Vector(maxX, 0, maxZ)
         };
     }
 

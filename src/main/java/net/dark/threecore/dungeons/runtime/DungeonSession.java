@@ -43,4 +43,6 @@ public final class DungeonSession {
     public boolean bossDefeated() { return bossDefeated; }
     public void bossDefeated(boolean bossDefeated) { this.bossDefeated = bossDefeated; }
     public boolean contains(UUID uuid) { return players.contains(uuid); }
+    public void removePlayer(UUID uuid) { players.remove(uuid); }
+    public boolean isEmpty() { return players.isEmpty(); }
 }

@@ -43,10 +43,18 @@ public final class DungeonGraphGenerator {
                     built.debugLines()
                 );
                 DungeonValidationResult validation = new DungeonValidator().validate(layout, settings.bossRoomRequired());
-                if (validation.valid()) {
+                List<String> completenessFailures = completenessFailures(layout, settings);
+                if (validation.valid() && completenessFailures.isEmpty()) {
                     return layout;
                 }
-                failures.add("Attempt " + attempt + " failed final validation: " + String.join("; ", validation.failures()));
+                if (!layout.rooms().isEmpty()) {
+                    List<String> tolerantDebug = new ArrayList<>(layout.debug());
+                    tolerantDebug.add("Tolerant generation accepted layout despite validation notes: " + String.join("; ", validation.failures()) + (completenessFailures.isEmpty() ? "" : "; " + String.join("; ", completenessFailures)));
+                    return new DungeonLayout(dungeonId, worldName, layout.rooms(), layout.connections(), layout.planningMillis(), tolerantDebug);
+                }
+                List<String> combined = new ArrayList<>(validation.failures());
+                combined.addAll(completenessFailures);
+                failures.add("Attempt " + attempt + " failed final validation: " + String.join("; ", combined));
             } else {
                 failures.add("Attempt " + attempt + " failed: " + String.join("; ", built.failures()));
             }
@@ -56,6 +64,31 @@ public final class DungeonGraphGenerator {
         List<String> output = debugEnabled && !debug.isEmpty() ? debug : failures;
         if (output.isEmpty()) output = List.of("Failed to generate a valid dungeon layout.");
         return new DungeonLayout(dungeonId, worldName, List.of(), List.of(), Math.max(1L, System.currentTimeMillis() - startedAt), output);
+    }
+
+    private List<String> completenessFailures(DungeonLayout layout, DungeonGenerationSettings settings) {
+        List<String> failures = new ArrayList<>();
+        if (layout == null || layout.rooms().isEmpty()) {
+            failures.add("Layout has no rooms.");
+            return failures;
+        }
+        int minimum = Math.max(1, settings.minimumCompleteRooms());
+        if (layout.rooms().size() < minimum) failures.add("Layout only has " + layout.rooms().size() + " rooms; minimum-complete-rooms is " + minimum + ".");
+        if (layout.startRoom() == null) failures.add("Layout has no dungeon spawn/start room.");
+        if (settings.bossRoomRequired() && layout.bossRoom() == null) failures.add("Layout has no boss room.");
+        if (layout.bossRoom() != null) {
+            boolean bossHasExitRoom = layout.connections().stream()
+                .anyMatch(connection -> connection.fromRoom() == layout.bossRoom().graphIndex()
+                    && roomByIndex(layout, connection.toRoom())
+                        .map(room -> room.definition().type() == RoomType.DEAD_END || room.definition().type() == RoomType.TREASURE || room.definition().type() == RoomType.CAP || room.definition().type() == RoomType.END)
+                        .orElse(false));
+            if (!bossHasExitRoom) failures.add("Boss room does not connect to a final exit/dead-end room.");
+        }
+        return failures;
+    }
+
+    private Optional<PlacedDungeonRoom> roomByIndex(DungeonLayout layout, int index) {
+        return layout.rooms().stream().filter(room -> room.graphIndex() == index).findFirst();
     }
 
     private GenerationAttempt build(int attempt, String dungeonId, String worldName, int baseY, boolean debugEnabled) {
@@ -97,8 +130,8 @@ public final class DungeonGraphGenerator {
                 candidate = bestPlacement(exit, RoomType.NORMAL, rooms, usedConnectors, depth, targetDepth, debugEnabled, debug);
             }
             if (candidate == null) {
-                failures.add("No valid " + type + " placement from " + describe(exit) + ".");
-                return GenerationAttempt.failed(failures, debug);
+                debug.add("Main path stopped early because no valid " + type + " placement fit from " + describe(exit) + ".");
+                break;
             }
 
             apply(candidate, exit, rooms, connections, usedConnectors);
@@ -111,28 +144,30 @@ public final class DungeonGraphGenerator {
         if (!bossPlaced && settings.requireFinalBossRoom()) {
             PlacedConnector exit = pickOpenExit(cursor, usedConnectors, true);
             if (exit == null) {
-                failures.add("Boss required, but " + cursor.definition().id() + " has no open exit.");
-                return GenerationAttempt.failed(failures, debug);
+                debug.add("Boss skipped because " + cursor.definition().id() + " has no open exit.");
+            } else {
+                PlacementCandidate boss = bestPlacement(exit, RoomType.BOSS, rooms, usedConnectors, targetDepth, targetDepth, debugEnabled, debug);
+                if (boss == null) {
+                    debug.add("Boss skipped because no boss room could attach to " + describe(exit) + ".");
+                } else {
+                    apply(boss, exit, rooms, connections, usedConnectors);
+                    bossPlaced = true;
+                    debug.add("BOSS " + boss.score().debugLine());
+                }
             }
-            PlacementCandidate boss = bestPlacement(exit, RoomType.BOSS, rooms, usedConnectors, targetDepth, targetDepth, debugEnabled, debug);
-            if (boss == null) {
-                failures.add("Boss required, but no boss room could attach to " + describe(exit) + ".");
-                return GenerationAttempt.failed(failures, debug);
-            }
-            apply(boss, exit, rooms, connections, usedConnectors);
-            bossPlaced = true;
-            debug.add("BOSS " + boss.score().debugLine());
+        }
+
+        if (bossPlaced && !ensureBossExit(rooms, connections, usedConnectors, failures, debugEnabled, debug)) {
+            debug.add("Boss exit skipped because no ending room fit cleanly.");
         }
 
         addBranches(rooms, connections, usedConnectors, debugEnabled, debug);
 
         if (settings.preventFloatingConnectors() && !sealOpenConnectors(rooms, connections, usedConnectors, failures, debugEnabled, debug)) {
-            return GenerationAttempt.failed(failures, debug);
+            debug.add("Open connector sealing skipped because no filler room fit cleanly.");
         }
-
-        if (settings.bossRoomRequired() && !bossPlaced) {
-            failures.add("Boss room required but no boss was placed.");
-            return GenerationAttempt.failed(failures, debug);
+        if (rooms.size() < settings.minimumCompleteRooms()) {
+            debug.add("Generated " + rooms.size() + " rooms, below minimum-complete-rooms " + settings.minimumCompleteRooms() + ", accepting playable partial layout.");
         }
         debug.add("Generated in attempt " + attempt + " with " + rooms.size() + " rooms and " + connections.size() + " connections.");
         return new GenerationAttempt(true, List.copyOf(rooms), List.copyOf(connections), failures, List.copyOf(debug));
@@ -151,19 +186,43 @@ public final class DungeonGraphGenerator {
         while (branches > 0 && guard-- > 0) {
             PlacedConnector seed = randomOpenExit(rooms, usedConnectors);
             if (seed == null) return;
-            int length = randomInt(settings.branchLengthMin(), settings.branchLengthMax());
-            PlacedConnector exit = seed;
-            for (int i = 0; i < length; i++) {
-                RoomType type = branchType(settings);
-                PlacementCandidate candidate = bestPlacement(exit, type, rooms, usedConnectors, i, length, debugEnabled, debug);
-                if (candidate == null) break;
-                apply(candidate, exit, rooms, connections, usedConnectors);
-                debug.add("BRANCH " + candidate.score().debugLine());
-                exit = pickOpenExit(candidate.room(), usedConnectors, false);
-                if (exit == null) break;
+            PlacementCandidate cap = bestDeadEndPlacement(seed, rooms, usedConnectors, debugEnabled, debug);
+            if (cap == null) {
+                if (debugEnabled) debug.add("BRANCH skipped " + describe(seed) + " because no entrance-only cap room fit.");
+                continue;
             }
+            apply(cap, seed, rooms, connections, usedConnectors);
+            debug.add("BRANCH-END " + cap.score().debugLine());
             branches--;
         }
+    }
+
+    private boolean ensureBossExit(
+        List<PlacedDungeonRoom> rooms,
+        List<DungeonConnection> connections,
+        Map<Integer, Set<String>> usedConnectors,
+        List<String> failures,
+        boolean debugEnabled,
+        List<String> debug
+    ) {
+        PlacedDungeonRoom boss = rooms.stream()
+            .filter(room -> room.definition().type() == RoomType.BOSS)
+            .findFirst()
+            .orElse(null);
+        if (boss == null) return true;
+        PlacedConnector exit = pickOpenExit(boss, usedConnectors, true);
+        if (exit == null) {
+            failures.add("Boss room " + boss.definition().id() + " has no open exit connector for the dungeon exit.");
+            return false;
+        }
+        PlacementCandidate cap = bestDeadEndPlacement(exit, rooms, usedConnectors, debugEnabled, debug);
+        if (cap == null) {
+            failures.add("Boss room " + boss.definition().id() + " exit " + exit.connector().id() + " could not attach to an entrance-only exit room.");
+            return false;
+        }
+        apply(cap, exit, rooms, connections, usedConnectors);
+        debug.add("BOSS-EXIT " + cap.score().debugLine());
+        return true;
     }
 
     private boolean sealOpenConnectors(
@@ -192,11 +251,33 @@ public final class DungeonGraphGenerator {
             }
         } while (changed);
         if (roomRegistry.settings().sealOpenOptionalConnectors()) {
-            for (PlacedConnector connector : openConnectors(rooms, usedConnectors)) {
-                if (connector.connector().required()) continue;
-                markUsed(usedConnectors, connector.worldRoomIndex(), connector.connector().id());
-                if (debugEnabled) debug.add("CAPPED optional connector " + describe(connector) + " using configured wall/door cap behavior.");
+            DungeonGenerationSettings settings = roomRegistry.settings();
+            if (!settings.allowExtraEndingRooms()) {
+                boolean hasOpenOptional = openConnectors(rooms, usedConnectors).stream()
+                    .anyMatch(connector -> connector.connector().role() != ConnectorRole.ENTRANCE);
+                if (hasOpenOptional) {
+                    failures.add("Optional connectors remain open, but extra ending rooms are disabled.");
+                    return false;
+                }
+                return true;
             }
+            int sealed = 0;
+            while (true) {
+                Optional<PlacedConnector> next = openConnectors(rooms, usedConnectors).stream()
+                    .filter(connector -> connector.connector().role() != ConnectorRole.ENTRANCE)
+                    .findFirst();
+                if (next.isEmpty()) break;
+                PlacedConnector connector = next.get();
+                PlacementCandidate cap = bestDeadEndPlacement(connector, rooms, usedConnectors, debugEnabled, debug);
+                if (cap == null) {
+                    failures.add("Open connector could not be sealed with an entrance-only dead-end room: " + describe(connector));
+                    return false;
+                }
+                apply(cap, connector, rooms, connections, usedConnectors);
+                sealed++;
+                debug.add("SEALED optional " + describe(connector) + " with " + cap.room().definition().id());
+            }
+            if (debugEnabled && sealed > 0) debug.add("SEALED optional connector count=" + sealed + " with no configured filler cap.");
         }
         return true;
     }
@@ -212,7 +293,9 @@ public final class DungeonGraphGenerator {
         for (String rawType : roomRegistry.deadEndConnectorRoomTypes()) {
             Optional<RoomType> type = parseRoomType(rawType);
             if (type.isEmpty()) continue;
-            candidates.addAll(placements(connector, type.get(), rooms, usedConnectors, 999, 999, debugEnabled, debug));
+            candidates.addAll(placements(connector, type.get(), rooms, usedConnectors, 999, 999, debugEnabled, debug, Integer.MAX_VALUE).stream()
+                .filter(candidate -> entranceOnlyRoom(candidate.room().definition()))
+                .toList());
         }
         return candidates.stream().max(Comparator.comparingInt(candidate -> candidate.score().score())).orElse(null);
     }
@@ -242,11 +325,27 @@ public final class DungeonGraphGenerator {
         boolean debugEnabled,
         List<String> debug
     ) {
+        return placements(from, preferred, rooms, usedConnectors, depth, targetDepth, debugEnabled, debug, Math.max(4, roomRegistry.settings().maxPlacementCandidates()));
+    }
+
+    private List<PlacementCandidate> placements(
+        PlacedConnector from,
+        RoomType preferred,
+        List<PlacedDungeonRoom> rooms,
+        Map<Integer, Set<String>> usedConnectors,
+        int depth,
+        int targetDepth,
+        boolean debugEnabled,
+        List<String> debug,
+        int maxCandidates
+    ) {
         List<PlacementCandidate> out = new ArrayList<>();
         List<DungeonRoomDefinition> definitions = new ArrayList<>(roomPool(preferred, from));
         java.util.Collections.shuffle(definitions, random);
+        int limit = maxCandidates <= 0 ? Integer.MAX_VALUE : maxCandidates;
         for (DungeonRoomDefinition definition : definitions) {
             if (!validEntranceContract(definition, null) || !validConnectorBounds(definition, null)) continue;
+            if (preferred == RoomType.NORMAL && depth < targetDepth - 1 && definition.connectors().stream().noneMatch(connector -> connector.role() != ConnectorRole.ENTRANCE)) continue;
             List<DungeonConnector> entrances = new ArrayList<>(definition.entrances());
             java.util.Collections.shuffle(entrances, random);
             List<DungeonRotation> rotations = new ArrayList<>(List.of(DungeonRotation.values()));
@@ -259,6 +358,7 @@ public final class DungeonGraphGenerator {
                         continue;
                     }
                     out.add(candidate);
+                    if (out.size() >= limit) return out;
                 }
             }
         }
@@ -356,6 +456,11 @@ public final class DungeonGraphGenerator {
             score += 300;
             reasons.add("+300 path continues");
         }
+        int traps = room.definition().traps().size();
+        if (traps > 0) {
+            score += Math.min(3, traps) * 250;
+            reasons.add("+" + (Math.min(3, traps) * 250) + " trap room");
+        }
         long openExits = room.connectors().stream().filter(connector -> connector.connector().role() != ConnectorRole.ENTRANCE).count();
         score += Math.min(3, openExits) * 100;
         if (openExits > 3) {
@@ -442,10 +547,11 @@ public final class DungeonGraphGenerator {
         double xOverlap = Math.min(a.getMaxX(), b.getMaxX()) - Math.max(a.getMinX(), b.getMinX());
         double yOverlap = Math.min(a.getMaxY(), b.getMaxY()) - Math.max(a.getMinY(), b.getMinY());
         double zOverlap = Math.min(a.getMaxZ(), b.getMaxZ()) - Math.max(a.getMinZ(), b.getMinZ());
+        double tolerance = Math.max(0.0001D, roomRegistry.settings().connectorOverlapToleranceBlocks());
         return switch (sourceConnector.facing()) {
-            case NORTH, SOUTH -> xOverlap > 0 && yOverlap > 0 && zOverlap <= 0.0001D;
-            case EAST, WEST -> zOverlap > 0 && yOverlap > 0 && xOverlap <= 0.0001D;
-            case UP, DOWN -> xOverlap > 0 && zOverlap > 0 && yOverlap <= 0.0001D;
+            case NORTH, SOUTH -> xOverlap > 0 && yOverlap > 0 && zOverlap <= tolerance;
+            case EAST, WEST -> zOverlap > 0 && yOverlap > 0 && xOverlap <= tolerance;
+            case UP, DOWN -> xOverlap > 0 && zOverlap > 0 && yOverlap <= tolerance;
             default -> false;
         };
     }
@@ -483,8 +589,6 @@ public final class DungeonGraphGenerator {
 
     private RoomType mainPathType(int depth, int targetDepth, boolean bossPlaced, DungeonGenerationSettings settings) {
         if (!bossPlaced && settings.requireFinalBossRoom() && depth >= targetDepth - 1) return RoomType.BOSS;
-        if (random.nextDouble() < settings.miniBossChance()) return RoomType.MINI_BOSS;
-        if (random.nextDouble() < settings.treasureChance() * 0.35D) return RoomType.TREASURE;
         return RoomType.NORMAL;
     }
 
@@ -493,6 +597,10 @@ public final class DungeonGraphGenerator {
         if (roll < settings.treasureChance()) return RoomType.TREASURE;
         if (roll < settings.treasureChance() + settings.miniBossChance()) return RoomType.MINI_BOSS;
         return RoomType.NORMAL;
+    }
+
+    private boolean entranceOnlyRoom(DungeonRoomDefinition definition) {
+        return definition != null && !definition.entrances().isEmpty() && definition.exits().isEmpty();
     }
 
     private PlacedConnector pickOpenExit(PlacedDungeonRoom room, Map<Integer, Set<String>> usedConnectors, boolean mainPath) {
@@ -558,6 +666,22 @@ public final class DungeonGraphGenerator {
         return true;
     }
 
+    private boolean connectorOpensOutOfRoom(DungeonConnector connector, int maxX, int maxY, int maxZ) {
+        Vector p = connector.localPosition();
+        int width = Math.max(1, connector.width());
+        int height = Math.max(1, connector.height());
+        if (p.getBlockY() + height > maxY) return false;
+        return switch (connector.facing()) {
+            case NORTH -> p.getBlockZ() == 0 && p.getBlockX() + width <= maxX;
+            case SOUTH -> p.getBlockZ() == maxZ - 1 && p.getBlockX() + width <= maxX;
+            case EAST -> p.getBlockX() == maxX - 1 && p.getBlockZ() + width <= maxZ;
+            case WEST -> p.getBlockX() == 0 && p.getBlockZ() + width <= maxZ;
+            case UP -> p.getBlockY() == maxY - 1;
+            case DOWN -> p.getBlockY() == 0;
+            default -> false;
+        };
+    }
+
     private boolean validFacing(BlockFace face) {
         return face == BlockFace.NORTH || face == BlockFace.SOUTH || face == BlockFace.EAST || face == BlockFace.WEST || face == BlockFace.UP || face == BlockFace.DOWN;
     }
@@ -571,7 +695,9 @@ public final class DungeonGraphGenerator {
     }
 
     private boolean centersMatch(Vector a, Vector b) {
-        return a.distanceSquared(b) < 0.0001D;
+        return Math.abs(a.getX() - b.getX()) <= 1.5D
+            && Math.abs(a.getY() - b.getY()) <= 2.0D
+            && Math.abs(a.getZ() - b.getZ()) <= 1.5D;
     }
 
     private Vector facingOffset(BlockFace face, int gap) {

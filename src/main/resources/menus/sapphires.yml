@@ -1,5 +1,12 @@
 title: "<gradient:#f4cd2a:#eda323:#d28d0d>Sapphire Vault</gradient>"
 size: 27
+menus:
+  deluxemenus:
+    enabled: true
+    vault-menu: "sap_vault"
+    install-vault: true
+  itemsadder-font-symbols:
+    sap_vault: "\\uA425"
 frame:
   material: "LIGHT_BLUE_STAINED_GLASS_PANE"
   name: " "
