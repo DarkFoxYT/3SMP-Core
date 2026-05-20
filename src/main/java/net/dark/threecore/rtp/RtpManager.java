@@ -1,6 +1,7 @@
 package net.dark.threecore.rtp;
 
 import net.dark.threecore.config.ConfigFiles;
+import net.dark.threecore.duels.DuelService;
 import net.dark.threecore.text.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
@@ -66,6 +67,14 @@ public final class RtpManager implements Listener {
             Text.send(player, "<red>No RTP world configured or loaded:</red> <white>" + worldName + "</white>");
             return false;
         }
+        if (!isAllowedRtpWorld(world)) {
+            Text.send(player, "<red>RTP is only available in the Overworld.</red>");
+            return false;
+        }
+        if (DuelService.isDuelPlayer(player)) {
+            Text.send(player, "<red>You cannot use RTP while in a duel.</red>");
+            return false;
+        }
 
         String key = "worlds." + world.getName().toLowerCase(Locale.ROOT);
         long cooldown = configs.get("world/rtp.yml").getLong(key + ".cooldown-seconds", configs.get("world/rtp.yml").getLong("defaults.cooldown-seconds", 300L));
@@ -73,7 +82,7 @@ public final class RtpManager implements Listener {
         long last = cooldowns.getOrDefault(player.getUniqueId(), 0L);
         long remaining = cooldown * 1000L - (now - last);
         if (remaining > 0) {
-            Text.send(player, "<red>RTP cooldown: " + (remaining / 1000L) + "s.</red>");
+            Text.send(player, "<red>RTP cooldown: " + ((remaining + 999L) / 1000L) + "s.</red>");
             return false;
         }
         if (!searching.add(player.getUniqueId())) {
@@ -157,13 +166,22 @@ public final class RtpManager implements Listener {
             return;
         }
         int slot = configs.get("world/rtp.yml").getInt("hotbar.slot", 8);
+        player.getInventory().setItem(slot, createRtpCompass());
+    }
+
+    public void giveStarterCompass(Player player, int slot) {
+        if (player == null) return;
+        player.getInventory().setItem(Math.max(0, Math.min(8, slot)), createRtpCompass());
+    }
+
+    private ItemStack createRtpCompass() {
         ItemStack item = new ItemStack(org.bukkit.Material.COMPASS);
         ItemMeta meta = item.getItemMeta();
         meta.displayName(Text.mm(configs.get("world/rtp.yml").getString("hotbar.name", "<gradient:#22c55e:#38bdf8>Random Teleport</gradient>")));
-        meta.lore(List.of(Text.mm("<gray>Choose Overworld, Nether, or End.</gray>")));
+        meta.lore(List.of(Text.mm("<gray>Random teleport in the Overworld.</gray>")));
         meta.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, ITEM_KEY), org.bukkit.persistence.PersistentDataType.BYTE, (byte) 1);
         item.setItemMeta(meta);
-        player.getInventory().setItem(slot, item);
+        return item;
     }
 
     private void clearItem(Player player) {
@@ -176,17 +194,13 @@ public final class RtpManager implements Listener {
     public void open(Player player) {
         Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.RTP_MAIN, "rtp"), 27, "Random Teleport");
         for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, icon(org.bukkit.Material.GRAY_STAINED_GLASS_PANE, " "));
-        inv.setItem(11, icon(org.bukkit.Material.GRASS_BLOCK, "<green>Overworld</green>"));
-        inv.setItem(13, icon(org.bukkit.Material.NETHERRACK, "<red>Nether</red>"));
-        inv.setItem(15, icon(org.bukkit.Material.END_STONE, "<light_purple>End</light_purple>"));
+        inv.setItem(13, icon(org.bukkit.Material.GRASS_BLOCK, "<green>Overworld RTP</green>"));
         player.openInventory(inv);
     }
 
     public void handleClick(Player player, int slot) {
         String base = configs.get("world/survival.yml").getString("world", "world");
-        if (slot == 11) teleport(player, base);
-        else if (slot == 13) teleport(player, base + "_nether");
-        else if (slot == 15) teleport(player, base + "_the_end");
+        if (slot == 13) teleport(player, base);
         player.closeInventory();
     }
 
@@ -208,19 +222,23 @@ public final class RtpManager implements Listener {
             int z = pair[1];
             int y = world.getHighestBlockYAt(x, z) + 1;
             Location loc = new Location(world, x + 0.5, y, z + 0.5);
-            org.bukkit.Material ground = loc.clone().subtract(0, 1, 0).getBlock().getType();
-            org.bukkit.Material feet = loc.getBlock().getType();
-            org.bukkit.Material head = loc.clone().add(0, 1, 0).getBlock().getType();
-            if (!ground.isSolid() || unsafe(ground) || unsafe(feet) || unsafe(head)) continue;
-            if (loc.getBlock().isPassable() && loc.clone().add(0, 1, 0).getBlock().isPassable()) return loc;
+            if (isSafeLocation(loc)) return loc;
         }
         return null;
+    }
+
+    private boolean isSafeLocation(Location loc) {
+        org.bukkit.Material ground = loc.clone().subtract(0, 1, 0).getBlock().getType();
+        org.bukkit.Material feet = loc.getBlock().getType();
+        org.bukkit.Material head = loc.clone().add(0, 1, 0).getBlock().getType();
+        if (!ground.isSolid() || unsafe(ground) || unsafe(feet) || unsafe(head)) return false;
+        return loc.getBlock().isPassable() && loc.clone().add(0, 1, 0).getBlock().isPassable();
     }
 
     private boolean unsafe(org.bukkit.Material material) {
         if (material == null) return true;
         String name = material.name();
-        return name.contains("WATER") || name.contains("LAVA") || name.contains("FIRE") || name.contains("MAGMA") || name.contains("CACTUS") || name.contains("POWDER_SNOW");
+        return name.contains("WATER") || name.contains("LAVA") || name.contains("FIRE") || name.contains("MAGMA") || name.contains("CACTUS") || name.contains("POWDER_SNOW") || name.contains("BEDROCK");
     }
 
     private boolean isRtpItem(ItemStack item) {
@@ -239,7 +257,15 @@ public final class RtpManager implements Listener {
         if (world == null) return false;
         String base = configs.get("world/survival.yml").getString("world", "world");
         String name = world.getName();
-        return name.equalsIgnoreCase(base) || name.equalsIgnoreCase(base + "_nether") || name.equalsIgnoreCase(base + "_the_end");
+        return name.equalsIgnoreCase(base);
+    }
+
+    private boolean isAllowedRtpWorld(World world) {
+        if (world == null || world.getEnvironment() != World.Environment.NORMAL) return false;
+        String base = configs.get("world/survival.yml").getString("world", "world");
+        String configuredDefault = configs.get("world/rtp.yml").getString("default-world", base);
+        String name = world.getName();
+        return name.equalsIgnoreCase(base) || name.equalsIgnoreCase(configuredDefault);
     }
 
     private record WorldBounds(int centerX, int centerZ, int minRadius, int minX, int maxX, int minZ, int maxZ) {}

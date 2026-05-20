@@ -3,52 +3,176 @@ info:
 
 font_images:
   duels_menu:
-    path: gui/duels_menu.png
+    path: gui/duels.png
+    symbol: "\uA420"
     show_in_gui: true
     suggest_in_command: false
-    scale_ratio: 192
-    y_position: 13
+    scale_ratio: 257
+    y_position: 14
 
-  duels_solo:
-    path: gui/duels_solo.png
+  duels_kits:
+    path: gui/kit_selection.png
+    symbol: "\uA426"
     show_in_gui: true
     suggest_in_command: false
-    scale_ratio: 48
-    y_position: 13
+    scale_ratio: 257
+    y_position: 14
 
-  duels_duo:
-    path: gui/duels_duo.png
+  crate_gui:
+    path: gui/crate_gui.png
+    symbol: "\uA427"
     show_in_gui: true
     suggest_in_command: false
-    scale_ratio: 48
-    y_position: 13
+    scale_ratio: 257
+    y_position: 14
 
-  duels_solo_hover:
-    path: gui/duels_solo_hover.png
+  crate_selection:
+    path: gui/crate_gui.png
+    symbol: "\uA429"
     show_in_gui: true
     suggest_in_command: false
-    scale_ratio: 48
-    y_position: 13
+    scale_ratio: 257
+    y_position: 14
 
-  duels_duo_hover:
-    path: gui/duels_duo_hover.png
+  crate_preview:
+    path: gui/crate_preview.png
+    symbol: "\uA42A"
     show_in_gui: true
     suggest_in_command: false
-    scale_ratio: 48
-    y_position: 13
+    scale_ratio: 257
+    y_position: 14
+
+  shop_gui:
+    path: gui/shopgood.png
+    symbol: "\uA428"
+    show_in_gui: true
+    suggest_in_command: false
+    scale_ratio: 257
+    y_position: 14
 
   sap_vault:
     path: gui/sap_vault.png
-    symbol: "ꐥ"
+    symbol: "\uA425"
     show_in_gui: true
     suggest_in_command: false
-    scale_ratio: 235
-    y_position: 52
+    scale_ratio: 257
+    y_position: 14
+
+  help_gui:
+    path: gui/help_gui.png
+    symbol: "\uA42B"
+    show_in_gui: true
+    suggest_in_command: false
+    scale_ratio: 257
+    y_position: 14
+
+  dungeons_commands:
+    path: gui/dungeons_commands.png
+    symbol: "\uA42C"
+    show_in_gui: true
+    suggest_in_command: false
+    scale_ratio: 257
+    y_position: 14
+
+  survival_commands:
+    path: gui/survival_commands.png
+    symbol: "\uA42D"
+    show_in_gui: true
+    suggest_in_command: false
+    scale_ratio: 257
+    y_position: 14
+
+  navigation_commands:
+    path: gui/navigation_commands.png
+    symbol: "\uA42E"
+    show_in_gui: true
+    suggest_in_command: false
+    scale_ratio: 257
+    y_position: 14
+
+  shop_commands:
+    path: gui/shop_commands.png
+    symbol: "\uA42F"
+    show_in_gui: true
+    suggest_in_command: false
+    scale_ratio: 257
+    y_position: 14
+
+  social_commands:
+    path: gui/social_commands.png
+    symbol: "\uA430"
+    show_in_gui: true
+    suggest_in_command: false
+    scale_ratio: 257
+    y_position: 14
+
+  claims_commands:
+    path: gui/claims_commands.png
+    symbol: "\uA431"
+    show_in_gui: true
+    suggest_in_command: false
+    scale_ratio: 257
+    y_position: 14
+
+  cosmetics_commands:
+    path: gui/cosmetics_commands.png
+    symbol: "\uA432"
+    show_in_gui: true
+    suggest_in_command: false
+    scale_ratio: 257
+    y_position: 14
+
+  voting_commands:
+    path: gui/voting_commands.png
+    symbol: "\uA433"
+    show_in_gui: true
+    suggest_in_command: false
+    scale_ratio: 257
+    y_position: 14
+
+  misc_commands:
+    path: gui/misc_commands.png
+    symbol: "\uA434"
+    show_in_gui: true
+    suggest_in_command: false
+    scale_ratio: 257
+    y_position: 14
+
+  duels_commands:
+    path: gui/duels_commands.png
+    symbol: "\uA435"
+    show_in_gui: true
+    suggest_in_command: false
+    scale_ratio: 257
+    y_position: 14
+
+  cosmetics_menu:
+    path: gui/cosmetics.png
+    symbol: "\uA436"
+    show_in_gui: true
+    suggest_in_command: false
+    scale_ratio: 257
+    y_position: 14
+
+  dungeons_menu:
+    path: gui/dungeons.png
+    symbol: "\uA437"
+    show_in_gui: true
+    suggest_in_command: false
+    scale_ratio: 257
+    y_position: 14
 
 items:
+  sapphire:
+    display_name: "&#38bdf8Sapphire"
+    resource:
+      material: AMETHYST_SHARD
+      generate: true
+      texture: item/sapphire
+
   gui_clickzone:
     display_name: "&r"
     resource:
       material: PAPER
-      generate: false
-      model_path: gui/gui_clickzone
+      generate: true
+      texture: gui/gui_clickzone

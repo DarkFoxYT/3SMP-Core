@@ -8,6 +8,24 @@ chat:
   default-prefix: ""
   format: "<prefix><tag><name-color><player></name-color><message-color>: <message>"
   rank-styles:
+    default:
+      priority: 1
+      primary-group: "default"
+      permission: ""
+      name-format: "<white><player></white>"
+      name-color: "white"
+      tag-format: "<white><tag></white>"
+      tag-color: "white"
+      message-color: "white"
+    member:
+      priority: 2
+      primary-group: "member"
+      permission: ""
+      name-format: "<white><player></white>"
+      name-color: "white"
+      tag-format: "<white><tag></white>"
+      tag-color: "white"
+      message-color: "white"
     owner:
       priority: 300
       primary-group: "owner"
@@ -21,32 +39,50 @@ chat:
       priority: 250
       primary-group: "admin"
       permission: ""
-      name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
+      name-format: "<gradient:#ff4d4d:#fb923c><player></gradient>"
       name-color: "lava"
-      tag-format: "<gradient:#f4cd2a:#eda323:#d28d0d><tag></gradient>"
-      tag-color: "gold"
+      tag-format: "<gradient:#ff4d4d:#fb923c><tag></gradient>"
+      tag-color: "lava"
       message-color: "white"
     dev:
       priority: 240
       primary-group: "dev"
       permission: ""
-      name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
-      name-color: "gold"
-      tag-format: "<gradient:#f4cd2a:#eda323:#d28d0d><tag></gradient>"
-      tag-color: "gold"
+      name-format: "<gradient:#38bdf8:#a78bfa><player></gradient>"
+      name-color: "aqua"
+      tag-format: "<gradient:#38bdf8:#a78bfa><tag></gradient>"
+      tag-color: "aqua"
       message-color: "white"
     mvp:
       priority: 200
       primary-group: "mvp"
       permission: ""
-      name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
-      name-color: "gold"
-      tag-format: "<gradient:#f4cd2a:#eda323:#d28d0d><tag></gradient>"
-      tag-color: "gold"
-      message-color: "aqua"
-    vip:
-      priority: 150
-      primary-group: "vip"
+      name-format: "<gradient:#60a5fa:#c084fc><player></gradient>"
+      name-color: "aqua"
+      tag-format: "<gradient:#60a5fa:#c084fc><tag></gradient>"
+      tag-color: "aqua"
+      message-color: "white"
+    pro:
+      priority: 175
+      primary-group: "pro"
+      permission: ""
+      name-format: "<gradient:#22d3ee:#38bdf8><player></gradient>"
+      name-color: "aqua"
+      tag-format: "<gradient:#22d3ee:#38bdf8><tag></gradient>"
+      tag-color: "aqua"
+      message-color: "white"
+    ultra:
+      priority: 220
+      primary-group: "ultra"
+      permission: ""
+      name-format: "<gradient:#ef4444:#f97316:#f4cd2a><player></gradient>"
+      name-color: "lava"
+      tag-format: "<gradient:#ef4444:#f97316:#f4cd2a><tag></gradient>"
+      tag-color: "lava"
+      message-color: "white"
+    "3":
+      priority: 160
+      primary-group: "3"
       permission: ""
       name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
       name-color: "gold"
@@ -71,10 +107,6 @@ systems:
 spawn:
   hotbar-items:
     enabled: false
-  protection:
-    entire-world: true
-    bypass-permission: 3smpcore.spawn.build
-    cancel-physics: false
   world: spawn
   radius: 100.0
   effects:
@@ -107,6 +139,13 @@ spawn:
   speed-level: 2
   protection:
     enabled: true
+    entire-world: false
+    allow-gameplay-world: false
+    bypass-permission: 3smpcore.spawn.build
+    cancel-physics: false
+    disable-damage: true
+    pvp: false
+    block-interactions: true
     build: true
     place: true
     break: true

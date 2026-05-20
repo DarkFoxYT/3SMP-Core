@@ -6,6 +6,7 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 import net.dark.threecore.duels.DuelService;
+import net.dark.threecore.data.PlayerDataRepository;
 import net.kyori.adventure.text.Component;
 
 public final class VisualManager {
@@ -18,7 +19,7 @@ public final class VisualManager {
     private final NameTagService nameTags;
     private final ScoreboardService scoreboards;
 
-    public VisualManager(JavaPlugin plugin, net.dark.threecore.config.ConfigFiles configs) {
+    public VisualManager(JavaPlugin plugin, net.dark.threecore.config.ConfigFiles configs, PlayerDataRepository repository) {
         this.config = new VisualConfig(configs);
         this.renderer = new GradientRenderer(config);
         this.ranks = new RankStyleService(plugin, config);
@@ -27,7 +28,7 @@ public final class VisualManager {
         this.tab = new TabVisualService(plugin, config, renderer, ranks);
         this.nameTags = new NameTagService(plugin, config, renderer, ranks);
         this.scoreboards = new ScoreboardService(plugin, config, renderer, ranks);
-        this.gui = new VisualGuiService(plugin, cosmetics, this);
+        this.gui = new VisualGuiService(plugin, configs, cosmetics, this, repository);
         Bukkit.getPluginManager().registerEvents(nameTags, plugin);
         Bukkit.getPluginManager().registerEvents(scoreboards, plugin);
     }

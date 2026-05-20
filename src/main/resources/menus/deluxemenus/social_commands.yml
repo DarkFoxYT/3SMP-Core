@@ -1,0 +1,48 @@
+menu_title: ":offset_-15:&f:social_commands:"
+open_command: []
+size: 54
+update_interval: 20
+
+items:
+  msg:
+    material: "itemsadder-threesmp:gui_clickzone"
+    slots: [10, 11, 12, 13, 14, 15, 16]
+    display_name: "&#f4cd2a&l/msg"
+    lore: ["&7Use /msg <player> <message>."]
+    left_click_commands:
+      - "[message] &7Use &f/msg <player> <message>&7."
+  friends:
+    material: "itemsadder-threesmp:gui_clickzone"
+    slots: [19, 20, 21, 22, 23, 24, 25]
+    display_name: "&#f4cd2a&l/friends"
+    lore: ["&7Open friends list."]
+    left_click_commands:
+      - "[player] friends"
+  friend_add:
+    material: "itemsadder-threesmp:gui_clickzone"
+    slots: [28, 29, 30, 31, 32, 33, 34]
+    display_name: "&#f4cd2a&l/friend add"
+    lore: ["&7Use /friend add <player>."]
+    left_click_commands:
+      - "[message] &7Use &f/friend add <player>&7."
+  friend_remove:
+    material: "itemsadder-threesmp:gui_clickzone"
+    slots: [37, 38, 39, 40, 41, 42, 43]
+    display_name: "&#f4cd2a&l/friend remove"
+    lore: ["&7Use /friend remove <player>."]
+    left_click_commands:
+      - "[message] &7Use &f/friend remove <player>&7."
+  ignore:
+    material: "itemsadder-threesmp:gui_clickzone"
+    slots: [46, 47, 48]
+    display_name: "&#f4cd2a&l/ignore"
+    lore: ["&7Use /ignore <player>."]
+    left_click_commands:
+      - "[message] &7Use &f/ignore <player>&7."
+  help:
+    material: "itemsadder-threesmp:gui_clickzone"
+    slot: 49
+    display_name: "&7Back to Help"
+    lore: []
+    left_click_commands:
+      - "[player] help"

@@ -5,6 +5,7 @@ import org.bukkit.inventory.InventoryHolder;
 
 final class CrateHolder implements InventoryHolder {
     enum Mode {
+        SELECTION,
         PREVIEW,
         OPENING
     }

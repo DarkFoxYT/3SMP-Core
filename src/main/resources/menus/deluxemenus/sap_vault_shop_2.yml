@@ -1,0 +1,67 @@
+menu_title: ":offset_-15:&f:sap_vault:"
+open_command: []
+size: 54
+update_interval: 20
+
+items:
+  balance:
+    material: "itemsadder-threesmp:sapphire"
+    slot: 13
+    display_name: "&#f4cd2a&lSapphire &#eda323&lBalance"
+    lore:
+      - "&7Current balance: &#f4cd2a%3smpcore_sapphires% &fSapphires"
+      - "&8Page 2/4: Sapphire tools"
+
+  sapphire_edge:
+    material: "itemsadder-threesmp:sapphire_edge"
+    slot: 20
+    display_name: "&#38bdf8&lSapphire &#ffffff&lEdge"
+    lore: ["&#f4cd2aPrice: &fTBD", "&7Custom sword.", "&8Coming soon."]
+    left_click_commands: ["[player] sapphire deluxe buy sapphire_edge"]
+  sapphire_pick:
+    material: "itemsadder-threesmp:sapphire_pick"
+    slot: 22
+    display_name: "&#38bdf8&lSapphire &#ffffff&lPick"
+    lore: ["&#f4cd2aPrice: &fTBD", "&7Fortune pickaxe.", "&8Coming soon."]
+    left_click_commands: ["[player] sapphire deluxe buy sapphire_pick"]
+  sapphire_feller:
+    material: "itemsadder-threesmp:sapphire_feller"
+    slot: 24
+    display_name: "&#38bdf8&lSapphire &#ffffff&lFeller"
+    lore: ["&#f4cd2aPrice: &fTBD", "&7Custom axe.", "&8Coming soon."]
+    left_click_commands: ["[player] sapphire deluxe buy sapphire_feller"]
+  sapphire_excavator:
+    material: "itemsadder-threesmp:sapphire_excavator"
+    slot: 29
+    display_name: "&#38bdf8&lSapphire &#ffffff&lExcavator"
+    lore: ["&#f4cd2aPrice: &fTBD", "&7Silk shovel.", "&8Coming soon."]
+    left_click_commands: ["[player] sapphire deluxe buy sapphire_excavator"]
+  sapphire_tiller:
+    material: "itemsadder-threesmp:sapphire_tiller"
+    slot: 31
+    display_name: "&#38bdf8&lSapphire &#ffffff&lTiller"
+    lore: ["&#f4cd2aPrice: &fTBD", "&7Custom hoe.", "&8Coming soon."]
+    left_click_commands: ["[player] sapphire deluxe buy sapphire_tiller"]
+  sapphire_rod:
+    material: "itemsadder-threesmp:sapphire_rod"
+    slot: 33
+    display_name: "&#38bdf8&lSapphire &#ffffff&lRod"
+    lore: ["&#f4cd2aPrice: &fTBD", "&7Fishing rod.", "&8Coming soon."]
+    left_click_commands: ["[player] sapphire deluxe buy sapphire_rod"]
+
+  previous:
+    material: ARROW
+    slot: 45
+    display_name: "&#f4cd2a&lPrevious Page"
+    left_click_commands: ["[openguimenu] sap_vault_shop"]
+  back:
+    material: BARRIER
+    slot: 49
+    display_name: "&7Back"
+    left_click_commands: ["[openguimenu] sap_vault"]
+  next:
+    material: ARROW
+    slot: 53
+    display_name: "&#f4cd2a&lNext Page"
+    lore: ["&8Relics and rare gear."]
+    left_click_commands: ["[openguimenu] sap_vault_shop_3"]

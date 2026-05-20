@@ -2,16 +2,47 @@ menu:
   title: "3SMP Sell Bin"
   size: 54
 prices:
-  cobblestone: 0.10
-  stone: 0.12
-  dirt: 0.03
-  oak_log: 0.35
-  spruce_log: 0.35
+  cobblestone: 0.08
+  stone: 0.125
+  dirt: 0.045
+  oak_log: 0.375
+  spruce_log: 0.375
   birch_log: 0.35
+  sand: 0.095
+  gravel: 0.095
+  glass: 0.28
+  terracotta: 0.31
+  bread: 0.31
+  cooked_beef: 0.625
+  cooked_porkchop: 0.56
+  cooked_chicken: 0.50
+  golden_carrot: 1.75
+  carrot: 0.16
+  potato: 0.16
+  wheat_seeds: 0.125
+  oak_sapling: 0.31
+  dandelion: 0.18
+  sugar_cane: 0.22
+  cactus: 0.38
+  bamboo: 0.16
+  kelp: 0.125
+  string: 0.50
+  bone: 0.44
+  gunpowder: 0.875
+  leather: 0.625
+  feather: 0.375
+  slime_ball: 2.0
+  ender_pearl: 4.5
+  blaze_rod: 6.0
+  ghast_tear: 35.0
+  raw_iron: 1.75
+  raw_gold: 2.125
+  coal: 0.44
+  redstone: 0.375
+  lapis_lazuli: 0.94
+  quartz: 1.0
   iron_ingot: 2.0
   gold_ingot: 3.0
   diamond: 35.0
   emerald: 20.0
   wheat: 0.25
-  carrot: 0.20
-  potato: 0.20

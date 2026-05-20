@@ -1,6 +1,6 @@
 enabled: true
 bypass-permission: 3smpcore.afk.bypass
-check-interval-seconds: 5
+check-interval-seconds: 1
 payout-every-minutes: 30
 payout-amount: 1000
 afk-after-minutes: 5
@@ -11,8 +11,12 @@ zone:
 
 messages:
   entering: "<gradient:#f4cd2a:#eda323:#d28d0d>Entered AFK zone.</gradient>"
-  afk: "<yellow>You are now AFK.</yellow>"
-  reward: "<green>AFK reward received.</green>"
+  afk: "<gradient:#f4cd2a:#eda323:#d28d0d>You are now AFK.</gradient>"
+  title: "<gradient:#f4cd2a:#eda323:#d28d0d>You are now AFK!</gradient>"
+  subtitle: "<gray>Interact to come back.</gray>"
+  actionbar: "<gradient:#f4cd2a:#eda323:#d28d0d>AFK mode active</gradient> <gray>Move or interact to return.</gray>"
+  title-duration-seconds: 86400
+  reward: "<gradient:#f4cd2a:#eda323:#d28d0d>AFK reward received.</gradient>"
   leaving: "<gray>You left the AFK zone.</gray>"
 
 zones:

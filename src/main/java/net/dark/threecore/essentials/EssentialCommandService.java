@@ -9,6 +9,7 @@ import org.bukkit.GameRule;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Registry;
 import org.bukkit.World;
+import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Player;
 
 import java.util.List;
@@ -20,6 +21,7 @@ public final class EssentialCommandService {
     private static final String SPEED_PERMISSION = "3smpcore.command.speed";
     private static final String FLY_PERMISSION = "3smpcore.command.fly";
     private static final String GAMEMODE_PERMISSION = "3smpcore.command.gamemode";
+    private static final String GAMEMODE_CREATIVE_PERMISSION = "3smpcore.command.gamemode.creative";
     private static final String GAMEMODE_OTHERS_PERMISSION = "3smpcore.command.gamemode.others";
     private static final String TIME_PERMISSION = "3smpcore.command.time";
     private static final String GAMERULE_PERMISSION = "3smpcore.command.gamerule";
@@ -53,6 +55,7 @@ public final class EssentialCommandService {
         if (context.args().length == 0) { Text.send(context.sender(), "<red>Usage: /gamemode <survival|creative|adventure|spectator> [player]</red>"); return; }
         GameMode mode = parseGameMode(context.arg(0));
         if (mode == null) { Text.send(context.sender(), "<red>Unknown gamemode.</red>"); return; }
+        if (!canUseMode(context.sender(), mode)) return;
         boolean targetOther = context.args().length >= 2;
         if (targetOther && !hasBypass(context.sender()) && !context.sender().hasPermission(BASE_PERMISSION) && !context.sender().hasPermission(GAMEMODE_OTHERS_PERMISSION)) {
             Text.send(context.sender(), "<red>No permission.</red>");
@@ -68,6 +71,7 @@ public final class EssentialCommandService {
     public void shortcut(CommandContext context, GameMode mode) {
         if (!(context.sender() instanceof Player player)) { Text.send(context.sender(), "<red>Players only.</red>"); return; }
         if (!allowed(player, GAMEMODE_PERMISSION)) return;
+        if (!canUseMode(player, mode)) return;
         player.setGameMode(mode);
         Text.send(player, "<green>Gamemode set to</green> <white>" + mode.name().toLowerCase(Locale.ROOT) + "</white><gray>.</gray>");
     }
@@ -146,6 +150,15 @@ public final class EssentialCommandService {
         }
         if (hasBypass(player) || player.hasPermission(BASE_PERMISSION) || player.hasPermission(permission)) return true;
         Text.send(player, "<red>No permission.</red>");
+        return false;
+    }
+    private boolean canUseMode(CommandSender sender, GameMode mode) {
+        if (mode != GameMode.CREATIVE) return true;
+        if (sender.isOp()
+                || sender.hasPermission(GAMEMODE_CREATIVE_PERMISSION)
+                || sender.hasPermission("3smpcore.staff.sradmin")
+                || sender.hasPermission("3smpcore.admin")) return true;
+        Text.send(sender, "<red>Creative mode is restricted to Sr. Admin+.</red>");
         return false;
     }
     private boolean hasBypass(org.bukkit.command.CommandSender sender) { return sender.hasPermission("3smpcore.command.bypass") || sender.hasPermission("3smpcore.staff.sradmin") || sender.hasPermission("3smpcore.admin"); }

@@ -60,7 +60,9 @@ public final class MoneyService {
         if (args.length > 0 && sender.hasPermission("3smpcore.money.admin")) target = Bukkit.getOfflinePlayer(args[0]);
         else if (sender instanceof Player player) target = player;
         else { Text.send(sender, "<red>Usage: /money balance <player></red>"); return; }
-        Text.send(sender, "<gradient:#1A2A4A:#D6E8F7>Money</gradient> <gray>" + safeName(target) + " has</gray> <white>" + format(balance(target.getUniqueId())) + "</white><gray>.</gray>");
+        Text.send(sender, configs.get("economy/money.yml").getString("messages.balance", "<gradient:#f4cd2a:#eda323:#d28d0d>Balance</gradient> <gray>{player} has</gray> <gradient:#f4cd2a:#eda323:#d28d0d>{amount}</gradient><gray>.</gray>")
+                .replace("{player}", safeName(target))
+                .replace("{amount}", format(balance(target.getUniqueId()))));
     }
 
     private void pay(CommandSender sender, String[] args) {

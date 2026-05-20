@@ -73,12 +73,37 @@ commands:
     description: Return to your previous survival location
   backpack:
     description: Open your survival backpack
+  bp:
+    description: Open your backpack
+  tpa:
+    description: Request to teleport to another player
+  tpaccept:
+    description: Accept a pending teleport request
+    aliases: [ tpyes ]
+  tpdeny:
+    description: Deny a pending teleport request
+    aliases: [ tpno ]
+  home:
+    description: Teleport to a saved survival home
+  homes:
+    description: List your saved survival homes
+  sethome:
+    description: Set a survival home
+  homeset:
+    description: Set a survival home
+  delhome:
+    description: Delete a saved survival home
+  deletehome:
+    description: Delete a saved survival home
+  removehome:
+    description: Delete a saved survival home
   rtp:
     description: Random teleport commands
   spawn:
     description: Spawn command
   survival:
     description: Teleport to survival
+    aliases: [ survive ]
   money:
     description: Money commands
   balance:
@@ -91,6 +116,9 @@ commands:
     description: Sell items for money
   shop:
     description: Open the server shop
+  store:
+    description: Open the server store link
+    aliases: [ buy, website ]
   ah:
     description: Auction house
   auction:
@@ -142,6 +170,9 @@ commands:
   crate:
     description: Custom crate system
     aliases: [ crates, prophecycrate ]
+  circulation:
+    description: Count crate items currently loaded on the server
+    aliases: [ cratecirculation ]
 permissions:
   3smpcore.admin:
     default: op
@@ -166,6 +197,8 @@ permissions:
   3smpcore.perks.use:
     default: true
   3smpcore.perks.admin:
+    default: op
+  3smpcore.perks.all:
     default: op
   3smpcore.sapphires.use:
     default: true
@@ -253,11 +286,43 @@ permissions:
     default: true
   3smpcore.backpack.use:
     default: true
+  3smpcore.backpack.limit.1:
+    default: false
+  3smpcore.backpack.limit.2:
+    default: false
+  3smpcore.backpack.limit.3:
+    default: false
+  3smpcore.backpack.limit.10:
+    default: false
+  3smpcore.backpack.limit.unlimited:
+    default: false
+  3smpcore.tpa.use:
+    default: true
+  3smpcore.home.use:
+    default: true
+  3smpcore.home.set:
+    default: true
+  3smpcore.home.delete:
+    default: true
+  3smpcore.home.limit.10:
+    default: false
+  3smpcore.home.limit.30:
+    default: false
+  3smpcore.home.limit.unlimited:
+    default: false
+  3smpcore.survival.end.bypass:
+    default: op
   3smpcore.command.bypass:
     default: op
   3smpcore.staff.sradmin:
     default: op
   3smpcore.staff.admin:
+    default: op
+  3smpcore.staff.srmod:
+    default: op
+  3smpcore.staff.altalerts:
+    default: op
+  3smpcore.altlimit.bypass:
     default: op
   3smpcore.spy.owner:
     default: op
@@ -267,11 +332,11 @@ permissions:
 
 
 
-  3smpcore.chat.color.vip:
+  3smpcore.chat.color.3:
     default: false
   3smpcore.chat.color.mvp:
     default: false
-  3smpcore.chat.color.elite:
+  3smpcore.chat.color.ultra:
     default: false
 
   3smpcore.dungeons.use:
@@ -295,7 +360,13 @@ permissions:
 
   3smpcore.queue.bypass:
     default: op
-  3smpcore.queue.priority.vip:
+  3smpcore.queue.priority.3:
+    default: false
+  3smpcore.queue.priority.pro:
+    default: false
+  3smpcore.queue.priority.mvp:
+    default: false
+  3smpcore.queue.priority.ultra:
     default: false
   3smpcore.queue.priority.staff:
     default: op
@@ -310,6 +381,8 @@ permissions:
   3smpcore.command.fly:
     default: op
   3smpcore.command.gamemode:
+    default: op
+  3smpcore.command.gamemode.creative:
     default: op
   3smpcore.command.gamemode.others:
     default: op

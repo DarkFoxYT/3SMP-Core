@@ -93,11 +93,16 @@ public final class BackLocationService implements Listener {
         String name = world.getName().toLowerCase(Locale.ROOT);
         String base = configs.get("world/survival.yml").getString("world", "world").toLowerCase(Locale.ROOT);
         String market = configs.get("world/market.yml").getString("world.name", "market").toLowerCase(Locale.ROOT);
+        boolean end = name.equals(base + "_the_end") || name.equals("world_the_end");
         return name.equals(base)
                 || name.equals(base + "_nether")
-                || name.equals(base + "_the_end")
                 || name.equals(market)
+                || (end && !endLocked())
                 || (Bukkit.getWorld(base) == null && name.equals("world"));
+    }
+
+    private boolean endLocked() {
+        return configs.get("world/survival.yml").getBoolean("end-lock.enabled", true);
     }
 
     private boolean hasBypass(Player player) {

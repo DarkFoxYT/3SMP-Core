@@ -177,6 +177,7 @@ public final class DuelService implements Listener {
     private final Set<UUID> frozenDuelPlayers = new HashSet<>();
     private final Set<UUID> preparingDuelPlayers = new HashSet<>();
     private final Map<UUID, SpectatorSnapshot> spectatorSnapshots = new HashMap<>();
+    private final Map<UUID, Map<Integer, UUID>> spectatorMenuSlots = new HashMap<>();
     private final Map<UUID, Snapshot> snapshots = new HashMap<>();
     private final Map<UUID, org.bukkit.World> instanceWorldsByMatch = new HashMap<>();
     private final Map<UUID, DuelMap> activeMapsByMatch = new HashMap<>();
@@ -259,19 +260,19 @@ public final class DuelService implements Listener {
             case "queueui", "queues", "chest", "chestui" -> openPluginMainMenu(player);
             case "solo", "1v1" -> {
                 pendingDeluxeKitMode.put(player.getUniqueId(), DuelMode.SOLO);
-                openPluginKitMenu(player);
+                openKitMenu(player);
             }
             case "ranked" -> {
                 if (context.args().length > 1) queueRankedSolo(player, resolveKit(context.arg(1)));
                 else {
                     pendingDeluxeKitMode.put(player.getUniqueId(), DuelMode.SOLO);
                     pendingRankedKitSelection.add(player.getUniqueId());
-                    openPluginKitMenu(player);
+                    openKitMenu(player);
                 }
             }
             case "duo", "party", "2v2" -> {
                 pendingDeluxeKitMode.put(player.getUniqueId(), DuelMode.PARTY);
-                openPluginKitMenu(player);
+                openKitMenu(player);
             }
             case "ffa" -> {
                 Text.send(player, "<yellow>FFA is only available from party duels.</yellow> <gray>Use <white>/party duel</white>.</gray>");
@@ -287,7 +288,10 @@ public final class DuelService implements Listener {
                 else openPluginMainMenu(player);
             }
             case "leave" -> leaveDuelOrQueue(player);
-            case "spec", "spectate" -> spectate(player, context.arg(1));
+            case "spec", "spectate" -> {
+                if (context.args().length < 2) openSpectatorMenu(player);
+                else spectate(player, context.arg(1));
+            }
             case "kiteditor" -> openLoadoutEditor(player);
             case "devpanel", "mapeditor" -> openDevMenu(player);
             case "test" -> runTestDuel(player);
@@ -361,6 +365,12 @@ public final class DuelService implements Listener {
         return "";
     }
     public static boolean isDuelPlayer(Player player) { return player != null && ACTIVE_DUEL_PLAYERS.contains(player.getUniqueId()); }
+    public boolean isDuelIsolatedWorld(World world) {
+        if (world == null) return false;
+        if (isLiveMatchWorld(world) || isTemporaryDuelWorld(world) || isDuelEditorWorld(world)) return true;
+        String worldName = world.getName();
+        return maps.values().stream().anyMatch(map -> map.worldName() != null && map.worldName().equalsIgnoreCase(worldName));
+    }
     public void addPostMatchItemRefresher(Consumer<Player> refresher) { postMatchItemRefreshers.add(refresher); }
 
     private boolean isFrozenDuelPlayer(Player player) {
@@ -383,6 +393,34 @@ public final class DuelService implements Listener {
         menuService.open(player, guiManager.buildKitSelector(player));
     }
     public void openPluginKitMenu(Player player) { menuService.open(player, guiManager.buildKitSelector(player)); }
+
+    public void openSpectatorMenu(Player player) {
+        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_SPECTATE, "spectate"), 54, Text.mm("<gradient:#60a5fa:#c084fc>Live Duels</gradient>"));
+        for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, createTagged(Material.BLACK_STAINED_GLASS_PANE, " ", "spectator_fill", List.of()));
+        int[] slots = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34};
+        List<DuelMatch> matches = liveMatches();
+        Map<Integer, UUID> slotMap = new HashMap<>();
+        for (int i = 0; i < Math.min(matches.size(), slots.length); i++) {
+            DuelMatch match = matches.get(i);
+            int slot = slots[i];
+            inv.setItem(slot, createTagged(Material.SPYGLASS, "<gradient:#60a5fa:#c084fc>" + modeLabel(match.mode()) + " Duel</gradient>", "spectator_match", List.of(
+                    "<gray>Kit:</gray> <white>" + match.kitId() + "</white>",
+                    "<gray>Arena:</gray> <white>" + match.mapId() + "</white>",
+                    "<#f87171>Red:</#f87171> <white>" + names(match.teamOne()) + "</white>",
+                    "<#60a5fa>Blue:</#60a5fa> <white>" + names(match.teamTwo()) + "</white>",
+                    "<gray>Time:</gray> <yellow>" + formatDuration(System.currentTimeMillis() - match.startedAt()) + "</yellow>",
+                    "<#f4cd2a>Click</#f4cd2a> <gray>to spectate.</gray>"
+            )));
+            slotMap.put(slot, match.id());
+        }
+        if (matches.isEmpty()) {
+            inv.setItem(22, createTagged(Material.BARRIER, "<red>No live duels</red>", "spectator_none", List.of("<gray>Matches will appear here when players are fighting.</gray>")));
+        }
+        inv.setItem(49, createTagged(Material.ARROW, "<gray>Back</gray>", "spectator_back", List.of("<gray>Return to duels.</gray>")));
+        spectatorMenuSlots.put(player.getUniqueId(), slotMap);
+        menuService.open(player, inv);
+    }
+
     private void openChallengeKitMenu(Player player, Player target) {
         pendingChallengeTargets.put(player.getUniqueId(), target.getName());
         menuService.open(player, new DuelMenu(this).buildKitMenu(player, "<gradient:#60a5fa:#c084fc>Choose Kit vs " + target.getName() + "</gradient>"));
@@ -408,11 +446,11 @@ public final class DuelService implements Listener {
             case "kits", "kit" -> openKitMenu(player);
             case "solo" -> {
                 pendingDeluxeKitMode.put(player.getUniqueId(), DuelMode.SOLO);
-                openPluginKitMenu(player);
+                openKitMenu(player);
             }
             case "party", "duo", "2v2" -> {
                 pendingDeluxeKitMode.put(player.getUniqueId(), DuelMode.PARTY);
-                openPluginKitMenu(player);
+                openKitMenu(player);
             }
             case "ffa" -> {
                 Text.send(player, "<yellow>FFA is only available from party duels.</yellow> <gray>Use <white>/party duel</white>.</gray>");
@@ -434,7 +472,7 @@ public final class DuelService implements Listener {
             case "ranked" -> {
                 pendingDeluxeKitMode.put(player.getUniqueId(), DuelMode.SOLO);
                 pendingRankedKitSelection.add(player.getUniqueId());
-                openPluginKitMenu(player);
+                openKitMenu(player);
             }
             default -> Text.send(player, "<yellow>Use /duel deluxe menu|solo|party|leaderboard|leave|queue <kit></yellow>");
         }
@@ -449,34 +487,37 @@ public final class DuelService implements Listener {
         Path menusDir = deluxeDir.resolve("DeluxeMenus").resolve("gui_menus");
         try {
             Files.createDirectories(menusDir);
-            writeIfMissing(menusDir.resolve(yaml.getString("menus.deluxemenus.main-menu", "duels_menu") + ".yml"), deluxeMainMenuTemplate());
-            writeIfMissing(menusDir.resolve(yaml.getString("menus.deluxemenus.kits-menu", "duels_kits") + ".yml"), deluxeKitsMenuTemplate());
+            writeDeluxeMenu(menusDir.resolve(yaml.getString("menus.deluxemenus.main-menu", "duels_menu") + ".yml"), deluxeMainMenuTemplate(), false);
+            writeDeluxeMenu(menusDir.resolve(yaml.getString("menus.deluxemenus.kits-menu", "duels_kits") + ".yml"), deluxeKitsMenuTemplate(), true);
         } catch (IOException ex) {
             plugin.getLogger().warning("Could not install DeluxeMenus duel examples: " + ex.getMessage());
         }
     }
 
-    private void writeIfMissing(Path path, String content) throws IOException {
-        if (Files.exists(path)) return;
+    private void writeDeluxeMenu(Path path, String content, boolean refreshGenerated) throws IOException {
+        if (Files.exists(path)) {
+            String existing = Files.readString(path, StandardCharsets.UTF_8);
+            if (!refreshGenerated && !existing.contains("# Generated by 3SMPCore")) return;
+            if (refreshGenerated && !existing.contains("# Generated by 3SMPCore") && !existing.contains("example_kit:")) return;
+        }
         Files.writeString(path, content, StandardCharsets.UTF_8);
-        plugin.getLogger().info("Installed DeluxeMenus starter: " + path.getFileName());
+        plugin.getLogger().info("Updated DeluxeMenus duel menu: " + path.getFileName());
     }
 
     private String deluxeMainMenuTemplate() {
                 return """
                         # Generated by 3SMPCore. Safe to edit; it will not be overwritten while this file exists.
                         # ItemsAdder font images belong in menu_title/backgrounds.
-                        # If %img_duels_menu% does not parse on your setup, use the single unicode char instead, e.g. "\\uE001".
                         # Clickable slots need an item. Use a transparent ItemsAdder item named threesmp:gui_clickzone to avoid visible vanilla icons.
-                        menu_title: ":offset_-8::duels_menu::duels_solo::duels_duo:"
+                        menu_title: ":offset_-15:&f:duels_menu:"
                         open_command: []
-                        size: 27
+                        size: 54
                         # 3SMPCore owns /duel and opens this with /dm open, so DeluxeMenus should not steal the command.
                         update_interval: 20
                         items:
-                          solo_click:
+                          solo_click_1:
                             material: "itemsadder-threesmp:gui_clickzone"
-                            slot: 10
+                            slots: [10, 11, 12, 19, 20, 21, 28, 29, 30]
                             display_name: "&b&lSolo Duel"
                             lore:
                               - "&7Click to pick a kit."
@@ -484,57 +525,101 @@ public final class DuelService implements Listener {
                               - "&7Your queue: &f%3smpcore_duel_queue_summary%"
                             left_click_commands:
                               - "[player] duel deluxe solo"
-                          party_click:
+                          party_click_1:
                             material: "itemsadder-threesmp:gui_clickzone"
-                            slot: 16
+                            slots: [14, 15, 16, 23, 24, 25, 32, 33, 34]
                             display_name: "&#eda323&lParty Duel"
                             lore:
                               - "&7Queue your party for team duels."
                               - "&7Queued: &f%3smpcore_duel_party_queue%"
                             left_click_commands:
                               - "[player] duel deluxe duo"
-                          leave_click:
-                            material: BARRIER
-                            slot: 26
-                            display_name: "&cClose"
-                            lore:
-                              - "&7Current: &f%3smpcore_duel_queue_summary%"
-                            left_click_commands:
-                              - "[close]"
                         """;
     }
 
     private String deluxeKitsMenuTemplate() {
         StringBuilder out = new StringBuilder("""
                 # Generated by 3SMPCore. Safe to edit; it will not be overwritten while this file exists.
-                menu_title: ":offset_-8::duels_menu:"
+                menu_title: ":offset_-15:&f:duels_kits:"
+                open_command: []
                 size: 54
                 update_interval: 20
                 items:
-                  back:
-                    material: ARROW
-                    slot: 49
-                    display_name: "&#eda323Back"
-                    left_click_commands:
-                      - "[player] duel deluxe menu"
                 """);
-        int slot = 10;
+        int[] fallbackSlots = {10, 12, 14, 16, 28, 30, 32, 34};
+        int fallbackIndex = 0;
+        Set<Integer> usedSlots = new HashSet<>();
         for (DuelKit kit : kits.values()) {
             if (!kit.enabled()) continue;
-            if (slot >= 44) break;
+            int slot = kit.slot();
+            if (slot < 0 || slot >= 54 || usedSlots.contains(slot)) {
+                while (fallbackIndex < fallbackSlots.length && usedSlots.contains(fallbackSlots[fallbackIndex])) fallbackIndex++;
+                if (fallbackIndex >= fallbackSlots.length) break;
+                slot = fallbackSlots[fallbackIndex++];
+            }
+            usedSlots.add(slot);
             out.append("  kit_").append(kit.id()).append(":\n");
-            out.append("    material: DIAMOND_SWORD\n");
+            out.append("    material: ").append(kit.icon().name()).append("\n");
             out.append("    slot: ").append(slot).append("\n");
-            out.append("    display_name: \"").append(kit.displayName().replace("\"", "\\\"")).append("\"\n");
+            out.append("    display_name: \"").append(deluxeMenuText(kit.displayName())).append("\"\n");
             out.append("    lore:\n");
+            for (String line : kit.lore()) out.append("      - \"").append(deluxeMenuLore(line)).append("\"\n");
             out.append("      - \"&7Queued: &f%3smpcore_duel_kit_queue_").append(kit.id()).append("%\"\n");
             out.append("      - \"&7Click to queue with selected mode.\"\n");
             out.append("    left_click_commands:\n");
             out.append("      - \"[player] duel deluxe queue ").append(kit.id()).append("\"\n");
-            slot++;
-            if (slot % 9 == 8) slot += 2;
         }
         return out.toString();
+    }
+
+    private String deluxeMenuText(String raw) {
+        String color = firstMiniMessageColor(raw);
+        boolean bold = raw != null && raw.toLowerCase(Locale.ROOT).contains("<bold>");
+        String plain = stripMiniMessage(raw);
+        return (color.isBlank() ? "&f" : color) + (bold ? "&l" : "") + plain.replace("\"", "\\\"");
+    }
+
+    private String deluxeMenuLore(String raw) {
+        String color = firstMiniMessageColor(raw);
+        String plain = stripMiniMessage(raw);
+        if (color.isBlank()) color = "&7";
+        return (plain.isBlank() ? "" : color + plain).replace("\"", "\\\"");
+    }
+
+    private String firstMiniMessageColor(String raw) {
+        if (raw == null) return "";
+        int hash = raw.indexOf('#');
+        if (hash >= 0 && hash + 7 <= raw.length()) {
+            String hex = raw.substring(hash, hash + 7);
+            if (hex.matches("#[0-9A-Fa-f]{6}")) return "&" + hex;
+        }
+        String lower = raw.toLowerCase(Locale.ROOT);
+        if (lower.contains("<gray>")) return "&7";
+        if (lower.contains("<white>")) return "&f";
+        if (lower.contains("<yellow>")) return "&e";
+        if (lower.contains("<red>")) return "&c";
+        if (lower.contains("<green>")) return "&a";
+        if (lower.contains("<aqua>")) return "&b";
+        return "";
+    }
+
+    private String stripMiniMessage(String raw) {
+        if (raw == null) return "";
+        StringBuilder out = new StringBuilder();
+        boolean inTag = false;
+        for (int i = 0; i < raw.length(); i++) {
+            char c = raw.charAt(i);
+            if (c == '<') {
+                inTag = true;
+                continue;
+            }
+            if (c == '>' && inTag) {
+                inTag = false;
+                continue;
+            }
+            if (!inTag) out.append(c);
+        }
+        return out.toString().trim();
     }
 
     public ItemStack guiIcon(String path, Material fallback) {
@@ -604,15 +689,22 @@ public final class DuelService implements Listener {
 
     public void handleMainMenuClick(Player player, int slot) {
         if (slot == 7) openSummary(player);
-        else if (slot == 10) {
+        else if (isSoloMainSlot(slot)) {
             pendingDeluxeKitMode.put(player.getUniqueId(), DuelMode.SOLO);
             openPluginKitMenu(player);
         }
-        else if (slot == 16) {
+        else if (isPartyMainSlot(slot)) {
             pendingDeluxeKitMode.put(player.getUniqueId(), DuelMode.PARTY);
             openPluginKitMenu(player);
         }
-        else if (slot == 22) leaveDuelOrQueue(player);
+    }
+
+    private boolean isSoloMainSlot(int slot) {
+        return slot == 10 || slot == 11 || slot == 12 || slot == 19 || slot == 20 || slot == 21 || slot == 28 || slot == 29 || slot == 30;
+    }
+
+    private boolean isPartyMainSlot(int slot) {
+        return slot == 14 || slot == 15 || slot == 16 || slot == 23 || slot == 24 || slot == 25 || slot == 32 || slot == 33 || slot == 34;
     }
 
     public void handleSummaryClick(Player player, int slot) {
@@ -634,6 +726,30 @@ public final class DuelService implements Listener {
             else if (mode == DuelMode.PARTY) queueParty(player, kitId);
             else queueSolo(player, kitId);
         }
+    }
+
+    public void handleSpectatorMenuClick(Player player, int slot) {
+        if (slot == 49) {
+            openMainMenu(player);
+            return;
+        }
+        UUID matchId = spectatorMenuSlots.getOrDefault(player.getUniqueId(), Map.of()).get(slot);
+        if (matchId == null) return;
+        DuelMatch match = activeMatch(matchId);
+        if (match == null) {
+            Text.send(player, "<red>That duel has ended.</red>");
+            openSpectatorMenu(player);
+            return;
+        }
+        Player target = firstOnline(match.teamOne());
+        if (target == null) target = firstOnline(match.teamTwo());
+        if (target == null) {
+            Text.send(player, "<red>No online player is available to spectate.</red>");
+            openSpectatorMenu(player);
+            return;
+        }
+        player.closeInventory();
+        spectate(player, target.getName());
     }
 
     public void handleMenuClick(Player player, int slot) { handleMainMenuClick(player, slot); }
@@ -1653,12 +1769,15 @@ public final class DuelService implements Listener {
         player.setFlying(true);
         player.setInvisible(true);
         player.setCollidable(false);
+        applySpectatorVisibility(player, match, false);
         Text.send(player, "<gradient:#60a5fa:#c084fc>Spectating</gradient> <white>" + target.getName() + "</white><gray>. Use /leave to exit.</gray>");
     }
 
     private void stopSpectating(Player player) {
         SpectatorSnapshot snapshot = spectatorSnapshots.remove(player.getUniqueId());
         if (snapshot == null) return;
+        DuelMatch match = activeMatch(snapshot.matchId());
+        if (match != null) applySpectatorVisibility(player, match, true);
         if (player.getGameMode() == GameMode.SPECTATOR) {
             try { player.setSpectatorTarget(null); } catch (IllegalArgumentException ignored) {}
         }
@@ -1708,8 +1827,23 @@ public final class DuelService implements Listener {
         SpectatorSnapshot session = spectatorSnapshots.get(spectator.getUniqueId());
         if (session == null) return;
         session.visible(!session.visible());
+        DuelMatch match = activeMatch(session.matchId());
+        if (match != null) applySpectatorVisibility(spectator, match, session.visible());
         spectator.setInvisible(!session.visible());
         Text.actionBar(spectator, session.visible() ? "<green>Visible to duel players.</green>" : "<gray>Hidden from duel players.</gray>");
+    }
+
+    private void applySpectatorVisibility(Player spectator, DuelMatch match, boolean visible) {
+        if (spectator == null || match == null) return;
+        Set<UUID> viewers = new HashSet<>();
+        viewers.addAll(match.teamOne());
+        viewers.addAll(match.teamTwo());
+        for (UUID uuid : viewers) {
+            Player viewer = Bukkit.getPlayer(uuid);
+            if (viewer == null || viewer.equals(spectator)) continue;
+            if (visible) viewer.showPlayer(plugin, spectator);
+            else viewer.hidePlayer(plugin, spectator);
+        }
     }
 
     private void sendSpectatorInfo(Player player, DuelMatch match) {
@@ -1736,6 +1870,16 @@ public final class DuelService implements Listener {
             String twoHealth = two == null ? "--" : formatOneDecimal(two.getHealth());
             Text.actionBar(spectator, "<gradient:#60a5fa:#c084fc>" + match.kitId() + "</gradient> <dark_gray>|</dark_gray> <gray>" + match.mapId() + "</gray> <dark_gray>|</dark_gray> <#f87171>" + (one == null ? "Red" : one.getName()) + " " + oneHealth + "</#f87171> <gray>vs</gray> <#60a5fa>" + (two == null ? "Blue" : two.getName()) + " " + twoHealth + "</#60a5fa> <dark_gray>|</dark_gray> <yellow>" + formatDuration(System.currentTimeMillis() - match.startedAt()) + "</yellow>");
         }
+    }
+
+    private List<DuelMatch> liveMatches() {
+        return matchesByPlayer.values().stream()
+                .filter(match -> match != null && !endingMatches.contains(match.id()))
+                .collect(java.util.stream.Collectors.toMap(DuelMatch::id, match -> match, (first, second) -> first, LinkedHashMap::new))
+                .values()
+                .stream()
+                .sorted(Comparator.comparingLong(DuelMatch::startedAt).reversed())
+                .toList();
     }
 
     private DuelMatch activeMatch(UUID matchId) {
@@ -2383,8 +2527,8 @@ public final class DuelService implements Listener {
         if (match != null) {
             announceLeave(event.getPlayer(), true);
             Set<UUID> winners = forfeitWinners(match, uuid);
-            snapshots.remove(uuid);
-            returnPlayerToSpawnAfterDuel(event.getPlayer(), spawnLocation());
+            Snapshot snapshot = snapshots.remove(uuid);
+            restorePlayerToSpawnAfterDuel(event.getPlayer(), snapshot, spawnLocation());
             Bukkit.getScheduler().runTaskLater(plugin, () -> endMatch(match, winners, "quit"), 10L);
         }
         clearHealthIndicatorEntry(event.getPlayer());
@@ -3869,13 +4013,13 @@ public final class DuelService implements Listener {
         frozenDuelPlayers.remove(uuid);
         preparingDuelPlayers.remove(uuid);
         loadoutButtonDisplacements.remove(uuid);
-        snapshots.remove(uuid);
+        Snapshot snapshot = snapshots.remove(uuid);
         purgePlayersFromQueues(Set.of(uuid));
         clearHealthIndicatorEntry(player);
-        returnPlayerToSpawnAfterDuel(player, spawnLocation());
+        restorePlayerToSpawnAfterDuel(player, snapshot, spawnLocation());
         Bukkit.getScheduler().runTaskLater(plugin, () -> {
             if (!player.isOnline()) return;
-            returnPlayerToSpawnAfterDuel(player, spawnLocation());
+            restorePlayerToSpawnAfterDuel(player, snapshot, spawnLocation());
             refreshPostMatchItems(player);
         }, 2L);
         return true;
@@ -3909,6 +4053,25 @@ public final class DuelService implements Listener {
         player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
         player.setFallDistance(0.0f);
         player.setItemOnCursor(null);
+        if (player.isOnline()) player.updateInventory();
+    }
+
+    private void restorePlayerToSpawnAfterDuel(Player player, Snapshot snapshot, Location spawn) {
+        if (player == null) return;
+        if (snapshot == null) {
+            returnPlayerToSpawnAfterDuel(player, spawn);
+            return;
+        }
+        if (player.isDead()) {
+            try { player.spigot().respawn(); } catch (Exception ignored) {}
+        }
+        clearHealthIndicatorEntry(player);
+        normalizeDuelPlayerState(player);
+        player.setItemOnCursor(null);
+        snapshot.restore(player, spawn);
+        player.setFireTicks(0);
+        player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
+        player.setFallDistance(0.0f);
         if (player.isOnline()) player.updateInventory();
     }
 
@@ -4046,13 +4209,13 @@ public final class DuelService implements Listener {
                 preparingDuelPlayers.remove(uuid);
                 loadoutButtonDisplacements.remove(uuid);
                 purgePlayersFromQueues(Set.of(uuid));
-                snapshots.remove(uuid);
+                Snapshot snapshot = snapshots.remove(uuid);
                 Player player = Bukkit.getPlayer(uuid);
                 if (player == null) continue;
-                returnPlayerToSpawnAfterDuel(player, spawn);
+                restorePlayerToSpawnAfterDuel(player, snapshot, spawn);
                 Bukkit.getScheduler().runTaskLater(plugin, () -> {
                     if (!player.isOnline()) return;
-                    returnPlayerToSpawnAfterDuel(player, spawn);
+                    restorePlayerToSpawnAfterDuel(player, snapshot, spawn);
                     refreshPostMatchItems(player);
                 }, 2L);
                 boolean win = winners.contains(uuid);

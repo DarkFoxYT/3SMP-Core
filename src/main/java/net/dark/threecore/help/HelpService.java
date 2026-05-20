@@ -19,8 +19,10 @@ import org.jetbrains.annotations.NotNull;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
+import java.util.Set;
 
 public final class HelpService implements Listener {
     private final JavaPlugin plugin;
@@ -54,11 +56,12 @@ public final class HelpService implements Listener {
 
     public List<String> complete(String[] args) {
         if (args.length > 1) return List.of();
+        Set<String> ids = new LinkedHashSet<>();
+        ConfigurationSection menuPages = configs.get("core/help.yml").getConfigurationSection("menu.pages");
+        if (menuPages != null) for (String id : menuPages.getKeys(false)) ids.add(id.toLowerCase(Locale.ROOT));
         ConfigurationSection pages = configs.get("core/help.yml").getConfigurationSection("pages");
-        if (pages == null) return List.of();
-        List<String> ids = new ArrayList<>();
-        for (String id : pages.getKeys(false)) ids.add(id.toLowerCase(Locale.ROOT));
-        return ids;
+        if (pages != null) for (String id : pages.getKeys(false)) ids.add(id.toLowerCase(Locale.ROOT));
+        return new ArrayList<>(ids);
     }
 
     public void open(Player player, String pageId) {
@@ -67,15 +70,19 @@ public final class HelpService implements Listener {
         if (config.getConfigurationSection("menu.pages." + normalized) == null) normalized = config.getString("settings.default-page", "main");
         int size = Math.max(9, Math.min(54, config.getInt("menu.size", 54)));
         if (size % 9 != 0) size = 54;
-        Inventory inv = Bukkit.createInventory(new HelpHolder(normalized), size, replace(config.getString("menu.title", "3SMP Help"), player));
-        ItemStack fill = item(config.getConfigurationSection("menu.fill"), Material.BLACK_STAINED_GLASS_PANE, player);
-        for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, fill);
         ConfigurationSection page = config.getConfigurationSection("menu.pages." + normalized);
+        String rawTitle = page == null ? config.getString("menu.title", "3SMP Help") : page.getString("title", config.getString("menu.title", "3SMP Help"));
+        Inventory inv = Bukkit.createInventory(new HelpHolder(normalized), size, replaceGuiSymbols(replace(rawTitle, player)));
+        if (config.getBoolean("menu.fill.enabled", false)) {
+            ItemStack fill = item(config.getConfigurationSection("menu.fill"), Material.BLACK_STAINED_GLASS_PANE, player);
+            for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, fill);
+        }
         if (page != null) {
             ItemStack header = item(page.getConfigurationSection("header"), Material.NETHER_STAR, player);
-            inv.setItem(config.getInt("menu.header-slot", 4), header);
+            int headerSlot = page.getInt("header-slot", config.getInt("menu.header-slot", -1));
+            if (headerSlot >= 0 && headerSlot < inv.getSize()) inv.setItem(headerSlot, header);
         }
-        ConfigurationSection buttons = config.getConfigurationSection("menu.buttons");
+        ConfigurationSection buttons = buttonsFor(normalized);
         if (buttons != null) {
             for (String id : buttons.getKeys(false)) {
                 ConfigurationSection section = buttons.getConfigurationSection(id);
@@ -92,12 +99,12 @@ public final class HelpService implements Listener {
 
     @EventHandler
     public void onClick(InventoryClickEvent event) {
-        if (!(event.getView().getTopInventory().getHolder() instanceof HelpHolder)) return;
+        if (!(event.getView().getTopInventory().getHolder() instanceof HelpHolder holder)) return;
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player)) return;
         if (event.getClickedInventory() == null || event.getClickedInventory() != event.getView().getTopInventory()) return;
         int slot = event.getRawSlot();
-        ConfigurationSection buttons = configs.get("core/help.yml").getConfigurationSection("menu.buttons");
+        ConfigurationSection buttons = buttonsFor(holder.page());
         if (buttons == null) return;
         for (String id : buttons.getKeys(false)) {
             ConfigurationSection section = buttons.getConfigurationSection(id);
@@ -128,10 +135,57 @@ public final class HelpService implements Listener {
     }
 
     private String replace(String input, CommandSender sender) {
+        if (input == null) return "";
         return input
                 .replace("{player}", sender.getName())
                 .replace("{server}", configs.get("core/help.yml").getString("settings.server-name", "3SMP"))
                 .replace("{version}", plugin.getPluginMeta().getVersion());
+    }
+
+    private ConfigurationSection buttonsFor(String pageId) {
+        ConfigurationSection pageButtons = configs.get("core/help.yml").getConfigurationSection("menu.pages." + pageId + ".buttons");
+        return pageButtons != null ? pageButtons : configs.get("core/help.yml").getConfigurationSection("menu.buttons");
+    }
+
+    private String replaceGuiSymbols(String input) {
+        String output = applyItemsAdderFontImages(input);
+        ConfigurationSection symbols = configs.get("core/help.yml").getConfigurationSection("menu.itemsadder-font-symbols");
+        if (symbols != null) {
+            for (String key : symbols.getKeys(false)) {
+                output = output.replace(":" + key + ":", decodeUnicodeEscapes(symbols.getString(key, "")));
+            }
+        }
+        return decodeUnicodeEscapes(output);
+    }
+
+    private String applyItemsAdderFontImages(String input) {
+        if (input == null || input.isBlank() || !Bukkit.getPluginManager().isPluginEnabled("ItemsAdder")) return input == null ? "" : input;
+        try {
+            Class<?> wrapper = Class.forName("dev.lone.itemsadder.api.FontImages.FontImageWrapper");
+            Method replace = wrapper.getMethod("replaceFontImages", String.class);
+            Object result = replace.invoke(null, input);
+            return result instanceof String text ? text : input;
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return input;
+        }
+    }
+
+    private String decodeUnicodeEscapes(String input) {
+        if (input == null || input.isBlank() || !input.contains("\\u")) return input == null ? "" : input;
+        StringBuilder out = new StringBuilder(input.length());
+        for (int i = 0; i < input.length(); i++) {
+            if (i + 5 < input.length() && input.charAt(i) == '\\' && input.charAt(i + 1) == 'u') {
+                String hex = input.substring(i + 2, i + 6);
+                try {
+                    out.append((char) Integer.parseInt(hex, 16));
+                    i += 5;
+                    continue;
+                } catch (NumberFormatException ignored) {
+                }
+            }
+            out.append(input.charAt(i));
+        }
+        return out.toString();
     }
 
     private ItemStack item(ConfigurationSection section, Material fallback, CommandSender sender) {

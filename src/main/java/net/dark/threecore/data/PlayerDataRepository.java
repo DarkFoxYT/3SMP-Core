@@ -161,6 +161,7 @@ public final class PlayerDataRepository {
             deleteWhere("DELETE FROM player_fishing_stats WHERE uuid = ?", uuid);
             deleteWhere("DELETE FROM player_souls WHERE uuid = ?", uuid);
             deleteWhere("DELETE FROM player_inventory_profiles WHERE uuid = ?", uuid);
+            deleteWhere("DELETE FROM player_homes WHERE uuid = ?", uuid);
             deleteWhere("DELETE FROM player_duel_kit_stats WHERE uuid = ?", uuid);
             deleteWhere("DELETE FROM market_plot_trust WHERE player_uuid = ?", uuid);
             deleteWhere("DELETE FROM market_plots WHERE owner = ?", uuid);

@@ -3,27 +3,17 @@ menus:
     enabled: true
     main-menu: "duels_menu"
     kits-menu: "duels_kits"
-    # Creates starter files in plugins/DeluxeMenus/gui_menus if missing.
-    # Use DeluxeMenus for the real custom UI, and keep this plugin's Bukkit GUI as fallback.
     install-examples: true
-  # These must match the single-character ItemsAdder font_image symbols.
-  # You can keep using :duels_menu: below; 3SMPCore replaces it with these values.
+
   itemsadder-font-symbols:
-    duels_menu: "\\uE001"
-    duels_solo: "\\uE002"
-    duels_duo: "\\uE003"
-    duels_solo_hover: "\\uE004"
-    duels_duo_hover: "\\uE005"
+    duels_menu: "\\uA420"
+    duels_kits: "\\uA426"
   duel:
     title: ""
     # Put ItemsAdder GUI/font-image glyphs here, e.g. ":duels_menu:"
     # This is prepended to the inventory title so custom GUI backgrounds can render.
     background: ":duels_menu:"
-    # Extra font-image layers. Use these for button art baked as GUI title glyphs.
-    # True hover swapping is not possible server-side because inventory hover is client-only.
-    layers:
-      - ":duels_solo:"
-      - ":duels_duo:"
+    layers: []
     size: 54
     frame: "AIR"
     # Every button supports:
@@ -34,20 +24,13 @@ menus:
       solo:
         material: AIR
         itemsadder: ""
-        font-image: ":duels_solo:"
-        hover-font-image: ":duels_solo_hover:"
       party:
         material: AIR
         itemsadder: ""
-        font-image: ":duels_duo:"
-        hover-font-image: ":duels_duo_hover:"
       kit:
         itemsadder: ""
       queued-kit:
         material: LIME_DYE
-        itemsadder: ""
-      back:
-        material: ARROW
         itemsadder: ""
       summary-solo:
         material: DIAMOND_SWORD

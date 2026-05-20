@@ -71,6 +71,7 @@ public final class MenuListener implements Listener {
                 else duelService.handleMainMenuClick(player, slot);
             }
             case DUEL_KITS -> duelService.handleKitMenuClick(player, slot);
+            case DUEL_SPECTATE -> duelService.handleSpectatorMenuClick(player, slot);
             case DUEL_DEV -> {
                 if (holder.context().equalsIgnoreCase("map-editor")) duelService.handleMapEditorClick(player, slot);
                 else if (holder.context().equalsIgnoreCase("kit-selector")) duelService.handleKitEditorSelectorClick(player, slot);
@@ -79,7 +80,7 @@ public final class MenuListener implements Listener {
                 else if (holder.context().toLowerCase(java.util.Locale.ROOT).startsWith("launchpad:") && launchpadService != null) launchpadService.handleDetailClick(player, holder.context().substring("launchpad:".length()), slot);
                 else if (holder.context().equalsIgnoreCase("launchpads") && launchpadService != null) launchpadService.handleMenuClick(player, slot);
                 else if (holder.context().equalsIgnoreCase("warps") && warpManager != null) warpManager.handleClick(player, slot);
-                else if (holder.context().toLowerCase(java.util.Locale.ROOT).startsWith("shop:") && shopService != null) shopService.handleClick(player, holder.context(), slot);
+                else if (holder.context().toLowerCase(java.util.Locale.ROOT).startsWith("shop:") && shopService != null) shopService.handleClick(player, holder.context(), slot, event.getClick());
                 else duelService.handleDevMenuClick(player, slot);
             }
             case DUEL_LEADERBOARD -> leaderboardService.handleClick(player, slot);

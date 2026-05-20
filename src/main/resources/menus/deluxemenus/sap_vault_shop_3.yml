@@ -1,0 +1,67 @@
+menu_title: ":offset_-15:&f:sap_vault:"
+open_command: []
+size: 54
+update_interval: 20
+
+items:
+  balance:
+    material: "itemsadder-threesmp:sapphire"
+    slot: 13
+    display_name: "&#f4cd2a&lSapphire &#eda323&lBalance"
+    lore:
+      - "&7Current balance: &#f4cd2a%3smpcore_sapphires% &fSapphires"
+      - "&8Page 3/4: Relics and rare gear"
+
+  sapphire_quiver:
+    material: "itemsadder-threesmp:sapphire_quiver"
+    slot: 20
+    display_name: "&#38bdf8&lSapphire &#ffffff&lQuiver"
+    lore: ["&#f4cd2aPrice: &fTBD", "&7Infinity bow.", "&8Coming soon."]
+    left_click_commands: ["[player] sapphire deluxe buy sapphire_quiver"]
+  sapphire_bulwark:
+    material: "itemsadder-threesmp:sapphire_bulwark"
+    slot: 22
+    display_name: "&#38bdf8&lSapphire &#ffffff&lBulwark"
+    lore: ["&#f4cd2aPrice: &fTBD", "&7Custom shield.", "&8Coming soon."]
+    left_click_commands: ["[player] sapphire deluxe buy sapphire_bulwark"]
+  veilcutter:
+    material: "itemsadder-threesmp:veilcutter"
+    slot: 24
+    display_name: "&#800037&lVeilcutter"
+    lore: ["&#f4cd2aPrice: &fTBD", "&7Rare weapon.", "&8Coming soon."]
+    left_click_commands: ["[player] sapphire deluxe buy veilcutter"]
+  pandoras_pick:
+    material: "itemsadder-threesmp:pandoras_pick"
+    slot: 29
+    display_name: "&#f4cd2a&lPandora's Pick"
+    lore: ["&#f4cd2aPrice: &fTBD", "&7Rare mining tool.", "&8Coming soon."]
+    left_click_commands: ["[player] sapphire deluxe buy pandoras_pick"]
+  lazurite:
+    material: "itemsadder-threesmp:lazurite"
+    slot: 31
+    display_name: "&#38bdf8&lLazurite"
+    lore: ["&#f4cd2aPrice: &fTBD", "&7Sapphire projectile relic.", "&8Coming soon."]
+    left_click_commands: ["[player] sapphire deluxe buy lazurite"]
+  forsaken_elytra:
+    material: "itemsadder-threesmp:forsaken_elytra"
+    slot: 33
+    display_name: "&#4169e1&lForsaken Elytra"
+    lore: ["&#f4cd2aPrice: &fTBD", "&7Premium elytra.", "&8Coming soon."]
+    left_click_commands: ["[player] sapphire deluxe buy forsaken_elytra"]
+
+  previous:
+    material: ARROW
+    slot: 45
+    display_name: "&#f4cd2a&lPrevious Page"
+    left_click_commands: ["[openguimenu] sap_vault_shop_2"]
+  back:
+    material: BARRIER
+    slot: 49
+    display_name: "&7Back"
+    left_click_commands: ["[openguimenu] sap_vault"]
+  next:
+    material: ARROW
+    slot: 53
+    display_name: "&#f4cd2a&lNext Page"
+    lore: ["&8Cosmetics and unlocks."]
+    left_click_commands: ["[openguimenu] sap_vault_shop_4"]

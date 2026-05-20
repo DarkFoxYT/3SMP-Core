@@ -45,6 +45,8 @@ public final class TabVisualService {
         String header = String.join("\n", config.header());
         String footer = String.join("\n", config.footer());
         player.sendPlayerListHeaderAndFooter(renderer.render(player, header, rank, config.shadow("tab", rank)), renderer.render(player, footer, rank, config.shadow("tab", rank)));
-        player.playerListName(renderer.render(player, config.playerFormat(), rank, config.shadow("tab", rank)));
+        String playerFormat = config.playerFormat();
+        if (config.afkStatusEnabled() && config.afkWorld(player.getWorld().getName())) playerFormat += config.afkPlayerFormatSuffix();
+        player.playerListName(renderer.render(player, playerFormat, rank, config.shadow("tab", rank)));
     }
 }

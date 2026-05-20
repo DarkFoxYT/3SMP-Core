@@ -1,58 +1,292 @@
 sapphire:
+  icon-itemsadder: "threesmp:sapphire"
   currency-name: Sapphires
   tradeable: false
   exchangeable: false
-  shop-url: "https://example.com"
+  shop-url: "https://3smp.paynow.store"
   command-aliases: [ sap, sapphires ]
   shop-items:
     crate_keys:
       display-name: "Prophecy Crate Key"
       material: TRIPWIRE_HOOK
+      itemsadder: "threesmp:prophecy_key"
+      page: 1
       slot: 20
       currency: sapphires
-      price: 100
+      price: 500
       amount: 1
       give-command: "crate givekey {player} {amount} prophecy"
-    gem_extractor:
-      display-name: "Gem Extractor"
-      material: PRISMARINE_SHARD
+    gem_capsule:
+      display-name: "Rough Gem Capsule"
+      material: ENDER_CHEST
+      page: 1
       slot: 22
       currency: sapphires
       price: 250
       amount: 1
-      give-command: "gems giveextractor {player} {amount}"
-    gem_capsule:
-      display-name: "Rough Gem Capsule"
-      material: ENDER_CHEST
+      give-command: "gems givecapsule {player} rough {amount}"
+    gem_extractor:
+      display-name: "Gem Extractor"
+      material: PRISMARINE_SHARD
+      page: 1
       slot: 24
       currency: sapphires
-      price: 400
+      price: 2500
       amount: 1
-      give-command: "gems givecapsule {player} rough {amount}"
-    cosmetics:
-      display-name: "Cosmetic Unlock"
-      material: ENDER_EYE
+      give-command: "gems giveextractor {player} {amount}"
+    third_life:
+      display-name: "Third Life"
+      material: TOTEM_OF_UNDYING
+      itemsadder: "threesmp:third_life"
+      page: 1
       slot: 29
       currency: sapphires
       price: 500
       amount: 1
-      give-command: "perks unlock {player} cosmetics"
+      give-command: ""
     prophecy_armor:
       display-name: "Prophecy Armor Set"
       material: NETHERITE_CHESTPLATE
+      itemsadder: "threesmp:prophecy_chestplate"
+      page: 1
       slot: 31
       currency: sapphires
-      price: 1500
+      price: 5000
       amount: 1
       give-command: "sapphire givearmor {player}"
-    donor_rank:
-      display-name: "VIP Rank"
-      material: NETHER_STAR
+    prophecy_gift:
+      display-name: "Prophecy's Gift"
+      material: COMMAND_BLOCK
+      itemsadder: "threesmp:prophecys_gift"
+      page: 1
       slot: 33
       currency: sapphires
-      price: 2000
+      price: 0
       amount: 1
-      give-command: "lp user {player} parent add vip"
+      give-command: ""
+
+    sapphire_edge:
+      display-name: "Sapphire Edge"
+      material: NETHERITE_SWORD
+      itemsadder: "threesmp:sapphire_edge"
+      page: 2
+      slot: 20
+      currency: sapphires
+      price: 0
+      amount: 1
+      give-command: ""
+    sapphire_pick:
+      display-name: "Sapphire Pick"
+      material: NETHERITE_PICKAXE
+      itemsadder: "threesmp:sapphire_pick"
+      page: 2
+      slot: 22
+      currency: sapphires
+      price: 0
+      amount: 1
+      give-command: ""
+    sapphire_feller:
+      display-name: "Sapphire Feller"
+      material: NETHERITE_AXE
+      itemsadder: "threesmp:sapphire_feller"
+      page: 2
+      slot: 24
+      currency: sapphires
+      price: 0
+      amount: 1
+      give-command: ""
+    sapphire_excavator:
+      display-name: "Sapphire Excavator"
+      material: NETHERITE_SHOVEL
+      itemsadder: "threesmp:sapphire_excavator"
+      page: 2
+      slot: 29
+      currency: sapphires
+      price: 0
+      amount: 1
+      give-command: ""
+    sapphire_tiller:
+      display-name: "Sapphire Tiller"
+      material: NETHERITE_HOE
+      itemsadder: "threesmp:sapphire_tiller"
+      page: 2
+      slot: 31
+      currency: sapphires
+      price: 0
+      amount: 1
+      give-command: ""
+    sapphire_rod:
+      display-name: "Sapphire Rod"
+      material: FISHING_ROD
+      itemsadder: "threesmp:sapphire_rod"
+      page: 2
+      slot: 33
+      currency: sapphires
+      price: 0
+      amount: 1
+      give-command: ""
+
+    sapphire_quiver:
+      display-name: "Sapphire Quiver"
+      material: BOW
+      itemsadder: "threesmp:sapphire_quiver"
+      page: 3
+      slot: 20
+      currency: sapphires
+      price: 0
+      amount: 1
+      give-command: ""
+    sapphire_bulwark:
+      display-name: "Sapphire Bulwark"
+      material: SHIELD
+      itemsadder: "threesmp:sapphire_bulwark"
+      page: 3
+      slot: 22
+      currency: sapphires
+      price: 0
+      amount: 1
+      give-command: ""
+    eschaton:
+      display-name: "Eschaton"
+      material: TRIDENT
+      itemsadder: "threesmp:eschaton"
+      page: 3
+      slot: 23
+      currency: sapphires
+      price: 0
+      amount: 1
+      give-command: ""
+    veilcutter:
+      display-name: "Veilcutter"
+      material: NETHERITE_SWORD
+      itemsadder: "threesmp:veilcutter"
+      page: 3
+      slot: 24
+      currency: sapphires
+      price: 0
+      amount: 1
+      give-command: ""
+    pandoras_pick:
+      display-name: "Pandora's Pick"
+      material: NETHERITE_PICKAXE
+      itemsadder: "threesmp:pandoras_pick"
+      page: 3
+      slot: 29
+      currency: sapphires
+      price: 0
+      amount: 1
+      give-command: ""
+    lazurite:
+      display-name: "Lazurite"
+      material: BLAZE_ROD
+      itemsadder: "threesmp:lazurite"
+      page: 3
+      slot: 31
+      currency: sapphires
+      price: 0
+      amount: 1
+      give-command: ""
+    forsaken_elytra:
+      display-name: "Forsaken Elytra"
+      material: ELYTRA
+      itemsadder: "threesmp:forsaken_elytra"
+      page: 3
+      slot: 33
+      currency: sapphires
+      price: 0
+      amount: 1
+      give-command: ""
+
+    cosmetics:
+      display-name: "Chat Color Unlock"
+      material: ENDER_EYE
+      page: 4
+      slot: 20
+      currency: sapphires
+      price: 350
+      amount: 1
+      give-command: ""
+    badge:
+      display-name: "Badge Unlock"
+      material: NETHER_STAR
+      page: 4
+      slot: 22
+      currency: sapphires
+      price: 350
+      amount: 1
+      give-command: ""
+    name_color:
+      display-name: "Name Color Unlock"
+      material: NAME_TAG
+      page: 4
+      slot: 24
+      currency: sapphires
+      price: 350
+      amount: 1
+      give-command: ""
+    name_gradient:
+      display-name: "Name Gradient Unlock"
+      material: AMETHYST_SHARD
+      page: 4
+      slot: 29
+      currency: sapphires
+      price: 350
+      amount: 1
+      give-command: ""
+    join_quit_message:
+      display-name: "Join/Quit Message Unlock"
+      material: WRITABLE_BOOK
+      page: 4
+      slot: 31
+      currency: sapphires
+      price: 350
+      amount: 1
+      give-command: ""
+    kill_effect:
+      display-name: "Kill Effect Unlock"
+      material: ENCHANTED_BOOK
+      page: 4
+      slot: 33
+      currency: sapphires
+      price: 100
+      amount: 1
+      give-command: ""
+    cosmetic:
+      display-name: "Cosmetic Unlock"
+      material: ENDER_EYE
+      page: 4
+      slot: 38
+      currency: sapphires
+      price: 500
+      amount: 1
+      give-command: ""
+    weapon_cosmetic:
+      display-name: "Weapon Cosmetic Unlock"
+      material: TRIDENT
+      page: 4
+      slot: 40
+      currency: sapphires
+      price: 500
+      amount: 1
+      give-command: ""
+    tag:
+      display-name: "Tag Unlock"
+      material: PAPER
+      page: 4
+      slot: 42
+      currency: sapphires
+      price: 300
+      amount: 1
+      give-command: ""
+    particle:
+      display-name: "Particle Unlock"
+      material: FIREWORK_ROCKET
+      page: 4
+      slot: 44
+      currency: sapphires
+      price: 250
+      amount: 1
+      give-command: ""
   commands:
     store_bonus:
       action: give

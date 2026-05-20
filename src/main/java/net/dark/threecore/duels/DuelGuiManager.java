@@ -15,6 +15,8 @@ import java.util.ArrayList;
 import java.util.List;
 
 public final class DuelGuiManager {
+    private static final int[] SOLO_SLOTS = {10, 11, 12, 19, 20, 21, 28, 29, 30};
+    private static final int[] PARTY_SLOTS = {14, 15, 16, 23, 24, 25, 32, 33, 34};
     private final DuelService service;
 
     public DuelGuiManager(DuelService service) {
@@ -22,42 +24,43 @@ public final class DuelGuiManager {
     }
 
     public Inventory buildMain(Player player) {
-        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_MAIN, "main"), 27, title("menus.duel", "3SMP Duels"));
+        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_MAIN, "main"), 54, title("menus.duel", "3SMP Duels"));
         fill(inv, Material.AIR);
-        inv.setItem(10, button("menus.duel.items.solo", Material.DIAMOND_SWORD, "<gradient:#60a5fa:#c084fc>1v1</gradient>", List.of(
+        ItemStack solo = button("menus.duel.items.solo", Material.DIAMOND_SWORD, "<gradient:#60a5fa:#c084fc>1v1</gradient>", List.of(
                 "<gray>Solo duel queue.</gray>",
                 "<gray>Current mode:</gray> <white>" + service.queueModeName(player.getUniqueId()) + "</white>",
                 "<gray>Current kit:</gray> <white>" + service.queueKitName(player.getUniqueId()) + "</white>",
                 "<gray>Click to choose a kit and queue.</gray>"
-        )));
-        inv.setItem(16, button("menus.duel.items.party", Material.PLAYER_HEAD, "<gradient:#f4cd2a:#eda323:#d28d0d>Party Duels</gradient>", List.of(
+        ));
+        ItemStack party = button("menus.duel.items.party", Material.PLAYER_HEAD, "<gradient:#f4cd2a:#eda323:#d28d0d>Party Duels</gradient>", List.of(
                 "<gray>Queue your party or configure party FFA.</gray>",
                 "<gray>Current mode:</gray> <white>" + service.queueModeName(player.getUniqueId()) + "</white>",
                 "<gray>Current kit:</gray> <white>" + service.queueKitName(player.getUniqueId()) + "</white>",
                 "<gray>Click to choose a kit and queue.</gray>"
-        )));
-        inv.setItem(22, button("menus.duel.items.leave", Material.BARRIER, "<red>Leave Queue</red>", List.of(
-                "<gray>Current:</gray> <white>" + service.queueSummary(player.getUniqueId()) + "</white>",
-                "<gray>Click to leave your current queue.</gray>"
-        )));
+        ));
+        setArea(inv, SOLO_SLOTS, solo);
+        setArea(inv, PARTY_SLOTS, party);
         return inv;
+    }
+
+    private void setArea(Inventory inv, int[] slots, ItemStack item) {
+        for (int slot : slots) inv.setItem(slot, item.clone());
     }
 
     public Inventory buildKitSelector(Player player) {
         Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_KITS, "kits"), 54, title("menus.kits", "Select Duel Kit"));
-        fill(inv, Material.BLACK_STAINED_GLASS_PANE);
+        fill(inv, Material.AIR);
         int[] slots = {10,12,14,16,28,30,32,34};
         int index = 0;
         for (DuelKit kit : service.kits()) {
             if (!kit.enabled()) continue;
             int slot = kit.slot();
-            if (slot < 0 || slot >= inv.getSize() || slot == 49 || inv.getItem(slot) != null && inv.getItem(slot).getType() != Material.BLACK_STAINED_GLASS_PANE) {
+            if (slot < 0 || slot >= inv.getSize() || inv.getItem(slot) != null) {
                 if (index >= slots.length) break;
                 slot = slots[index++];
             }
             inv.setItem(slot, button("menus.duel.items.kit", kit.icon(), kit.displayName(), kitSelectorLore(kit)));
         }
-        inv.setItem(49, button("menus.duel.items.back", Material.ARROW, "<gray>Back</gray>", List.of("<gray>Return to duel menu.</gray>")));
         return inv;
     }
 

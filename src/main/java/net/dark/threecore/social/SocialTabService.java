@@ -15,6 +15,7 @@ import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.player.PlayerJoinEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerToggleSneakEvent;
 import org.bukkit.plugin.java.JavaPlugin;
@@ -56,6 +57,7 @@ public final class SocialTabService implements Listener {
     private final Map<UUID, Scoreboard> scoreboards = new ConcurrentHashMap<>();
     private PartyService partyService;
     private DungeonService dungeonService;
+    private DuelService duelService;
     private BukkitTask refreshTask;
 
     public SocialTabService(JavaPlugin plugin, ConfigFiles configs, ChatFormatService chatFormatService) {
@@ -69,12 +71,18 @@ public final class SocialTabService implements Listener {
         this.dungeonService = dungeonService;
     }
 
+    public void setDuelService(DuelService duelService) {
+        this.duelService = duelService;
+    }
+
     public TabViewMode mode(UUID uuid) {
         return modes.getOrDefault(uuid, TabViewMode.GLOBAL);
     }
 
     public void cycle(Player player) {
-        modes.put(player.getUniqueId(), mode(player.getUniqueId()).next());
+        TabViewMode next = mode(player.getUniqueId()).next();
+        if (next == TabViewMode.DUNGEON && dungeonService == null) next = next.next();
+        modes.put(player.getUniqueId(), next);
         refresh(player);
         refreshAll();
     }
@@ -157,6 +165,14 @@ public final class SocialTabService implements Listener {
     }
 
     @EventHandler
+    public void onWorldChange(PlayerChangedWorldEvent event) {
+        refresh(event.getPlayer());
+        for (Player online : Bukkit.getOnlinePlayers()) {
+            if (!online.getUniqueId().equals(event.getPlayer().getUniqueId())) refresh(online);
+        }
+    }
+
+    @EventHandler
     public void onQuit(PlayerQuitEvent event) {
         modes.remove(event.getPlayer().getUniqueId());
         scoreboards.remove(event.getPlayer().getUniqueId());
@@ -167,11 +183,51 @@ public final class SocialTabService implements Listener {
 
     public boolean shouldShow(Player viewer, Player target) {
         if (viewer.hasPermission("3smpcore.tab.bypass")) return true;
+        if (isSeparatedByDuelWorld(viewer, target)) return false;
+        if (isAfkTabTarget(target)) return true;
+        if (config().getBoolean("friends.tab.force-global-list", true)) return true;
         return switch (mode(viewer.getUniqueId())) {
             case GLOBAL -> true;
             case PARTY -> partyService != null && partyService.isInParty(viewer.getUniqueId()) && partyService.partyMembers(viewer.getUniqueId()).contains(target.getUniqueId());
             case DUNGEON -> dungeonService != null && dungeonService.isInActiveDungeon(viewer.getUniqueId()) && dungeonService.isInActiveDungeon(target.getUniqueId());
         };
+    }
+
+    private boolean isSeparatedByDuelWorld(Player viewer, Player target) {
+        if (duelService == null || viewer == null || target == null || viewer.getWorld() == null || target.getWorld() == null) return false;
+        if (!config().getBoolean("friends.tab.separate-duel-worlds", false)) return false;
+        boolean viewerDuel = isDuelTabWorld(viewer);
+        boolean targetDuel = isDuelTabWorld(target);
+        if (viewerDuel != targetDuel) return true;
+        if (!viewerDuel) return false;
+        if (!config().getBoolean("friends.tab.duels.same-world-only", true)) return false;
+        return !viewer.getWorld().getName().equalsIgnoreCase(target.getWorld().getName());
+    }
+
+    private boolean isDuelTabWorld(Player player) {
+        if (player == null || player.getWorld() == null) return false;
+        if (DuelService.isDuelPlayer(player)) return true;
+        if (duelService != null && duelService.isDuelIsolatedWorld(player.getWorld())) return true;
+        String world = player.getWorld().getName();
+        return config().getStringList("friends.tab.duels.worlds").stream().anyMatch(configured -> configured.equalsIgnoreCase(world));
+    }
+
+    private boolean isAfkTabTarget(Player target) {
+        if (target == null || target.getWorld() == null) return false;
+        if (!config().getBoolean("friends.tab.afk.keep-visible", true)) return false;
+        String world = target.getWorld().getName();
+        List<String> worlds = config().getStringList("friends.tab.afk.worlds");
+        if (worlds.isEmpty()) {
+            var zones = configs.get("world/afk.yml").getConfigurationSection("zones");
+            if (zones != null) {
+                for (String id : zones.getKeys(false)) {
+                    String configured = zones.getString(id + ".world", "");
+                    if (configured != null && configured.equalsIgnoreCase(world)) return true;
+                }
+            }
+            return false;
+        }
+        return worlds.stream().anyMatch(configured -> configured.equalsIgnoreCase(world));
     }
 
     private void applyHeaderFooter(Player viewer) {
@@ -268,6 +324,10 @@ public final class SocialTabService implements Listener {
         ShadowColor shadow = parseShadow(overrideShadow == null || overrideShadow.isBlank() ? rankFormat(player, "shadow", config().getString("friends.tab.shadow", "")) : overrideShadow);
         replaced = stripShadowTags(replaced);
         try {
+            return applyShadow(Text.mm(renderGradientMarkers(player, replaced)), shadow);
+        } catch (Exception ignored) {
+        }
+        try {
             return applyShadow(LEGACY_AMP.deserialize(cleanColorizeLegacy(renderGradientMarkers(player, stripMiniMessageTags(replaced)))), shadow);
         } catch (Exception ignored) {
         }
@@ -313,7 +373,7 @@ public final class SocialTabService implements Listener {
             case "ultra" -> "<gradient:#f4cd2a:#eda323:#d28d0d>●</gradient>";
             case "mvp" -> "<#C084FC>●</#C084FC>";
             case "pro" -> "<#5B8DD9>●</#5B8DD9>";
-            case "vip", "3rank", "3smp" -> "<#D6E8F7>●</#D6E8F7>";
+            case "3", "3smp" -> "<#D6E8F7>●</#D6E8F7>";
             default -> "<#F8FBFF>●</#F8FBFF>";
         };
     }

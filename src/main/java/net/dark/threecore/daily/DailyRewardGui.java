@@ -33,7 +33,7 @@ public final class DailyRewardGui {
         int currentDay = manager.currentDay(state);
         int maxDay = Math.max(1, manager.rewardIds().size());
 
-        inv.setItem(config.getInt("menu.slots.streak", 4), button(config.getString("menu.icons.streak.material", "EXPERIENCE_BOTTLE"), "<gradient:#60a5fa:#c084fc>Current Streak</gradient>", List.of(
+        inv.setItem(config.getInt("menu.slots.streak", 4), button(config.getString("menu.icons.streak.material", "EXPERIENCE_BOTTLE"), "<gradient:#f4cd2a:#eda323:#d28d0d>Current Streak</gradient>", List.of(
                 "<gray>Your streak:</gray> <white>" + state.streak() + "</white>",
                 "<gray>Total claims:</gray> <white>" + state.totalClaims() + "</white>",
                 "<gray>Next reward day:</gray> <white>Day " + currentDay + "</white>"
@@ -56,7 +56,7 @@ public final class DailyRewardGui {
         if (manager.weeklyEnabled()) inv.setItem(weeklySlot, manager.bonusCard("weekly"));
         if (manager.monthlyEnabled()) inv.setItem(monthlySlot, manager.bonusCard("monthly"));
 
-        inv.setItem(config.getInt("menu.slots.info", 22), button(config.getString("menu.icons.info.material", "BOOK"), "<gradient:#1A2A4A:#D6E8F7>How It Works</gradient>", List.of(
+        inv.setItem(config.getInt("menu.slots.info", 22), button(config.getString("menu.icons.info.material", "BOOK"), "<gradient:#f4cd2a:#eda323:#d28d0d>How It Works</gradient>", List.of(
                 "<gray>1 reward every 24 hours.</gray>",
                 "<gray>Claim manually from this menu.</gray>",
                 "<gray>Rewards scale with your streak.</gray>",

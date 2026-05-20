@@ -5,8 +5,14 @@ friends:
     clickable-chat: true
     timeout-seconds: 120
   tab:
-    sneak-cycle-enabled: true
+    sneak-cycle-enabled: false
+    force-global-list: true
+    separate-duel-worlds: true
     tab-plugin-compatible: true
+    duels:
+      same-world-only: true
+      worlds:
+        - "duels"
     legacy-visuals-enabled: false
     visuals:
       enabled: true
@@ -25,7 +31,6 @@ friends:
           admin: "#280000:0.90"
           ultra: "#2a1600:0.90"
           mvp: "#001a33:0.85"
-          vip: "#001525:0.80"
           default: "#020617:0.70"
       images:
         enabled: true
@@ -42,9 +47,7 @@ friends:
           jr_mod: "%img_jr_mod%"
           pro: "%img_pro%"
           mvp: "%img_mvp%"
-          elite: "%img_elite%"
           ultra: "%img_ultra%"
-          vip: "%img_vip%"
           patron: "%img_patron%"
           3smp: "%img_3smp%"
           solo_text: "%img_solo_text%"
@@ -72,25 +75,33 @@ friends:
       - "{grad:royal_gold}&lThanks for playing 3SMP{/grad}"
       - ""
     player-format: "<rank_image> {grad:rank}<player>{/grad} <tab_tag>"
+    afk:
+      enabled: true
+      keep-visible: true
+      worlds:
+        - "afk_void"
+      suffix: " <dark_gray>[AFK]</dark_gray>"
     nametag-prefix: "<rank_image> "
     nametag-suffix: " <tab_tag>"
     nametag-display: "<rank_image> {grad:rank}<player>{/grad}"
     gradients:
-      default: "#f4cd2a:#eda323:#d28d0d"
+      default: "#ffffff:#ffffff"
       soft: "#ffffff:#fff7ad"
       blue_soft: "#f4cd2a:#eda323:#d28d0d"
       royal: "#f4cd2a:#eda323:#d28d0d"
       gold: "#f4cd2a:#eda323:#d28d0d"
       royal_gold: "#f4cd2a:#eda323:#d28d0d"
       owner: "#f4cd2a:#eda323:#d28d0d"
-      admin: "#f4cd2a:#eda323:#d28d0d"
-      dev: "#f4cd2a:#eda323:#d28d0d"
-      ultra: "#f4cd2a:#eda323:#d28d0d"
-      mvp: "#f4cd2a:#eda323:#d28d0d"
-      vip: "#f4cd2a:#eda323:#d28d0d"
-      member: "#e2e8f0:#94a3b8"
+      admin: "#ff4d4d:#fb923c"
+      dev: "#38bdf8:#a78bfa"
+      ultra: "#ef4444:#f97316:#f4cd2a"
+      mvp: "#60a5fa:#c084fc"
+      pro: "#22d3ee:#38bdf8"
+      member: "#ffffff:#ffffff"
       3smp: "#f4cd2a:#eda323:#d28d0d"
+      "3": "#f4cd2a:#eda323:#d28d0d"
     duels:
+      name-colors-enabled: false
       team-one-gradient: "#ef4444:#fca5a5"
       team-two-gradient: "#2563eb:#93c5fd"
     chat:
@@ -132,12 +143,6 @@ friends:
         tab-prefix: ""
         gradient: "mvp"
         sort-weight: 20
-      vip:
-        image: "<img:vip>"
-        prefix: ""
-        tab-prefix: ""
-        gradient: "vip"
-        sort-weight: 30
       member:
         image: ""
         prefix: ""
@@ -180,18 +185,18 @@ friends:
         tab-prefix: ""
         gradient: "ultra"
         sort-weight: 15
-      elite:
-        image: "<img:elite>"
-        prefix: ""
-        tab-prefix: ""
-        gradient: "mvp"
-        sort-weight: 25
       pro:
         image: "<img:pro>"
         prefix: ""
         tab-prefix: ""
-        gradient: "vip"
+        gradient: "pro"
         sort-weight: 35
+      "3":
+        image: "<img:3smp>"
+        prefix: ""
+        tab-prefix: ""
+        gradient: "3"
+        sort-weight: 40
     sorting:
       enabled: true
       order:
@@ -202,7 +207,8 @@ friends:
         - mod
         - ultra
         - mvp
-        - vip
+        - pro
+        - "3"
         - member
         - default
   scoreboards:
@@ -225,9 +231,7 @@ friends:
         jr_mod: 4
         pro: 4
         mvp: 4
-        elite: 4
         ultra: 4
-        vip: 4
         patron: 4
         3smp: 4
         solo_text: 28

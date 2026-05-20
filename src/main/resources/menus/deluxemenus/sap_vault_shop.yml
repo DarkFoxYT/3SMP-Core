@@ -1,81 +1,91 @@
-menu_title: ":offset_-8::sap_vault:"
+menu_title: ":offset_-15:&f:sap_vault:"
 open_command: []
 size: 54
 update_interval: 20
 
 items:
   balance:
-    material: EMERALD
+    material: "itemsadder-threesmp:sapphire"
     slot: 13
-    display_name: "&#f4cd2a&lSapphire Balance"
+    display_name: "&#f4cd2a&lSapphire &#eda323&lBalance"
     lore:
-      - "&7Current balance: &f%3smpcore_sapphires%"
-      - "&8Your vault is open."
+      - "&7Current balance: &#f4cd2a%3smpcore_sapphires% &fSapphires"
+      - "&8Page 1/4: Core rewards"
 
   crate_keys:
-    material: TRIPWIRE_HOOK
+    material: "itemsadder-threesmp:prophecy_key"
     slot: 20
-    display_name: "&#eda323&lProphecy Crate Key"
+    display_name: "&#f4cd2a&lProphecy &#eda323&lCrate &#d28d0d&lKey"
     lore:
-      - "&7Price: &f100 sapphires"
+      - "&#f4cd2aPrice: &f500 Sapphires"
+      - "&7Opens the Prophecy Crate."
       - "&8Click to purchase."
     left_click_commands:
       - "[player] sapphire deluxe buy crate_keys"
-
-  gem_extractor:
-    material: PRISMARINE_SHARD
-    slot: 22
-    display_name: "&#eda323&lGem Extractor"
-    lore:
-      - "&7Price: &f250 sapphires"
-      - "&8Click to purchase."
-    left_click_commands:
-      - "[player] sapphire deluxe buy gem_extractor"
-
   gem_capsule:
     material: ENDER_CHEST
-    slot: 24
-    display_name: "&#eda323&lRough Gem Capsule"
+    slot: 22
+    display_name: "&#22c55e&lRough &#84cc16&lGem &#f4cd2a&lCapsule"
     lore:
-      - "&7Price: &f400 sapphires"
+      - "&#f4cd2aPrice: &f250 Sapphires"
+      - "&7Contains a rough gem roll."
       - "&8Click to purchase."
     left_click_commands:
       - "[player] sapphire deluxe buy gem_capsule"
-
-  cosmetics:
-    material: ENDER_EYE
-    slot: 29
-    display_name: "&#eda323&lCosmetic Unlock"
+  gem_extractor:
+    material: PRISMARINE_SHARD
+    slot: 24
+    display_name: "&#38bdf8&lGem &#22d3ee&lExtractor"
     lore:
-      - "&7Price: &f500 sapphires"
+      - "&#f4cd2aPrice: &f2,500 Sapphires"
+      - "&7Extracts gems from gear."
       - "&8Click to purchase."
     left_click_commands:
-      - "[player] sapphire deluxe buy cosmetics"
-
+      - "[player] sapphire deluxe buy gem_extractor"
+  third_life:
+    material: "itemsadder-threesmp:third_life"
+    slot: 29
+    display_name: "&#ef4444&lThird &#f4cd2a&lLife"
+    lore:
+      - "&#f4cd2aPrice: &f500 Sapphires"
+      - "&7A three-use life-saving totem."
+      - "&8Click to purchase."
+    left_click_commands:
+      - "[player] sapphire deluxe buy third_life"
   prophecy_armor:
-    material: NETHERITE_CHESTPLATE
+    material: "itemsadder-threesmp:prophecy_chestplate"
     slot: 31
-    display_name: "&#f4cd2a&lProphecy Armor Set"
+    display_name: "&#f4cd2a&lProphecy &#7c3aed&lArmor &#ffffff&lSet"
     lore:
       - "&7Full ItemsAdder armor set."
-      - "&7Price: &f1500 sapphires"
+      - "&#f4cd2aPrice: &f5,000 Sapphires"
       - "&8Click to purchase."
     left_click_commands:
       - "[player] sapphire deluxe buy prophecy_armor"
-
-  donor_rank:
-    material: NETHER_STAR
+  prophecy_gift:
+    material: "itemsadder-threesmp:prophecys_gift"
     slot: 33
-    display_name: "&#eda323&lVIP Rank"
+    display_name: "&#f4cd2a&lProphecy's &#ffffff&lGift"
     lore:
-      - "&7Price: &f2000 sapphires"
-      - "&8Click to purchase."
+      - "&#f4cd2aPrice: &fTBD"
+      - "&7Double shop sell income booster."
+      - "&8Coming soon."
     left_click_commands:
-      - "[player] sapphire deluxe buy donor_rank"
+      - "[player] sapphire deluxe buy prophecy_gift"
 
-  close:
-    material: BARRIER
-    slot: 53
-    display_name: "&cClose"
+  back:
+    material: ARROW
+    slot: 49
+    display_name: "&7Back"
+    lore:
+      - "&8Return to vault."
     left_click_commands:
-      - "[close]"
+      - "[openguimenu] sap_vault"
+  next:
+    material: ARROW
+    slot: 53
+    display_name: "&#f4cd2a&lNext Page"
+    lore:
+      - "&8Tools and weapons."
+    left_click_commands:
+      - "[openguimenu] sap_vault_shop_2"

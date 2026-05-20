@@ -1,5 +1,9 @@
 title: "<gradient:#f4cd2a:#eda323:#d28d0d>3SMP Perks</gradient>"
 size: 54
+itemsadder-font-symbols:
+  cosmetics_menu: "\\uA436"
+titles:
+  main: ":offset_-15:&f:cosmetics_menu:"
 frame:
   material: "GRAY_STAINED_GLASS_PANE"
   name: " "

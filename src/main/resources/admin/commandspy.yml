@@ -3,6 +3,7 @@ spy:
 permissions:
   owner: "3smpcore.spy.owner"
   sr-admin: "3smpcore.staff.sradmin"
+  sr-mod: "3smpcore.staff.srmod"
   admin: "3smpcore.spy.admin"
 ignored-commands:
   - login

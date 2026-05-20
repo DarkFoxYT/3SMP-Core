@@ -15,6 +15,8 @@ import org.bukkit.inventory.meta.ItemMeta;
 import java.util.List;
 
 public final class DuelMenu {
+    private static final int[] SOLO_SLOTS = {10, 11, 12, 19, 20, 21, 28, 29, 30};
+    private static final int[] PARTY_SLOTS = {14, 15, 16, 23, 24, 25, 32, 33, 34};
     private final DuelService service;
 
     public DuelMenu(DuelService service) {
@@ -22,21 +24,27 @@ public final class DuelMenu {
     }
 
     public Inventory buildMain(Player player) {
-        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_MAIN, "main"), 27, title("menus.duel", "3SMP Duels"));
+        Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.DUEL_MAIN, "main"), 54, title("menus.duel", "3SMP Duels"));
         fill(inv, Material.AIR);
-        inv.setItem(11, button("menus.duel.items.solo", Material.DIAMOND_SWORD, "<gradient:#60a5fa:#c084fc>1v1 Duels</gradient>", List.of(
+        ItemStack solo = button("menus.duel.items.solo", Material.DIAMOND_SWORD, "<gradient:#60a5fa:#c084fc>1v1 Duels</gradient>", List.of(
                 "<gray>Pick a kit and queue solo.</gray>",
                 "<gray>Queued players:</gray> <white>" + service.soloQueueCount() + "</white>",
                 "<gray>Queued mode:</gray> <white>" + service.queueModeName(player.getUniqueId()) + "</white>",
                 "<gray>Queued kit:</gray> <white>" + service.queueKitName(player.getUniqueId()) + "</white>"
-        )));
-        inv.setItem(15, button("menus.duel.items.party", Material.SHIELD, "<gradient:#34d399:#22c55e>2v2 Duels</gradient>", List.of(
+        ));
+        ItemStack party = button("menus.duel.items.party", Material.SHIELD, "<gradient:#34d399:#22c55e>2v2 Duels</gradient>", List.of(
                 "<gray>Queue with a party or as a solo fill.</gray>",
                 "<gray>Queued units:</gray> <white>" + service.partyQueueCount() + "</white>",
                 "<gray>Queued mode:</gray> <white>" + service.queueModeName(player.getUniqueId()) + "</white>",
                 "<gray>Queued kit:</gray> <white>" + service.queueKitName(player.getUniqueId()) + "</white>"
-        )));
+        ));
+        setArea(inv, SOLO_SLOTS, solo);
+        setArea(inv, PARTY_SLOTS, party);
         return inv;
+    }
+
+    private void setArea(Inventory inv, int[] slots, ItemStack item) {
+        for (int slot : slots) inv.setItem(slot, item.clone());
     }
 
     public Inventory buildKitMenu(Player player) {

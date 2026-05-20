@@ -1,5 +1,7 @@
 package net.dark.threecore.visual;
 
+import net.dark.threecore.config.ConfigFiles;
+import net.dark.threecore.data.PlayerDataRepository;
 import net.dark.threecore.text.Text;
 import net.kyori.adventure.text.Component;
 import org.bukkit.Bukkit;
@@ -30,28 +32,29 @@ public final class VisualGuiService implements Listener {
         38, 39, 40, 41, 42
     };
     private final JavaPlugin plugin;
+    private final ConfigFiles configs;
     private final VisualCosmeticService cosmetics;
     private final VisualManager manager;
+    private final PlayerDataRepository repository;
     private final Map<UUID, VisualCosmeticService.Type> pendingSigns = new ConcurrentHashMap<>();
 
-    public VisualGuiService(JavaPlugin plugin, VisualCosmeticService cosmetics, VisualManager manager) {
+    public VisualGuiService(JavaPlugin plugin, ConfigFiles configs, VisualCosmeticService cosmetics, VisualManager manager, PlayerDataRepository repository) {
         this.plugin = plugin;
+        this.configs = configs;
         this.cosmetics = cosmetics;
         this.manager = manager;
+        this.repository = repository;
         Bukkit.getPluginManager().registerEvents(this, plugin);
     }
 
     public void open(Player player) {
         Inventory inv = Bukkit.createInventory(new Holder("main", null, 0), 45, "3SMP Visuals");
         fill(inv);
-        inv.setItem(4, button(Material.SPYGLASS, "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Visuals</bold></gradient>", List.of("<gray>Name colors, gradients, prefixes, and shadows.</gray>")));
-        inv.setItem(11, button(Material.GOLD_INGOT, "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Prefixes</bold>", List.of("<gray>Choose your owned prefix.</gray>")));
-        inv.setItem(12, button(Material.GOLD_NUGGET, "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Name Colors</bold>", List.of("<gray>Solid premium name colors.</gray>")));
-        inv.setItem(13, button(Material.NETHER_STAR, "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Name Gradients</bold>", List.of("<gray>Royal name gradients.</gray>")));
-        inv.setItem(14, button(Material.ECHO_SHARD, "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Text Shadows</bold>", List.of("<gray>Stored for supported render targets.</gray>")));
-        inv.setItem(20, button(Material.OAK_SIGN, "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Custom Hex</bold>", List.of("<gray>Type #RRGGBB or #RRGGBB:#RRGGBB.</gray>")));
+        inv.setItem(4, button(Material.SPYGLASS, "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Visuals</bold></gradient>", List.of("<gray>Name colors and gradients.</gray>")));
+        inv.setItem(20, button(Material.GOLD_NUGGET, "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Name Colors</bold>", List.of("<gray>Solid premium name colors.</gray>")));
+        inv.setItem(24, button(Material.NETHER_STAR, "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Name Gradients</bold>", List.of("<gray>Royal name gradients.</gray>")));
         inv.setItem(22, button(Material.SPYGLASS, "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Preview Current Look</bold>", List.of("<gray>Shows tab, nametag and scoreboard name.</gray>")));
-        inv.setItem(24, button(Material.BARRIER, "<#ef4444><bold>Reset Cosmetics</bold>", List.of("<gray>Clear selected visuals.</gray>")));
+        inv.setItem(40, button(Material.BARRIER, "<#ef4444><bold>Reset Cosmetics</bold>", List.of("<gray>Clear selected visuals.</gray>")));
         player.openInventory(inv);
     }
 
@@ -71,14 +74,11 @@ public final class VisualGuiService implements Listener {
             int index = start + i;
             if (index >= options.size()) break;
             VisualCosmeticService.Cosmetic cosmetic = options.get(index);
-            boolean owns = cosmetics.owns(player, cosmetic);
+            boolean owns = cosmetics.owns(player, type, cosmetic);
             boolean active = selected != null && selected.id().equalsIgnoreCase(cosmetic.id());
-            inv.setItem(CATEGORY_SLOTS[i], cosmeticItem(cosmetic, owns, active));
+            inv.setItem(CATEGORY_SLOTS[i], cosmeticItem(type, cosmetic, owns, active));
         }
         if (safePage > 0) inv.setItem(45, button(Material.ARROW, "<gradient:#f4cd2a:#eda323:#d28d0d>Previous Page</gradient>", List.of("<gray>Go back one page.</gray>")));
-        if (type == VisualCosmeticService.Type.NAME_COLOR || type == VisualCosmeticService.Type.NAME_GRADIENT) {
-            inv.setItem(48, button(Material.OAK_SIGN, "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Type Custom Hex</bold></gradient>", List.of("<gray>Use letters and numbers: #eda323</gray>", "<gray>Gradient: #f4cd2a:#eda323:#d28d0d</gray>")));
-        }
         inv.setItem(49, button(Material.ARROW, "<gray>Back</gray>", List.of()));
         inv.setItem(50, button(Material.PAPER, "<gradient:#f4cd2a:#eda323:#d28d0d>Page " + (safePage + 1) + "/" + (maxPage + 1) + "</gradient>", List.of("<gray>" + options.size() + " options available.</gray>")));
         if ((safePage + 1) * CATEGORY_SLOTS.length < options.size()) inv.setItem(53, button(Material.ARROW, "<gradient:#f4cd2a:#eda323:#d28d0d>Next Page</gradient>", List.of("<gray>See more options.</gray>")));
@@ -92,13 +92,10 @@ public final class VisualGuiService implements Listener {
         if (!(event.getWhoClicked() instanceof Player player)) return;
         int slot = event.getRawSlot();
         if (holder.view().equals("main")) {
-            if (slot == 11) openCategory(player, VisualCosmeticService.Type.PREFIX);
-            else if (slot == 12) openCategory(player, VisualCosmeticService.Type.NAME_COLOR);
-            else if (slot == 13) openCategory(player, VisualCosmeticService.Type.NAME_GRADIENT);
-            else if (slot == 14) openCategory(player, VisualCosmeticService.Type.SHADOW);
-            else if (slot == 24) { cosmetics.reset(player); manager.refreshAll(); Text.send(player, "<gradient:#f4cd2a:#eda323:#d28d0d>Visual cosmetics reset.</gradient>"); }
+            if (slot == 20) openCategory(player, VisualCosmeticService.Type.NAME_COLOR);
+            else if (slot == 24) openCategory(player, VisualCosmeticService.Type.NAME_GRADIENT);
+            else if (slot == 40) { cosmetics.reset(player); manager.refreshAll(); Text.send(player, "<gradient:#f4cd2a:#eda323:#d28d0d>Visual cosmetics reset.</gradient>"); }
             else if (slot == 22) manager.preview(player);
-            else if (slot == 20) openSign(player, VisualCosmeticService.Type.NAME_COLOR);
             return;
         }
         if (slot == 49) { open(player); return; }
@@ -108,16 +105,14 @@ public final class VisualGuiService implements Listener {
             if ((holder.page() + 1) * CATEGORY_SLOTS.length < options.size()) openCategory(player, holder.type(), holder.page() + 1);
             return;
         }
-        if (slot == 48 && (holder.type() == VisualCosmeticService.Type.NAME_COLOR || holder.type() == VisualCosmeticService.Type.NAME_GRADIENT)) {
-            openSign(player, holder.type());
-            return;
-        }
         ItemStack item = event.getCurrentItem();
         if (item == null || !item.hasItemMeta() || holder.type() == null) return;
         String id = item.getItemMeta().getPersistentDataContainer().get(new org.bukkit.NamespacedKey(plugin, "visual_cosmetic"), org.bukkit.persistence.PersistentDataType.STRING);
         if (id == null || id.isBlank()) return;
         VisualCosmeticService.Cosmetic cosmetic = cosmetics.cosmetic(holder.type(), id);
-        if (cosmetic == null || !cosmetics.owns(player, cosmetic)) {
+        if (cosmetic == null) return;
+        if (!cosmetics.owns(player, holder.type(), cosmetic)) {
+            if (purchaseLockedVisual(player, holder.type(), cosmetic, holder.page())) return;
             Text.send(player, "<red>You do not own this visual.</red>");
             return;
         }
@@ -158,12 +153,34 @@ public final class VisualGuiService implements Listener {
         return value.matches(hex + "(:#[A-Fa-f0-9]{6}){1,4}");
     }
 
-    private ItemStack cosmeticItem(VisualCosmeticService.Cosmetic cosmetic, boolean owns, boolean active) {
-        ItemStack item = new ItemStack(owns ? cosmetic.icon() : Material.GRAY_DYE);
-        if (!owns) item.setType(Material.BARRIER);
+    private boolean purchaseLockedVisual(Player player, VisualCosmeticService.Type type, VisualCosmeticService.Cosmetic cosmetic, int page) {
+        String shopItem = sapphireShopItem(type);
+        if (shopItem == null) return false;
+        long price = configs.get("economy/sapphires.yml").getLong("sapphire.shop-items." + shopItem + ".price", 0L);
+        if (price <= 0L) {
+            Text.send(player, "<yellow>That visual unlock is coming soon.</yellow>");
+            return true;
+        }
+        UUID uuid = player.getUniqueId();
+        long current = repository.getSapphireBalance(uuid);
+        if (current < price) {
+            Text.send(player, "<red>You need " + formatSapphires(price) + " Sapphires to unlock that.</red>");
+            return true;
+        }
+        repository.setSapphireBalance(uuid, current - price);
+        cosmetics.unlock(player, type, cosmetic.id());
+        cosmetics.select(player, type, cosmetic.id());
+        manager.refreshAll();
+        Text.send(player, "<gradient:#f4cd2a:#eda323:#d28d0d>Unlocked visual:</gradient> <white>" + cosmetic.displayName() + "</white> <gray>(-" + formatSapphires(price) + " Sapphires)</gray>");
+        openCategory(player, type, page);
+        return true;
+    }
+
+    private ItemStack cosmeticItem(VisualCosmeticService.Type type, VisualCosmeticService.Cosmetic cosmetic, boolean owns, boolean active) {
+        ItemStack item = new ItemStack(owns || sapphireShopItem(type) != null ? cosmetic.icon() : Material.BARRIER);
         ItemMeta meta = item.getItemMeta();
         meta.displayName(Text.mm((owns ? "<gradient:#f4cd2a:#eda323:#d28d0d>" : "<gray>") + cosmetic.displayName()));
-        meta.lore(List.of(Text.mm(owns ? active ? "<gradient:#f4cd2a:#eda323:#d28d0d>Selected</gradient>" : "<gray>Click to select.</gray>" : "<red>You do not own this visual.</red>")));
+        meta.lore(List.of(Text.mm(visualLore(type, owns, active))));
         meta.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, "visual_cosmetic"), org.bukkit.persistence.PersistentDataType.STRING, cosmetic.id());
         if (active) {
             meta.addEnchant(Enchantment.UNBREAKING, 1, true);
@@ -171,6 +188,28 @@ public final class VisualGuiService implements Listener {
         }
         item.setItemMeta(meta);
         return item;
+    }
+
+    private String visualLore(VisualCosmeticService.Type type, boolean owns, boolean active) {
+        if (owns) return active ? "<gradient:#f4cd2a:#eda323:#d28d0d>Selected</gradient>" : "<gray>Click to select.</gray>";
+        String shopItem = sapphireShopItem(type);
+        if (shopItem == null) return "<red>You do not own this visual.</red>";
+        long price = configs.get("economy/sapphires.yml").getLong("sapphire.shop-items." + shopItem + ".price", 0L);
+        return price > 0L
+            ? "<gray>Click to unlock for <gradient:#f4cd2a:#eda323:#d28d0d>" + formatSapphires(price) + " Sapphires</gradient>.</gray>"
+            : "<gray>This visual unlock is coming soon.</gray>";
+    }
+
+    private String sapphireShopItem(VisualCosmeticService.Type type) {
+        return switch (type) {
+            case NAME_COLOR -> "name_color";
+            case NAME_GRADIENT -> "name_gradient";
+            default -> null;
+        };
+    }
+
+    private String formatSapphires(long amount) {
+        return String.format(java.util.Locale.US, "%,d", amount);
     }
 
     private void fill(Inventory inv) {

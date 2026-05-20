@@ -2,6 +2,9 @@ package net.dark.threecore.items;
 
 import net.dark.threecore.command.base.CommandContext;
 import net.dark.threecore.text.Text;
+import io.papermc.paper.datacomponent.DataComponentTypes;
+import io.papermc.paper.datacomponent.item.Equippable;
+import net.kyori.adventure.key.Key;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Color;
@@ -20,11 +23,14 @@ import org.bukkit.entity.LivingEntity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.Projectile;
 import org.bukkit.entity.Snowball;
+import org.bukkit.entity.ArmorStand;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
+import org.bukkit.event.entity.EntityShootBowEvent;
 import org.bukkit.event.entity.ProjectileHitEvent;
+import org.bukkit.event.player.PlayerFishEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerMoveEvent;
 import org.bukkit.inventory.EquipmentSlot;
@@ -37,10 +43,12 @@ import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Locale;
@@ -54,13 +62,28 @@ public final class ItemPowerService implements Listener {
     private static final String PANDORA_ID = "pandoras_pick";
     private static final String LAZURITE_ID = "lazurite";
     private static final String FORSAKEN_ELYTRA_ID = "forsaken_elytra";
+    private static final String SAPPHIRE_ROD_ID = "sapphire_rod";
+    private static final String SAPPHIRE_QUIVER_ID = "sapphire_quiver";
+    private static final String SAPPHIRE_BULWARK_ID = "sapphire_bulwark";
+    private static final String SAPPHIRE_ID = "sapphire";
+    private static final String ESCHATON_ID = "eschaton";
     private static final String PANDORA_NS = "threesmp:" + PANDORA_ID;
     private static final String LAZURITE_NS = "threesmp:" + LAZURITE_ID;
     private static final String FORSAKEN_ELYTRA_NS = "threesmp:" + FORSAKEN_ELYTRA_ID;
+    private static final String SAPPHIRE_ROD_NS = "threesmp:" + SAPPHIRE_ROD_ID;
+    private static final String SAPPHIRE_QUIVER_NS = "threesmp:" + SAPPHIRE_QUIVER_ID;
+    private static final String SAPPHIRE_BULWARK_NS = "threesmp:" + SAPPHIRE_BULWARK_ID;
+    private static final String SAPPHIRE_NS = "threesmp:" + SAPPHIRE_ID;
+    private static final String ESCHATON_NS = "threesmp:" + ESCHATON_ID;
+    private static final Key FORSAKEN_ELYTRA_ASSET = Key.key("threesmp", "forsaken_elytra");
     private static final int MAX_VEIN_BLOCKS = 96;
     private static final long SPECIAL_DROP_COOLDOWN_MILLIS = 10L * 60L * 1000L;
     private static final long LAZURITE_COOLDOWN_MILLIS = 30_000L;
     private static final long ELYTRA_LAUNCH_COOLDOWN_MILLIS = 10_000L;
+    private static final long ESCHATON_THRUST_COOLDOWN_MILLIS = 8_000L;
+    private static final long ESCHATON_BACKSTEP_COOLDOWN_MILLIS = 5_000L;
+    private static final int ESCHATON_STUN_TICKS = 38;
+    private static final int ESCHATON_LUNGE_TICKS = 12;
     private static final Color SAPPHIRE = Color.fromRGB(65, 105, 225);
     private static final Color LAZURITE_BLUE = Color.fromRGB(48, 170, 255);
     private static final Color GOLD = Color.fromRGB(250, 204, 21);
@@ -70,10 +93,20 @@ public final class ItemPowerService implements Listener {
     private final NamespacedKey pandoraSilkKey;
     private final NamespacedKey lazuriteKey;
     private final NamespacedKey forsakenElytraKey;
+    private final NamespacedKey sapphireRodKey;
+    private final NamespacedKey sapphireQuiverKey;
+    private final NamespacedKey sapphireBulwarkKey;
+    private final NamespacedKey sapphireKey;
+    private final NamespacedKey eschatonKey;
     private final NamespacedKey lazuriteProjectileKey;
+    private final NamespacedKey sapphireQuiverArrowKey;
+    private final NamespacedKey sapphireQuiverAmmoKey;
     private final Map<UUID, Long> specialDropCooldowns = new ConcurrentHashMap<>();
     private final Map<UUID, Long> lazuriteCooldowns = new ConcurrentHashMap<>();
     private final Map<UUID, Long> elytraLaunchCooldowns = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> eschatonThrustCooldowns = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> eschatonBackstepCooldowns = new ConcurrentHashMap<>();
+    private final Map<UUID, Set<UUID>> eschatonLungeHits = new ConcurrentHashMap<>();
 
     public ItemPowerService(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -81,7 +114,14 @@ public final class ItemPowerService implements Listener {
         this.pandoraSilkKey = new NamespacedKey(plugin, "pandoras_pick_silk");
         this.lazuriteKey = new NamespacedKey(plugin, "lazurite");
         this.forsakenElytraKey = new NamespacedKey(plugin, "forsaken_elytra");
+        this.sapphireRodKey = new NamespacedKey(plugin, "sapphire_rod");
+        this.sapphireQuiverKey = new NamespacedKey(plugin, "sapphire_quiver");
+        this.sapphireBulwarkKey = new NamespacedKey(plugin, "sapphire_bulwark");
+        this.sapphireKey = new NamespacedKey(plugin, "sapphire");
+        this.eschatonKey = new NamespacedKey(plugin, "eschaton");
         this.lazuriteProjectileKey = new NamespacedKey(plugin, "lazurite_projectile");
+        this.sapphireQuiverArrowKey = new NamespacedKey(plugin, "sapphire_quiver_arrow");
+        this.sapphireQuiverAmmoKey = new NamespacedKey(plugin, "sapphire_quiver_ammo");
         Bukkit.getScheduler().runTaskTimer(plugin, this::tickElytraTrails, 2L, 2L);
     }
 
@@ -101,7 +141,7 @@ public final class ItemPowerService implements Listener {
             return;
         }
         if (!context.arg(0).equalsIgnoreCase("give") || context.args().length < 3) {
-            Text.send(sender, "<yellow>Use /itempower give <player> <pandoras_pick|lazurite|forsaken_elytra>.</yellow>");
+            Text.send(sender, "<yellow>Use /itempower give <player> <pandoras_pick|lazurite|forsaken_elytra|sapphire_rod|sapphire_quiver|sapphire_bulwark|sapphire|eschaton>.</yellow>");
             return;
         }
         Player target = Bukkit.getPlayerExact(context.arg(1));
@@ -127,7 +167,7 @@ public final class ItemPowerService implements Listener {
             return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
         }
         if (context.args().length == 3 && context.arg(0).equalsIgnoreCase("give")) {
-            return List.of(PANDORA_ID, LAZURITE_ID, FORSAKEN_ELYTRA_ID);
+            return List.of(PANDORA_ID, LAZURITE_ID, FORSAKEN_ELYTRA_ID, SAPPHIRE_ROD_ID, SAPPHIRE_QUIVER_ID, SAPPHIRE_BULWARK_ID, SAPPHIRE_ID, ESCHATON_ID);
         }
         return List.of();
     }
@@ -192,6 +232,16 @@ public final class ItemPowerService implements Listener {
         launchLazurite(player);
     }
 
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = true)
+    public void onSapphireQuiverDraw(PlayerInteractEvent event) {
+        if (event.getHand() == null || !event.getAction().isRightClick()) return;
+        Player player = event.getPlayer();
+        ItemStack item = event.getHand() == EquipmentSlot.HAND ? player.getInventory().getItemInMainHand() : player.getInventory().getItemInOffHand();
+        if (!isSapphireQuiver(item)) return;
+        applySapphireQuiverEnchantments(item);
+        ensureSapphireQuiverAmmo(player);
+    }
+
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
     public void onLazuriteHit(ProjectileHitEvent event) {
         Projectile projectile = event.getEntity();
@@ -232,6 +282,52 @@ public final class ItemPowerService implements Listener {
             }
         }, 5L);
         launchBurst(player);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onSapphireQuiverShoot(EntityShootBowEvent event) {
+        if (!(event.getEntity() instanceof Player player)) return;
+        ItemStack bow = event.getBow();
+        if (!isSapphireQuiver(bow)) return;
+        applySapphireQuiverEnchantments(bow);
+        event.setConsumeItem(false);
+        if (event.getProjectile() instanceof Projectile projectile) {
+            projectile.getPersistentDataContainer().set(sapphireQuiverArrowKey, PersistentDataType.BYTE, (byte) 1);
+            trailSapphireArrow(projectile);
+        }
+        Bukkit.getScheduler().runTask(plugin, () -> removeSapphireQuiverAmmo(player));
+        player.playSound(player.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.45F, 1.7F);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
+    public void onSapphireRodFish(PlayerFishEvent event) {
+        if (event.getState() != PlayerFishEvent.State.FISHING) return;
+        Player player = event.getPlayer();
+        ItemStack main = player.getInventory().getItemInMainHand();
+        ItemStack off = player.getInventory().getItemInOffHand();
+        ItemStack rod = isSapphireRod(main) ? main : isSapphireRod(off) ? off : null;
+        if (rod == null) return;
+        applySapphireRodEnchantments(rod);
+        makeHookBiteImmediately(event.getHook());
+        player.playSound(player.getLocation(), Sound.BLOCK_AMETHYST_BLOCK_CHIME, 0.35F, 1.95F);
+    }
+
+    @EventHandler(priority = EventPriority.HIGH)
+    public void onEschatonUse(PlayerInteractEvent event) {
+        if (event.getHand() == null) return;
+        Player player = event.getPlayer();
+        ItemStack item = event.getHand() == EquipmentSlot.HAND ? player.getInventory().getItemInMainHand() : player.getInventory().getItemInOffHand();
+        if (!isEschaton(item)) return;
+        applyEschatonEnchantments(item);
+        event.setCancelled(true);
+        event.setUseItemInHand(org.bukkit.event.Event.Result.DENY);
+        event.setUseInteractedBlock(org.bukkit.event.Event.Result.DENY);
+
+        if (event.getAction().isRightClick()) {
+            eschatonBackstep(player);
+        } else if (event.getAction().isLeftClick()) {
+            eschatonThrust(player);
+        }
     }
 
     private void togglePandoraSilk(Player player) {
@@ -347,6 +443,54 @@ public final class ItemPowerService implements Listener {
         }.runTaskTimer(plugin, 0L, 1L);
     }
 
+    private void ensureSapphireQuiverAmmo(Player player) {
+        if (hasUsableArrow(player) || hasSapphireQuiverAmmo(player)) return;
+        ItemStack arrow = new ItemStack(Material.ARROW);
+        ItemMeta meta = arrow.getItemMeta();
+        meta.getPersistentDataContainer().set(sapphireQuiverAmmoKey, PersistentDataType.BYTE, (byte) 1);
+        meta.displayName(Text.mm("<#4169e1>Sapphire Quiver Arrow</#4169e1>"));
+        arrow.setItemMeta(meta);
+        player.getInventory().addItem(arrow);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> removeSapphireQuiverAmmo(player), 200L);
+    }
+
+    private boolean hasUsableArrow(Player player) {
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (item == null || item.getType() == Material.AIR) continue;
+            if (isSapphireQuiverAmmo(item)) continue;
+            Material type = item.getType();
+            if (type == Material.ARROW || type == Material.SPECTRAL_ARROW || type == Material.TIPPED_ARROW) return true;
+        }
+        return false;
+    }
+
+    private boolean hasSapphireQuiverAmmo(Player player) {
+        for (ItemStack item : player.getInventory().getContents()) {
+            if (isSapphireQuiverAmmo(item)) return true;
+        }
+        return false;
+    }
+
+    private void removeSapphireQuiverAmmo(Player player) {
+        ItemStack[] contents = player.getInventory().getContents();
+        boolean changed = false;
+        for (int i = 0; i < contents.length; i++) {
+            if (!isSapphireQuiverAmmo(contents[i])) continue;
+            contents[i] = null;
+            changed = true;
+        }
+        if (changed) {
+            player.getInventory().setContents(contents);
+            player.updateInventory();
+        }
+    }
+
+    private boolean isSapphireQuiverAmmo(ItemStack item) {
+        return item != null
+                && item.hasItemMeta()
+                && item.getItemMeta().getPersistentDataContainer().has(sapphireQuiverAmmoKey, PersistentDataType.BYTE);
+    }
+
     private void lazuriteImpact(Location location) {
         World world = location.getWorld();
         world.spawnParticle(Particle.DUST, location, 55, 0.55D, 0.55D, 0.55D, 0.0D, new Particle.DustOptions(LAZURITE_BLUE, 1.35F));
@@ -372,6 +516,89 @@ public final class ItemPowerService implements Listener {
         world.playSound(location, Sound.ITEM_FIRECHARGE_USE, 0.65F, 1.35F);
     }
 
+    private void eschatonThrust(Player player) {
+        long now = System.currentTimeMillis();
+        long readyAt = eschatonThrustCooldowns.getOrDefault(player.getUniqueId(), 0L);
+        if (readyAt > now) {
+            Text.actionBar(player, "<gradient:#f4cd2a:#ffffff>Eschaton</gradient> <gray>thrust ready in</gray> <white>" + secondsLeft(readyAt, now) + "s</white><gray>.</gray>");
+            return;
+        }
+
+        UUID uuid = player.getUniqueId();
+        eschatonThrustCooldowns.put(uuid, now + ESCHATON_THRUST_COOLDOWN_MILLIS);
+        eschatonLungeHits.put(uuid, ConcurrentHashMap.newKeySet());
+        Vector direction = player.getLocation().getDirection().setY(0.0D);
+        if (direction.lengthSquared() < 0.01D) direction = player.getLocation().getDirection();
+        direction.normalize();
+        player.setVelocity(direction.clone().multiply(1.55D).setY(0.18D));
+        player.playSound(player.getLocation(), Sound.ITEM_TRIDENT_RIPTIDE_1, 0.85F, 1.55F);
+        Text.actionBar(player, "<gradient:#f4cd2a:#ffffff>Eschaton</gradient> <gray>lunges forward.</gray>");
+
+        new BukkitRunnable() {
+            private int ticks;
+
+            @Override
+            public void run() {
+                Player current = Bukkit.getPlayer(uuid);
+                if (current == null || !current.isOnline() || current.isDead() || ticks++ > ESCHATON_LUNGE_TICKS) {
+                    eschatonLungeHits.remove(uuid);
+                    cancel();
+                    return;
+                }
+                Location point = current.getLocation().add(0.0D, 1.0D, 0.0D);
+                current.getWorld().spawnParticle(Particle.DUST, point, 8, 0.22D, 0.18D, 0.22D, 0.0D, new Particle.DustOptions(GOLD, 1.0F));
+                current.getWorld().spawnParticle(Particle.CRIT, point, 4, 0.18D, 0.12D, 0.18D, 0.04D);
+                checkEschatonImpale(current);
+            }
+        }.runTaskTimer(plugin, 0L, 1L);
+    }
+
+    private void eschatonBackstep(Player player) {
+        long now = System.currentTimeMillis();
+        long readyAt = eschatonBackstepCooldowns.getOrDefault(player.getUniqueId(), 0L);
+        if (readyAt > now) {
+            Text.actionBar(player, "<gradient:#f4cd2a:#ffffff>Eschaton</gradient> <gray>backstep ready in</gray> <white>" + secondsLeft(readyAt, now) + "s</white><gray>.</gray>");
+            return;
+        }
+
+        eschatonBackstepCooldowns.put(player.getUniqueId(), now + ESCHATON_BACKSTEP_COOLDOWN_MILLIS);
+        Vector direction = player.getLocation().getDirection().setY(0.0D);
+        if (direction.lengthSquared() < 0.01D) direction = player.getLocation().getDirection();
+        direction.normalize().multiply(-0.72D).setY(0.10D);
+        player.setVelocity(direction);
+        player.getWorld().spawnParticle(Particle.DUST, player.getLocation().add(0.0D, 0.35D, 0.0D), 18, 0.35D, 0.12D, 0.35D, 0.0D, new Particle.DustOptions(GOLD, 0.9F));
+        player.playSound(player.getLocation(), Sound.ENTITY_PLAYER_ATTACK_SWEEP, 0.65F, 1.65F);
+        Text.actionBar(player, "<gradient:#f4cd2a:#ffffff>Eschaton</gradient> <gray>evades backward.</gray>");
+    }
+
+    private void checkEschatonImpale(Player player) {
+        Set<UUID> hit = eschatonLungeHits.get(player.getUniqueId());
+        if (hit == null) return;
+        Location origin = player.getEyeLocation();
+        Vector facing = origin.getDirection().normalize();
+        for (LivingEntity target : player.getWorld().getNearbyLivingEntities(player.getLocation(), 1.35D, 1.05D, 1.35D)) {
+            if (target.getUniqueId().equals(player.getUniqueId())) continue;
+            if (target instanceof ArmorStand stand && (stand.isMarker() || !stand.isVisible())) continue;
+            if (!hit.add(target.getUniqueId())) continue;
+            Vector toTarget = target.getLocation().add(0.0D, Math.max(0.75D, target.getHeight() * 0.45D), 0.0D).toVector().subtract(origin.toVector());
+            if (toTarget.lengthSquared() > 0.01D && toTarget.normalize().dot(facing) < 0.2D) continue;
+            impaleWithEschaton(player, target);
+        }
+    }
+
+    private void impaleWithEschaton(Player player, LivingEntity target) {
+        target.damage(8.0D, player);
+        target.addPotionEffect(new PotionEffect(PotionEffectType.SLOWNESS, ESCHATON_STUN_TICKS, 6, true, false, true));
+        target.addPotionEffect(new PotionEffect(PotionEffectType.WEAKNESS, ESCHATON_STUN_TICKS, 1, true, false, true));
+        target.setVelocity(player.getLocation().getDirection().setY(0.0D).normalize().multiply(0.18D));
+        Location center = target.getLocation().add(0.0D, Math.max(0.8D, target.getHeight() * 0.55D), 0.0D);
+        World world = target.getWorld();
+        world.spawnParticle(Particle.DUST, center, 45, 0.35D, 0.32D, 0.35D, 0.0D, new Particle.DustOptions(GOLD, 1.25F));
+        world.spawnParticle(Particle.CRIT, center, 18, 0.25D, 0.25D, 0.25D, 0.05D);
+        world.playSound(center, Sound.ITEM_TRIDENT_HIT, 0.9F, 1.35F);
+        Text.actionBar(player, "<gradient:#f4cd2a:#ffffff>Eschaton</gradient> <gray>impaled</gray> <white>" + target.getName() + "</white><gray>.</gray>");
+    }
+
     private boolean isPandora(ItemStack item) {
         return isCustomItem(item, pandoraKey, PANDORA_NS, "pandora's pick", "_PICKAXE");
     }
@@ -381,7 +608,32 @@ public final class ItemPowerService implements Listener {
     }
 
     private boolean isForsakenElytra(ItemStack item) {
-        return isCustomItem(item, forsakenElytraKey, FORSAKEN_ELYTRA_NS, "forsaken elytra", "ELYTRA");
+        boolean result = isCustomItem(item, forsakenElytraKey, FORSAKEN_ELYTRA_NS, "forsaken elytra", "ELYTRA");
+        if (result) ensureForsakenElytraTexture(item);
+        return result;
+    }
+
+    private boolean isSapphireRod(ItemStack item) {
+        return isCustomItem(item, sapphireRodKey, SAPPHIRE_ROD_NS, "sapphire rod", "FISHING_ROD");
+    }
+
+    private boolean isSapphireQuiver(ItemStack item) {
+        return isCustomItem(item, sapphireQuiverKey, SAPPHIRE_QUIVER_NS, "sapphire quiver", "BOW");
+    }
+
+    private boolean isSapphireBulwark(ItemStack item) {
+        return isCustomItem(item, sapphireBulwarkKey, SAPPHIRE_BULWARK_NS, "sapphire bulwark", "SHIELD");
+    }
+
+    private boolean isEschaton(ItemStack item) {
+        return isCustomItem(item, eschatonKey, ESCHATON_NS, "eschaton", "");
+    }
+
+    private void ensureForsakenElytraTexture(ItemStack item) {
+        Equippable current = item.getData(DataComponentTypes.EQUIPPABLE);
+        if (current != null && FORSAKEN_ELYTRA_ASSET.equals(current.assetId())) return;
+        item.setData(DataComponentTypes.EQUIPPABLE, Equippable.equippable(EquipmentSlot.CHEST)
+                .assetId(FORSAKEN_ELYTRA_ASSET));
     }
 
     private boolean isCustomItem(ItemStack item, NamespacedKey key, String itemsAdderId, String displayName, String materialSuffix) {
@@ -405,6 +657,11 @@ public final class ItemPowerService implements Listener {
             case PANDORA_ID -> mark(applyPandoraEnchantments(itemsAdderItem(PANDORA_NS, fallbackPandora())), pandoraKey);
             case LAZURITE_ID -> mark(applyLazuriteEnchantments(itemsAdderItem(LAZURITE_NS, fallbackLazurite())), lazuriteKey);
             case FORSAKEN_ELYTRA_ID -> mark(applyForsakenElytraEnchantments(itemsAdderItem(FORSAKEN_ELYTRA_NS, fallbackForsakenElytra())), forsakenElytraKey);
+            case SAPPHIRE_ROD_ID -> mark(applySapphireRodEnchantments(itemsAdderItem(SAPPHIRE_ROD_NS, fallbackSapphireRod())), sapphireRodKey);
+            case SAPPHIRE_QUIVER_ID -> mark(applySapphireQuiverEnchantments(itemsAdderItem(SAPPHIRE_QUIVER_NS, fallbackSapphireQuiver())), sapphireQuiverKey);
+            case SAPPHIRE_BULWARK_ID -> mark(applySapphireBulwarkEnchantments(itemsAdderItem(SAPPHIRE_BULWARK_NS, fallbackSapphireBulwark())), sapphireBulwarkKey);
+            case SAPPHIRE_ID -> mark(itemsAdderItem(SAPPHIRE_NS, fallbackSapphire()), sapphireKey);
+            case ESCHATON_ID -> mark(applyEschatonEnchantments(itemsAdderItem(ESCHATON_NS, fallbackEschaton())), eschatonKey);
             default -> null;
         };
     }
@@ -453,6 +710,37 @@ public final class ItemPowerService implements Listener {
         return item;
     }
 
+    private ItemStack applySapphireRodEnchantments(ItemStack item) {
+        addEnchant(item, "unbreaking", 3);
+        addEnchant(item, "mending", 1);
+        addEnchant(item, "luck_of_the_sea", 3);
+        addEnchant(item, "lure", 3);
+        return item;
+    }
+
+    private ItemStack applySapphireQuiverEnchantments(ItemStack item) {
+        addEnchant(item, "power", 5);
+        addEnchant(item, "unbreaking", 3);
+        addEnchant(item, "mending", 1);
+        addEnchant(item, "infinity", 1);
+        addEnchant(item, "flame", 1);
+        addEnchant(item, "punch", 2);
+        return item;
+    }
+
+    private ItemStack applySapphireBulwarkEnchantments(ItemStack item) {
+        addEnchant(item, "unbreaking", 3);
+        addEnchant(item, "mending", 1);
+        return item;
+    }
+
+    private ItemStack applyEschatonEnchantments(ItemStack item) {
+        addEnchant(item, "sharpness", 5);
+        addEnchant(item, "unbreaking", 3);
+        addEnchant(item, "mending", 1);
+        return item;
+    }
+
     private void addEnchant(ItemStack item, String key, int level) {
         Enchantment enchantment = Registry.ENCHANTMENT.get(NamespacedKey.minecraft(key));
         if (enchantment != null) item.addUnsafeEnchantment(enchantment, level);
@@ -489,7 +777,102 @@ public final class ItemPowerService implements Listener {
         meta.lore(List.of(Text.mm("<gray>Leaves a sapphire trail while gliding.</gray>"), Text.mm("<gray>Sneak + jump to launch.</gray>")));
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         item.setItemMeta(meta);
+        ensureForsakenElytraTexture(item);
         return item;
+    }
+
+    private ItemStack fallbackSapphireRod() {
+        ItemStack item = new ItemStack(Material.FISHING_ROD);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(Text.mm("<#4169e1><bold>Sapphire Rod</bold></#4169e1>"));
+        meta.lore(List.of(Text.mm("<gray>A sapphire-laced fishing rod.</gray>")));
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private ItemStack fallbackSapphireQuiver() {
+        ItemStack item = new ItemStack(Material.BOW);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(Text.mm("<#4169e1><bold>Sapphire Quiver</bold></#4169e1>"));
+        meta.lore(List.of(Text.mm("<gray>Fires arrows without consuming them.</gray>")));
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private ItemStack fallbackSapphireBulwark() {
+        ItemStack item = new ItemStack(Material.SHIELD);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(Text.mm("<#4169e1><bold>Sapphire Bulwark</bold></#4169e1>"));
+        meta.lore(List.of(Text.mm("<gray>Uses a custom raised and lowered shield model.</gray>")));
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private ItemStack fallbackSapphire() {
+        ItemStack item = new ItemStack(Material.PRISMARINE_CRYSTALS);
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(Text.mm("<#4169e1><bold>Sapphire</bold></#4169e1>"));
+        meta.lore(List.of(Text.mm("<gray>A crystallized sapphire shard.</gray>")));
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private ItemStack fallbackEschaton() {
+        ItemStack item = new ItemStack(preferredSpearMaterial());
+        ItemMeta meta = item.getItemMeta();
+        meta.displayName(Text.mm("<gradient:#f4cd2a:#ffffff><bold>Eschaton</bold></gradient>"));
+        meta.lore(List.of(
+                Text.mm("<gray>Left-click to lunge forward and impale.</gray>"),
+                Text.mm("<gray>Right-click to lunge backward.</gray>"),
+                Text.mm("<dark_gray>Forward hit briefly stuns the target.</dark_gray>")
+        ));
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+        item.setItemMeta(meta);
+        return item;
+    }
+
+    private Material preferredSpearMaterial() {
+        Material spear = Material.matchMaterial("SPEAR");
+        if (spear != null) return spear;
+        Material moddedSpear = Material.matchMaterial("MINECRAFT_SPEAR");
+        if (moddedSpear != null) return moddedSpear;
+        return Material.TRIDENT;
+    }
+
+    private void trailSapphireArrow(Projectile projectile) {
+        new BukkitRunnable() {
+            private int ticks;
+
+            @Override
+            public void run() {
+                if (!projectile.isValid() || projectile.isDead() || ticks++ > 100) {
+                    cancel();
+                    return;
+                }
+                Location loc = projectile.getLocation();
+                loc.getWorld().spawnParticle(Particle.DUST, loc, 3, 0.04D, 0.04D, 0.04D, 0.0D, new Particle.DustOptions(SAPPHIRE, 0.8F));
+            }
+        }.runTaskTimer(plugin, 0L, 1L);
+    }
+
+    private void makeHookBiteImmediately(Object hook) {
+        invokeHookSetter(hook, "setApplyLure", true);
+        invokeHookSetter(hook, "setMinWaitTime", 1);
+        invokeHookSetter(hook, "setMaxWaitTime", 1);
+        invokeHookSetter(hook, "setMinLureTime", 0);
+        invokeHookSetter(hook, "setMaxLureTime", 0);
+    }
+
+    private void invokeHookSetter(Object hook, String method, Object value) {
+        try {
+            Class<?> type = value instanceof Boolean ? boolean.class : int.class;
+            hook.getClass().getMethod(method, type).invoke(hook, value);
+        } catch (ReflectiveOperationException ignored) {
+        }
     }
 
     private String itemsAdderId(ItemStack item) {
@@ -534,6 +917,11 @@ public final class ItemPowerService implements Listener {
             case PANDORA_ID -> "Pandora's Pick";
             case LAZURITE_ID -> "Lazurite";
             case FORSAKEN_ELYTRA_ID -> "Forsaken Elytra";
+            case SAPPHIRE_ROD_ID -> "Sapphire Rod";
+            case SAPPHIRE_QUIVER_ID -> "Sapphire Quiver";
+            case SAPPHIRE_BULWARK_ID -> "Sapphire Bulwark";
+            case SAPPHIRE_ID -> "Sapphire";
+            case ESCHATON_ID -> "Eschaton";
             default -> id;
         };
     }

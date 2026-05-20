@@ -4,9 +4,17 @@ settings:
   sync-chat-styles: true
   sync-visual-ranks: true
   default-subscription-duration: "30d"
-  permanent-parent-command: "lp user {player} parent add {group}"
+  permanent-parent-command: "lp user {player} parent set {group}"
   subscription-parent-command: "lp user {player} parent addtemp {group} {duration} accumulate"
   remove-parent-command: "lp user {player} parent remove {group}"
+  remove-retired-luckperms-groups: true
+  assign-member-on-join: true
+  member-rank: "member"
+  member-assignment-delay-ticks: 20
+  retired-luckperms-groups:
+    - "vip"
+    - "elite"
+    - "3rank"
   broadcast-deliveries: true
 
 messages:
@@ -23,9 +31,16 @@ ranks:
     visual:
       image: ""
       image-id: ""
-      gradient: "member"
-      gradient-colors: "#e2e8f0:#94a3b8"
+      gradient: "white"
+      gradient-colors: "#ffffff:#ffffff"
       sort-weight: 999
+    chat:
+      priority: 1
+      name-format: "<white><player></white>"
+      name-color: "white"
+      tag-format: "<white><tag></white>"
+      tag-color: "white"
+      message-color: "white"
   member:
     enabled: true
     luckperms-group: "member"
@@ -34,40 +49,16 @@ ranks:
     visual:
       image: ""
       image-id: ""
-      gradient: "member"
-      gradient-colors: "#e2e8f0:#94a3b8"
+      gradient: "white"
+      gradient-colors: "#ffffff:#ffffff"
       sort-weight: 100
-  vip:
-    enabled: true
-    luckperms-group: "vip"
-    display-name: "VIP"
-    weight: 30
-    permissions:
-      - "essentials.sethome.multiple.vip"
-      - "essentials.hat"
-      - "3smpcore.chat.color.vip"
-      - "3smpcore.queue.priority.vip"
-      - "3smpcore.perks.use"
-      - "3smpcore.sapphires.use"
-      - "3smpcore.gems.use"
-      - "3smpcore.souls.use"
-      - "3smpcore.daily.use"
-    setup-commands:
-      - "lp group {group} meta setsuffix 10 \"&aVIP\""
-      - "lp group {group} meta sethomes 5"
     chat:
-      priority: 150
-      name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
-      name-color: "gold"
-      tag-format: "<gradient:#f4cd2a:#eda323:#d28d0d><tag></gradient>"
-      tag-color: "gold"
+      priority: 2
+      name-format: "<white><player></white>"
+      name-color: "white"
+      tag-format: "<white><tag></white>"
+      tag-color: "white"
       message-color: "white"
-    visual:
-      image: "<img:vip>"
-      image-id: "vip"
-      gradient: "vip"
-      gradient-colors: "#f4cd2a:#eda323:#d28d0d"
-      sort-weight: 30
   pro:
     enabled: true
     luckperms-group: "pro"
@@ -75,6 +66,9 @@ ranks:
     weight: 35
     permissions:
       - "essentials.sethome.multiple.pro"
+      - "3smpcore.home.limit.10"
+      - "essentials.home"
+      - "essentials.sethome"
       - "essentials.hat"
       - "essentials.fly"
       - "essentials.ec"
@@ -84,9 +78,11 @@ ranks:
       - "essentials.workbench"
       - "essentials.enderchest"
       - "essentials.back"
-      - "3smpcore.chat.color.vip"
+      - "essentials.nick"
+      - "3smpcore.chat.color.3"
       - "3smpcore.chat.color.mvp"
-      - "3smpcore.queue.priority.vip"
+      - "3smpcore.queue.priority.pro"
+      - "3smpcore.backpack.limit.1"
       - "3smpcore.perks.use"
       - "3smpcore.sapphires.use"
       - "3smpcore.gems.use"
@@ -97,16 +93,16 @@ ranks:
       - "lp group {group} meta sethomes 10"
     chat:
       priority: 175
-      name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
-      name-color: "gold"
-      tag-format: "<gradient:#f4cd2a:#eda323:#d28d0d><tag></gradient>"
-      tag-color: "gold"
+      name-format: "<gradient:#22d3ee:#38bdf8><player></gradient>"
+      name-color: "aqua"
+      tag-format: "<gradient:#22d3ee:#38bdf8><tag></gradient>"
+      tag-color: "aqua"
       message-color: "white"
     visual:
       image: "<img:pro>"
       image-id: "pro"
-      gradient: "vip"
-      gradient-colors: "#f4cd2a:#eda323:#d28d0d"
+      gradient: "pro"
+      gradient-colors: "#22d3ee:#38bdf8"
       sort-weight: 35
     delivery:
       permanent:
@@ -114,6 +110,7 @@ ranks:
           - "eco give {player} 500000"
           - "giveclaim {player} 7500"
           - "lp user {player} permission set essentials.sethome.multiple.20 true"
+          - "lp user {player} permission set 3smpcore.home.limit.10 true"
           - "lp user {player} permission set auctionhouse.maxsell.4 true"
           - "lp user {player} permission set essentials.nick true"
           - "lp user {player} permission set essentials.workbench true"
@@ -122,7 +119,7 @@ ranks:
           - "lp user {player} permission set essentials.ptime true"
           - "lp user {player} permission set essentials.pweather true"
           - "lp user {player} meta set player-shops 250"
-          - "vs backpack give {player} 1"
+          - "lp user {player} permission set 3smpcore.backpack.limit.1 true"
   mvp:
     enabled: true
     luckperms-group: "mvp"
@@ -130,6 +127,9 @@ ranks:
     weight: 20
     permissions:
       - "essentials.sethome.multiple.mvp"
+      - "3smpcore.home.limit.30"
+      - "essentials.home"
+      - "essentials.sethome"
       - "essentials.hat"
       - "essentials.fly"
       - "essentials.ec"
@@ -139,12 +139,14 @@ ranks:
       - "essentials.workbench"
       - "essentials.enderchest"
       - "essentials.back"
+      - "essentials.nick"
       - "essentials.anvil"
       - "essentials.smithingtable"
       - "essentials.grindstone"
-      - "3smpcore.chat.color.vip"
+      - "3smpcore.chat.color.3"
       - "3smpcore.chat.color.mvp"
-      - "3smpcore.queue.priority.vip"
+      - "3smpcore.queue.priority.mvp"
+      - "3smpcore.backpack.limit.2"
       - "3smpcore.perks.use"
       - "3smpcore.sapphires.use"
       - "3smpcore.gems.use"
@@ -155,16 +157,16 @@ ranks:
       - "lp group {group} meta sethomes 15"
     chat:
       priority: 200
-      name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
-      name-color: "gold"
-      tag-format: "<gradient:#f4cd2a:#eda323:#d28d0d><tag></gradient>"
-      tag-color: "gold"
-      message-color: "aqua"
+      name-format: "<gradient:#60a5fa:#c084fc><player></gradient>"
+      name-color: "aqua"
+      tag-format: "<gradient:#60a5fa:#c084fc><tag></gradient>"
+      tag-color: "aqua"
+      message-color: "white"
     visual:
       image: "<img:mvp>"
       image-id: "mvp"
       gradient: "mvp"
-      gradient-colors: "#f4cd2a:#eda323:#d28d0d"
+      gradient-colors: "#60a5fa:#c084fc"
       sort-weight: 20
     delivery:
       permanent:
@@ -172,8 +174,10 @@ ranks:
           - "eco give {player} 750000"
           - "giveclaim {player} 10000"
           - "lp user {player} permission set essentials.sethome.multiple.35 true"
+          - "lp user {player} permission set 3smpcore.home.limit.30 true"
           - "lp user {player} permission set auctionhouse.maxsell.6 true"
           - "lp user {player} permission set essentials.skull true"
+          - "lp user {player} permission set essentials.nick true"
           - "lp user {player} permission set essentials.feed true"
           - "lp user {player} permission set essentials.anvil true"
           - "lp user {player} permission set essentials.stonecutter true"
@@ -182,7 +186,7 @@ ranks:
           - "lp user {player} permission set essentials.workbench true"
           - "lp user {player} permission set essentials.enderchest true"
           - "lp user {player} meta set player-shops 500"
-          - "vs backpack give {player} 2"
+          - "lp user {player} permission set 3smpcore.backpack.limit.2 true"
           - "lp user {player} permission set 3smpcore.command.fly true"
   ultra:
     enabled: true
@@ -191,6 +195,9 @@ ranks:
     weight: 10
     permissions:
       - "essentials.sethome.multiple.ultra"
+      - "3smpcore.home.limit.unlimited"
+      - "essentials.home"
+      - "essentials.sethome"
       - "essentials.hat"
       - "essentials.fly"
       - "essentials.ec"
@@ -205,10 +212,11 @@ ranks:
       - "essentials.grindstone"
       - "essentials.loom"
       - "essentials.nick"
-      - "3smpcore.chat.color.vip"
+      - "3smpcore.chat.color.3"
       - "3smpcore.chat.color.mvp"
-      - "3smpcore.chat.color.elite"
-      - "3smpcore.queue.priority.vip"
+      - "3smpcore.chat.color.ultra"
+      - "3smpcore.queue.priority.ultra"
+      - "3smpcore.backpack.limit.3"
       - "3smpcore.perks.use"
       - "3smpcore.sapphires.use"
       - "3smpcore.gems.use"
@@ -219,16 +227,16 @@ ranks:
       - "lp group {group} meta sethomes 30"
     chat:
       priority: 220
-      name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
-      name-color: "gold"
-      tag-format: "<gradient:#f4cd2a:#eda323:#d28d0d><tag></gradient>"
-      tag-color: "gold"
-      message-color: "gold"
+      name-format: "<gradient:#ef4444:#f97316:#f4cd2a><player></gradient>"
+      name-color: "lava"
+      tag-format: "<gradient:#ef4444:#f97316:#f4cd2a><tag></gradient>"
+      tag-color: "lava"
+      message-color: "white"
     visual:
       image: "<img:ultra>"
       image-id: "ultra"
       gradient: "ultra"
-      gradient-colors: "#f4cd2a:#eda323:#d28d0d"
+      gradient-colors: "#ef4444:#f97316:#f4cd2a"
       sort-weight: 10
     delivery:
       permanent:
@@ -236,6 +244,7 @@ ranks:
           - "eco give {player} 1000000"
           - "giveclaim {player} 15000"
           - "lp user {player} permission set essentials.sethome.multiple.unlimited true"
+          - "lp user {player} permission set 3smpcore.home.limit.unlimited true"
           - "lp user {player} permission set auctionhouse.maxsell.8 true"
           - "lp user {player} permission set essentials.heal true"
           - "lp user {player} permission set essentials.skull true"
@@ -248,35 +257,36 @@ ranks:
           - "lp user {player} permission set essentials.enderchest true"
           - "lp user {player} permission set 3smpcore.command.fly true"
           - "lp user {player} meta set player-shops unlimited"
-          - "vs backpack give {player} 3"
-  3rank:
+          - "lp user {player} permission set 3smpcore.backpack.limit.3 true"
+  "3":
     enabled: true
-    luckperms-group: "3rank"
-    display-name: "3RANK"
-    weight: 15
+    luckperms-group: "3"
+    display-name: "3"
+    weight: 40
     permissions:
-      - "3smpcore.chat.color.vip"
+      - "3smpcore.chat.color.3"
       - "3smpcore.chat.color.mvp"
-      - "3smpcore.chat.color.elite"
-      - "3smpcore.queue.priority.vip"
+      - "3smpcore.chat.color.ultra"
+      - "3smpcore.queue.priority.3"
+      - "3smpcore.backpack.limit.1"
       - "3smpcore.perks.use"
       - "3smpcore.sapphires.use"
       - "3smpcore.gems.use"
       - "3smpcore.souls.use"
       - "3smpcore.daily.use"
     chat:
-      priority: 210
+      priority: 160
       name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
       name-color: "gold"
       tag-format: "<gradient:#f4cd2a:#eda323:#d28d0d><tag></gradient>"
       tag-color: "gold"
-      message-color: "gold"
+      message-color: "white"
     visual:
       image: "<img:3smp>"
       image-id: "3smp"
       gradient: "3smp"
       gradient-colors: "#f4cd2a:#eda323:#d28d0d"
-      sort-weight: 15
+      sort-weight: 40
     delivery:
       subscriptions:
         duration: "30d"
@@ -286,6 +296,7 @@ ranks:
           - "eco give {player} 350000"
           - "giveclaim {player} 5000"
           - "lp user {player} permission set essentials.sethome.multiple.15 true"
+          - "lp user {player} permission set 3smpcore.home.limit.10 true"
           - "lp user {player} permission set auctionhouse.maxsell.3 true"
           - "lp user {player} permission set essentials.nick true"
           - "lp user {player} permission set essentials.workbench true"
@@ -294,12 +305,19 @@ ranks:
           - "lp user {player} permission set essentials.ptime true"
           - "lp user {player} permission set essentials.pweather true"
           - "lp user {player} meta set player-shops 200"
-          - "vs backpack give {player} 1"
+          - "lp user {player} permission set 3smpcore.backpack.limit.1 true"
   owner:
     enabled: true
     luckperms-group: "owner"
     display-name: "Owner"
     weight: 1
+    permissions:
+      - "altdetector.notify"
+      - "altdetector.notify.seevanished"
+      - "altdetector.alt"
+      - "altdetector.alt.seevanished"
+      - "3smpcore.perks.all"
+      - "3smpcore.backpack.limit.unlimited"
     chat:
       priority: 300
       name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
@@ -318,34 +336,45 @@ ranks:
     luckperms-group: "admin"
     display-name: "Admin"
     weight: 3
+    permissions:
+      - "altdetector.notify"
+      - "altdetector.alt"
+      - "3smpcore.backpack.limit.10"
     chat:
       priority: 250
-      name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
+      name-format: "<gradient:#ff4d4d:#fb923c><player></gradient>"
       name-color: "lava"
-      tag-format: "<gradient:#f4cd2a:#eda323:#d28d0d><tag></gradient>"
-      tag-color: "gold"
+      tag-format: "<gradient:#ff4d4d:#fb923c><tag></gradient>"
+      tag-color: "lava"
       message-color: "white"
     visual:
       image: "<img:admin>"
       image-id: "admin"
       gradient: "admin"
-      gradient-colors: "#f4cd2a:#eda323:#d28d0d"
+      gradient-colors: "#ff4d4d:#fb923c"
       sort-weight: 3
   dev:
     enabled: true
     luckperms-group: "dev"
     display-name: "Developer"
     weight: 2
+    permissions:
+      - "altdetector.notify"
+      - "altdetector.notify.seevanished"
+      - "altdetector.alt"
+      - "altdetector.alt.seevanished"
+      - "3smpcore.perks.all"
+      - "3smpcore.backpack.limit.10"
     chat:
       priority: 240
-      name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
-      name-color: "gold"
-      tag-format: "<gradient:#f4cd2a:#eda323:#d28d0d><tag></gradient>"
-      tag-color: "gold"
+      name-format: "<gradient:#38bdf8:#a78bfa><player></gradient>"
+      name-color: "aqua"
+      tag-format: "<gradient:#38bdf8:#a78bfa><tag></gradient>"
+      tag-color: "aqua"
       message-color: "white"
     visual:
       image: "<img:dev>"
       image-id: "dev"
       gradient: "dev"
-      gradient-colors: "#f4cd2a:#eda323:#d28d0d"
+      gradient-colors: "#38bdf8:#a78bfa"
       sort-weight: 2

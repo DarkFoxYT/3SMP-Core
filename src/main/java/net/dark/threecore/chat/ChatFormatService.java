@@ -2,6 +2,7 @@ package net.dark.threecore.chat;
 
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.dark.threecore.config.ConfigFiles;
+import net.dark.threecore.duels.DuelService;
 import net.dark.threecore.perks.PerkService;
 import net.dark.threecore.text.Text;
 import net.dark.threecore.visual.VisualManager;
@@ -31,6 +32,7 @@ public final class ChatFormatService implements Listener {
     private final ConfigFiles configs;
     private final PerkService perkService;
     private VisualManager visualManager;
+    private DuelService duelService;
 
     public ChatFormatService(JavaPlugin plugin, ConfigFiles configs, PerkService perkService) {
         this.configs = configs;
@@ -41,9 +43,14 @@ public final class ChatFormatService implements Listener {
         this.visualManager = visualManager;
     }
 
+    public void setDuelService(DuelService duelService) {
+        this.duelService = duelService;
+    }
+
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onChat(AsyncChatEvent event) {
         Player player = event.getPlayer();
+        isolateDuelChat(event, player);
         var data = perkService.data(player.getUniqueId());
         RankChatStyle style = resolveRankStyle(player);
         Component prefix = visualManager == null ? resolvePrefix(player) : visualManager.renderedPrefix(player);
@@ -51,6 +58,26 @@ public final class ChatFormatService implements Listener {
         Component name = visualManager == null ? styledPlayerName(player, style) : visualManager.renderedPlayerName(player);
         String messageColor = resolveMessageColor(player, data.activeMessageColor(), style);
         event.renderer((source, sourceDisplayName, chatMessage, viewer) -> joinChatParts(prefix, name, tag, chatMessage(player, chatMessage, messageColor)));
+    }
+
+    private void isolateDuelChat(AsyncChatEvent event, Player source) {
+        if (source == null || source.getWorld() == null) return;
+        boolean sourceDuelWorld = isDuelChatWorld(source.getWorld());
+        event.viewers().removeIf(audience -> {
+            if (!(audience instanceof Player viewer) || viewer.getWorld() == null) return false;
+            boolean viewerDuelWorld = isDuelChatWorld(viewer.getWorld());
+            if (viewerDuelWorld != sourceDuelWorld) return true;
+            return sourceDuelWorld
+                    && configs.get("social/friends.yml").getBoolean("friends.tab.duels.same-world-only", true)
+                    && !viewer.getWorld().getName().equalsIgnoreCase(source.getWorld().getName());
+        });
+    }
+
+    private boolean isDuelChatWorld(org.bukkit.World world) {
+        if (world == null) return false;
+        if (duelService != null && duelService.isDuelIsolatedWorld(world)) return true;
+        String name = world.getName();
+        return configs.get("social/friends.yml").getStringList("friends.tab.duels.worlds").stream().anyMatch(configured -> configured.equalsIgnoreCase(name));
     }
 
     private Component chatMessage(Player player, Component chatMessage, String messageColor) {
@@ -133,9 +160,10 @@ public final class ChatFormatService implements Listener {
         if (selected != null && !selected.isBlank() && !selected.equalsIgnoreCase("default") && canUseSelectedColor(player, selected)) {
             return selected;
         }
-        if (style.messageColorId() != null && !style.messageColorId().isBlank()) {
+        if (configs.get("cosmetics/colors.yml").getBoolean("allow-rank-chat-colors", false) && style.messageColorId() != null && !style.messageColorId().isBlank()) {
             return style.messageColorId();
         }
+        if (!configs.get("cosmetics/colors.yml").getBoolean("allow-rank-chat-colors", false)) return "default";
         ConfigurationSection ranks = configs.get("cosmetics/colors.yml").getConfigurationSection("rank-colors");
         if (ranks == null) return "default";
         for (String id : ranks.getKeys(false)) {
@@ -152,11 +180,9 @@ public final class ChatFormatService implements Listener {
     private boolean canUseSelectedColor(Player player, String colorId) {
         ConfigurationSection sec = configs.get("cosmetics/colors.yml").getConfigurationSection("colors." + colorId.toLowerCase(Locale.ROOT));
         if (sec == null) return false;
-        String requiredPermission = sec.getString("required-permission", sec.getString("permission", ""));
-        String requiredRank = sec.getString("required-rank", "");
-        boolean permissionOk = requiredPermission.isBlank() || player.hasPermission(requiredPermission);
-        boolean rankOk = requiredRank.isBlank() || matchesRank(player, requiredRank);
-        return permissionOk && rankOk;
+        return colorId.equalsIgnoreCase("default")
+                || player.hasPermission("3smpcore.perks.admin")
+                || perkService.hasUnlocked(player.getUniqueId(), colorId);
     }
 
     private boolean matchesRank(Player player, String requiredRank) {

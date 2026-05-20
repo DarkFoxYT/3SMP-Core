@@ -7,11 +7,16 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
 import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
 
 import java.io.File;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Locale;
@@ -20,11 +25,12 @@ import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
 
-public final class RankService {
+public final class RankService implements Listener {
     private static final String CONFIG = "admin/ranks.yml";
 
     private final JavaPlugin plugin;
     private final ConfigFiles configs;
+    private boolean listenerRegistered;
 
     public RankService(JavaPlugin plugin, ConfigFiles configs) {
         this.plugin = plugin;
@@ -32,14 +38,20 @@ public final class RankService {
     }
 
     public void start() {
-        ensureServerRanksLater();
+        registerListener();
         ensurePluginRankConfig();
+        cleanupRetiredPluginRankConfig();
+        ensureServerRanksLater();
+        removeRetiredLuckPermsGroupsLater();
     }
 
     public void reload() {
         configs.reload(CONFIG);
+        registerListener();
         ensurePluginRankConfig();
+        cleanupRetiredPluginRankConfig();
         ensureServerRanksLater();
+        removeRetiredLuckPermsGroupsLater();
     }
 
     public List<String> rankIds() {
@@ -164,9 +176,62 @@ public final class RankService {
         }, Math.max(1L, config().getLong("settings.ensure-delay-ticks", 20L)));
     }
 
+    private void removeRetiredLuckPermsGroupsLater() {
+        if (!config().getBoolean("settings.remove-retired-luckperms-groups", true)) return;
+        List<String> retired = retiredGroups();
+        if (retired.isEmpty() || Bukkit.getPluginManager().getPlugin("LuckPerms") == null) return;
+        long delay = Math.max(1L, config().getLong("settings.ensure-delay-ticks", 20L) + 20L);
+        Bukkit.getScheduler().runTaskLater(plugin, () -> retired.forEach(this::deleteLuckPermsGroup), delay);
+    }
+
+    @EventHandler
+    public void onJoin(PlayerJoinEvent event) {
+        assignMemberIfRanklessLater(event.getPlayer());
+    }
+
+    private void registerListener() {
+        if (listenerRegistered) return;
+        Bukkit.getPluginManager().registerEvents(this, plugin);
+        listenerRegistered = true;
+    }
+
+    private void assignMemberIfRanklessLater(Player player) {
+        if (player == null) return;
+        if (!config().getBoolean("settings.assign-member-on-join", true)) return;
+        long delay = Math.max(1L, config().getLong("settings.member-assignment-delay-ticks", 20L));
+        Bukkit.getScheduler().runTaskLater(plugin, () -> {
+            if (!player.isOnline()) return;
+            String current = primaryGroup(player.getUniqueId());
+            if (!current.isBlank() && !current.equalsIgnoreCase("default")) return;
+            RankDefinition member = rank(config().getString("settings.member-rank", "member"));
+            if (member == null || member.group().isBlank() || member.group().equalsIgnoreCase("default")) return;
+            ensureLuckPermsGroup(member);
+            dispatch(Bukkit.getConsoleSender(), "lp user " + player.getName() + " parent set " + member.group());
+        }, delay);
+    }
+
     private void ensurePluginRankConfig() {
         if (config().getBoolean("settings.sync-chat-styles", true)) syncChatStyles();
         if (config().getBoolean("settings.sync-visual-ranks", true)) syncVisualRanks();
+    }
+
+    private void cleanupRetiredPluginRankConfig() {
+        Set<String> retired = new HashSet<>(retiredGroups());
+        if (retired.isEmpty()) return;
+        YamlConfiguration core = configs.get("core/config.yml");
+        boolean coreChanged = false;
+        for (String id : retired) coreChanged |= removePath(core, "chat.rank-styles." + id);
+        if (coreChanged) save(core, "core/config.yml");
+
+        YamlConfiguration visual = configs.get("social/friends.yml");
+        boolean visualChanged = false;
+        for (String id : retired) {
+            visualChanged |= removePath(visual, "friends.tab.visuals.shadows.ranks." + id);
+            visualChanged |= removePath(visual, "friends.tab.gradients." + id);
+            visualChanged |= removePath(visual, "friends.tab.ranks." + id);
+        }
+        visualChanged |= removeListValues(visual, "friends.tab.sorting.order", retired);
+        if (visualChanged) save(visual, "social/friends.yml");
     }
 
     private void syncChatStyles() {
@@ -238,10 +303,49 @@ public final class RankService {
         }
     }
 
+    private void deleteLuckPermsGroup(String group) {
+        if (group == null || group.isBlank() || group.equalsIgnoreCase("default")) return;
+        try {
+            Object api = luckPermsApi();
+            if (api == null) return;
+            Object groupManager = api.getClass().getMethod("getGroupManager").invoke(api);
+            Object future = groupManager.getClass().getMethod("loadGroup", String.class).invoke(groupManager, group);
+            Object optional = ((CompletableFuture<?>) future).join();
+            if (!(optional instanceof Optional<?> opt) || opt.isEmpty()) return;
+            Object luckPermsGroup = opt.get();
+            for (Method method : groupManager.getClass().getMethods()) {
+                if (!method.getName().equals("deleteGroup") || method.getParameterCount() != 1) continue;
+                Object result = method.invoke(groupManager, luckPermsGroup);
+                if (result instanceof CompletableFuture<?> deleteFuture) deleteFuture.join();
+                plugin.getLogger().info("Deleted retired LuckPerms rank group: " + group);
+                return;
+            }
+        } catch (Throwable ex) {
+            plugin.getLogger().warning("Could not delete retired LuckPerms group " + group + " through API: " + ex.getMessage());
+        }
+        dispatch(Bukkit.getConsoleSender(), "lp deletegroup " + group);
+    }
+
     private Object luckPermsApi() throws ClassNotFoundException {
         Class<?> providerClass = Class.forName("net.luckperms.api.LuckPerms");
         RegisteredServiceProvider<?> registration = Bukkit.getServicesManager().getRegistration(providerClass);
         return registration == null ? null : registration.getProvider();
+    }
+
+    private String primaryGroup(UUID uuid) {
+        if (uuid == null || Bukkit.getPluginManager().getPlugin("LuckPerms") == null) return "";
+        try {
+            Object api = luckPermsApi();
+            if (api == null) return "";
+            Object userManager = api.getClass().getMethod("getUserManager").invoke(api);
+            Object future = userManager.getClass().getMethod("loadUser", UUID.class).invoke(userManager, uuid);
+            Object user = future instanceof CompletableFuture<?> completable ? completable.join() : null;
+            if (user == null) return "";
+            Object group = user.getClass().getMethod("getPrimaryGroup").invoke(user);
+            return group == null ? "" : group.toString().toLowerCase(Locale.ROOT);
+        } catch (Throwable ignored) {
+            return "";
+        }
     }
 
     private RankDefinition rank(String id) {
@@ -380,6 +484,20 @@ public final class RankService {
         return true;
     }
 
+    private boolean removePath(YamlConfiguration yaml, String path) {
+        if (!yaml.contains(path)) return false;
+        yaml.set(path, null);
+        return true;
+    }
+
+    private boolean removeListValues(YamlConfiguration yaml, String path, Set<String> values) {
+        List<String> list = yaml.getStringList(path);
+        if (list.isEmpty()) return false;
+        boolean changed = list.removeIf(value -> values.contains(normalize(value)));
+        if (changed) yaml.set(path, list);
+        return changed;
+    }
+
     private void save(YamlConfiguration yaml, String path) {
         try {
             File file = new File(plugin.getDataFolder(), path);
@@ -392,11 +510,17 @@ public final class RankService {
     }
 
     private String packageMode(String mode) {
-        return mode != null && mode.equalsIgnoreCase("sub") || mode != null && mode.equalsIgnoreCase("subscriptions") ? "subscriptions" : "permanent";
+        return mode != null && (mode.equalsIgnoreCase("sub") || mode.equalsIgnoreCase("subscription") || mode.equalsIgnoreCase("subscriptions")) ? "subscriptions" : "permanent";
     }
 
     private String normalize(String id) {
         return id == null || id.isBlank() ? "default" : id.toLowerCase(Locale.ROOT).replace(' ', '-');
+    }
+
+    private List<String> retiredGroups() {
+        List<String> configured = config().getStringList("settings.retired-luckperms-groups");
+        if (configured.isEmpty()) configured = List.of("vip", "elite", "3rank");
+        return configured.stream().map(this::normalize).filter(value -> !value.isBlank()).distinct().toList();
     }
 
     private YamlConfiguration config() {

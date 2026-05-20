@@ -3,7 +3,10 @@ bypass-permission: 3smpcore.queue.bypass
 priority-permissions:
   - "3smpcore.queue.priority.owner:1000"
   - "3smpcore.queue.priority.staff:500"
-  - "3smpcore.queue.priority.vip:100"
+  - "3smpcore.queue.priority.ultra:600"
+  - "3smpcore.queue.priority.mvp:500"
+  - "3smpcore.queue.priority.pro:300"
+  - "3smpcore.queue.priority.3:150"
 world:
   name: queue_void
   generator: VoidGen

@@ -447,7 +447,7 @@ public final class FishingRewardManager {
     }
 
     private String highestRank(Player player) {
-        String[] groups = new String[] {"owner", "sr-admin", "admin", "sr-mod", "mod", "jr-mod", "patron", "ultra", "elite", "mvp", "pro", "vip", "default"};
+        String[] groups = new String[] {"owner", "sr-admin", "admin", "sr-mod", "mod", "jr-mod", "patron", "ultra", "mvp", "pro", "3", "default"};
         for (String group : groups) {
             if (player.hasPermission("group." + group) || player.hasPermission("3smpcore.rank." + group)) return group;
         }

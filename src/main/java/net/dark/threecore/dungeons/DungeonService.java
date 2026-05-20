@@ -996,15 +996,52 @@ public final class DungeonService implements Listener {
     }
 
     public void openMenu(Player player) {
-        Inventory inv = Bukkit.createInventory(new DungeonHolder("main"), 27, "3SMP Dungeons");
-        for (int i = 0; i < inv.getSize(); i++) inv.setItem(i, pane());
-        DungeonRunOptions options = options(player);
-        inv.setItem(4, button(Material.COMPASS, "<gradient:#4c1d95:#a78bfa>Dungeons</gradient>", List.of("<gray>Configure your run, then start.</gray>", "<gray>Level:</gray> <white>" + options.level() + "</white>", "<gray>Difficulty:</gray> <white>" + options.difficulty()[0] + "</white>", "<gray>Party:</gray> <white>" + (options.party()[0] ? "party" : "solo") + "</white>")));
-        inv.setItem(10, button(Material.OAK_SAPLING, "<gradient:#34d399:#22c55e>Select Level</gradient>", List.of("<gray>Choose dungeon theme.</gray>")));
-        inv.setItem(12, button(difficultyIcon(options.difficulty()[0]), "<gradient:#f4cd2a:#eda323:#d28d0d>Select Difficulty</gradient>", List.of("<gray>Current:</gray> <white>" + options.difficulty()[0] + "</white>", "<gray>Money per kill:</gray> <white>" + moneyPerKill(options.difficulty()[0]) + "</white>")));
-        inv.setItem(14, button(options.party()[0] ? Material.ORANGE_BANNER : Material.LIGHT_BLUE_BANNER, "<gradient:#60a5fa:#c084fc>Party Mode</gradient>", List.of("<gray>Current:</gray> <white>" + (options.party()[0] ? "party" : "solo") + "</white>", partyService != null && partyService.isLeader(player.getUniqueId()) ? "<gray>Click to configure.</gray>" : partyService != null && partyService.isInParty(player.getUniqueId()) ? "<yellow>Only the party leader can start party dungeons.</yellow>" : "<red>Create/join a party to enable party runs.</red>")));
-        inv.setItem(16, button(Material.LIME_DYE, "<green>Start Dungeon</green>", List.of("<gray>Base kit: wooden sword and leather armor.</gray>")));
+        Inventory inv = Bukkit.createInventory(new DungeonHolder("bank"), 54, dungeonsMenuTitle());
+        inv.setItem(22, button(Material.CHEST, "<gradient:#f4cd2a:#eda323:#d28d0d>Dungeons Bank</gradient>", List.of(
+                "<yellow>Coming soon.</yellow>",
+                "<gray>The dungeon bank is staged as a full double chest UI.</gray>"
+        )));
         player.openInventory(inv);
+    }
+
+    private String dungeonsMenuTitle() {
+        return guiTitle(":offset_-15:&f:dungeons_menu:", "dungeons_menu", "\\uA437");
+    }
+
+    private String guiTitle(String raw, String token, String symbol) {
+        String output = applyItemsAdderFontImages(raw);
+        output = output.replace(":" + token + ":", decodeUnicodeEscapes(symbol));
+        return decodeUnicodeEscapes(output);
+    }
+
+    private String applyItemsAdderFontImages(String input) {
+        if (input == null || input.isBlank() || !Bukkit.getPluginManager().isPluginEnabled("ItemsAdder")) return input == null ? "" : input;
+        try {
+            Class<?> wrapper = Class.forName("dev.lone.itemsadder.api.FontImages.FontImageWrapper");
+            java.lang.reflect.Method replace = wrapper.getMethod("replaceFontImages", String.class);
+            Object result = replace.invoke(null, input);
+            return result instanceof String text ? text : input;
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return input;
+        }
+    }
+
+    private String decodeUnicodeEscapes(String input) {
+        if (input == null || input.isBlank() || !input.contains("\\u")) return input == null ? "" : input;
+        StringBuilder out = new StringBuilder(input.length());
+        for (int i = 0; i < input.length(); i++) {
+            if (i + 5 < input.length() && input.charAt(i) == '\\' && input.charAt(i + 1) == 'u') {
+                String hex = input.substring(i + 2, i + 6);
+                try {
+                    out.append((char) Integer.parseInt(hex, 16));
+                    i += 5;
+                    continue;
+                } catch (NumberFormatException ignored) {
+                }
+            }
+            out.append(input.charAt(i));
+        }
+        return out.toString();
     }
 
     private void openLevelMenu(Player player) {
@@ -2432,6 +2469,7 @@ public final class DungeonService implements Listener {
         if (!isDungeonWorld(event.getLocation().getWorld())) return;
         if (isDungeonMobSpawnWindowOpen(event.getLocation().getWorld())) return;
         List<String> allowedReasons = configs.get("dungeons/dungeons.yml").getStringList("world-generation.allowed-spawn-reasons");
+        if (allowedReasons.isEmpty()) allowedReasons = List.of("SPAWNER");
         String reason = event.getSpawnReason().name();
         if (allowedReasons.stream().anyMatch(value -> value.equalsIgnoreCase(reason))) {
             return;
@@ -3259,13 +3297,13 @@ public final class DungeonService implements Listener {
         Entity entity = mythicMobsHook.spawnMob(mobId, location);
         if (entity == null && !mobId.contains(":")) entity = mythicMobsHook.spawnMob(mobId + ":1", location);
         if (entity == null) {
-            debug(null, "<yellow>Trap Mythic spawn failed; using visible fallback.</yellow> <gray>trap=" + trap.id() + " type=" + trap.type() + " mob=" + mobId + " world=" + location.getWorld().getName() + " xyz=" + formatLocation(location) + "</gray>");
+            debug(null, "<yellow>Trap Mythic spawn failed; using hidden fallback marker.</yellow> <gray>trap=" + trap.id() + " type=" + trap.type() + " mob=" + mobId + " world=" + location.getWorld().getName() + " xyz=" + formatLocation(location) + "</gray>");
             entity = location.getWorld().spawn(location, ArmorStand.class, stand -> {
                 stand.setGravity(false);
                 stand.setInvulnerable(true);
-                stand.setMarker(false);
-                stand.setVisible(true);
-                stand.setCustomNameVisible(true);
+                stand.setMarker(true);
+                stand.setVisible(false);
+                stand.setCustomNameVisible(false);
                 stand.customName(Text.mm("<gradient:#f4cd2a:#eda323:#d28d0d>" + trap.type() + " trap</gradient>"));
             });
         } else {

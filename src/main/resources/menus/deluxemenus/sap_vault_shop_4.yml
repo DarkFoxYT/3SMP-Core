@@ -1,0 +1,85 @@
+menu_title: ":offset_-15:&f:sap_vault:"
+open_command: []
+size: 54
+update_interval: 20
+
+items:
+  balance:
+    material: "itemsadder-threesmp:sapphire"
+    slot: 13
+    display_name: "&#f4cd2a&lSapphire &#eda323&lBalance"
+    lore:
+      - "&7Current balance: &#f4cd2a%3smpcore_sapphires% &fSapphires"
+      - "&8Page 4/4: Cosmetics and unlocks"
+
+  cosmetics:
+    material: ENDER_EYE
+    slot: 20
+    display_name: "&#c084fc&lChat &#f472b6&lColor"
+    lore: ["&#f4cd2aPrice: &f350 Sapphires", "&8Pick a locked chat color."]
+    left_click_commands: ["[player] sapphire deluxe buy cosmetics"]
+  badge:
+    material: NETHER_STAR
+    slot: 22
+    display_name: "&#f4cd2a&lBadge &#ffffff&lUnlock"
+    lore: ["&#f4cd2aPrice: &f350 Sapphires", "&8Pick a locked badge."]
+    left_click_commands: ["[player] sapphire deluxe buy badge"]
+  name_color:
+    material: NAME_TAG
+    slot: 24
+    display_name: "&#38bdf8&lName &#f4cd2a&lColor"
+    lore: ["&#f4cd2aPrice: &f350 Sapphires", "&8Pick a locked name color."]
+    left_click_commands: ["[player] sapphire deluxe buy name_color"]
+  name_gradient:
+    material: AMETHYST_SHARD
+    slot: 29
+    display_name: "&#f4cd2a&lName &#eda323&lGradient"
+    lore: ["&#f4cd2aPrice: &f350 Sapphires", "&8Pick a locked gradient."]
+    left_click_commands: ["[player] sapphire deluxe buy name_gradient"]
+  join_quit_message:
+    material: WRITABLE_BOOK
+    slot: 31
+    display_name: "&#60a5fa&lJoin/Quit &#c084fc&lMessage"
+    lore: ["&#f4cd2aPrice: &f350 Sapphires", "&8Pick a locked style."]
+    left_click_commands: ["[player] sapphire deluxe buy join_quit_message"]
+  kill_effect:
+    material: ENCHANTED_BOOK
+    slot: 33
+    display_name: "&#ef4444&lKill &#f97316&lEffect"
+    lore: ["&#f4cd2aPrice: &f100 Sapphires", "&8Pick a locked kill effect."]
+    left_click_commands: ["[player] sapphire deluxe buy kill_effect"]
+  cosmetic:
+    material: ENDER_EYE
+    slot: 38
+    display_name: "&#c084fc&lCosmetic &#f4cd2a&lUnlock"
+    lore: ["&#f4cd2aPrice: &f500 Sapphires", "&8Pick a locked cosmetic."]
+    left_click_commands: ["[player] sapphire deluxe buy cosmetic"]
+  weapon_cosmetic:
+    material: TRIDENT
+    slot: 40
+    display_name: "&#ef4444&lWeapon &#f4cd2a&lCosmetic"
+    lore: ["&#f4cd2aPrice: &f500 Sapphires", "&8Pick a weapon cosmetic."]
+    left_click_commands: ["[player] sapphire deluxe buy weapon_cosmetic"]
+  tag:
+    material: PAPER
+    slot: 42
+    display_name: "&#f4cd2a&lTag &#ffffff&lUnlock"
+    lore: ["&#f4cd2aPrice: &f300 Sapphires", "&8Pick a locked chat tag."]
+    left_click_commands: ["[player] sapphire deluxe buy tag"]
+  particle:
+    material: FIREWORK_ROCKET
+    slot: 44
+    display_name: "&#38bdf8&lParticle &#f4cd2a&lUnlock"
+    lore: ["&#f4cd2aPrice: &f250 Sapphires", "&8Pick a locked particle."]
+    left_click_commands: ["[player] sapphire deluxe buy particle"]
+
+  previous:
+    material: ARROW
+    slot: 45
+    display_name: "&#f4cd2a&lPrevious Page"
+    left_click_commands: ["[openguimenu] sap_vault_shop_3"]
+  back:
+    material: BARRIER
+    slot: 49
+    display_name: "&7Back"
+    left_click_commands: ["[openguimenu] sap_vault"]

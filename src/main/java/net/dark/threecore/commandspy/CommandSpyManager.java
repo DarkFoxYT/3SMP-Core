@@ -97,16 +97,16 @@ public final class CommandSpyManager implements Listener {
     }
     private boolean canSpy(Player player) {
         return player.isOp()
-                || player.hasPermission("3smpcore.spy")
                 || player.hasPermission(configs.get("admin/commandspy.yml").getString("permissions.owner", "3smpcore.spy.owner"))
                 || player.hasPermission(configs.get("admin/commandspy.yml").getString("permissions.sr-admin", "3smpcore.staff.sradmin"))
+                || player.hasPermission(configs.get("admin/commandspy.yml").getString("permissions.sr-mod", "3smpcore.staff.srmod"))
                 || player.hasPermission(configs.get("admin/commandspy.yml").getString("permissions.admin", "3smpcore.spy.admin"));
     }
 
     private boolean canSee(Player spy, Player actor, String command) {
         if (spy.getUniqueId().equals(actor.getUniqueId())) return false;
         if (spy.isOp() || spy.hasPermission(configs.get("admin/commandspy.yml").getString("permissions.owner", "3smpcore.spy.owner")) || spy.hasPermission(configs.get("admin/commandspy.yml").getString("permissions.sr-admin", "3smpcore.staff.sradmin"))) return true;
-        if (!spy.hasPermission(configs.get("admin/commandspy.yml").getString("permissions.admin", "3smpcore.spy.admin")) && !spy.hasPermission("3smpcore.spy")) return false;
+        if (!canSpy(spy)) return false;
         String srAdmin = configs.get("admin/commandspy.yml").getString("permissions.sr-admin", "3smpcore.staff.sradmin");
         String owner = configs.get("admin/commandspy.yml").getString("permissions.owner", "3smpcore.spy.owner");
         if (actor.hasPermission(owner) || actor.hasPermission(srAdmin) || actor.isOp()) return false;

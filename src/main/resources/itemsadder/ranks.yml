@@ -42,16 +42,12 @@ font_images:
     path: ranks:font/mvp
     scale_ratio: 6
     y_position: 6
-  elite:
-    path: ranks:font/elite
-    scale_ratio: 6
-    y_position: 6
   ultra:
     path: ranks:font/ultra
     scale_ratio: 6
     y_position: 6
-  vip:
-    path: ranks:font/vip
+  3smp:
+    path: ranks:font/sapphire
     scale_ratio: 6
     y_position: 6
   patron:

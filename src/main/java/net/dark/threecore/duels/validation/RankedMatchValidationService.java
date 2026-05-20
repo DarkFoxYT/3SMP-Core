@@ -8,7 +8,6 @@ import org.bukkit.Bukkit;
 import org.bukkit.entity.Player;
 import org.bukkit.plugin.java.JavaPlugin;
 
-import java.net.InetSocketAddress;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -57,9 +56,6 @@ public final class RankedMatchValidationService {
         long minDuration = Math.max(0, configs.get("duels/duels.yml").getLong("duels.ranked.validation.minimum-duration-seconds", 20)) * 1000L;
         if (duration < minDuration) reasons.add("match too short");
         if (winners == null || winners.isEmpty()) reasons.add("no winner");
-        Set<UUID> all = new LinkedHashSet<>(match.teamOne());
-        all.addAll(match.teamTwo());
-        if (sameIpBlocked(all)) reasons.add("same IP players");
         String pairKey = pairKey(match);
         long windowMs = Math.max(60, configs.get("duels/duels.yml").getInt("duels.ranked.validation.same-player-window-minutes", 60)) * 60_000L;
         int maxPairs = Math.max(1, configs.get("duels/duels.yml").getInt("duels.ranked.validation.max-matches-vs-same-player", 4));
@@ -95,21 +91,6 @@ public final class RankedMatchValidationService {
         pairWins.clear();
         forfeits.clear();
         queueDodgeUntil.clear();
-    }
-
-    private boolean sameIpBlocked(Set<UUID> players) {
-        if (!configs.get("duels/duels.yml").getBoolean("duels.ranked.validation.block-same-ip-mmr", true)) return false;
-        Set<String> seen = new java.util.HashSet<>();
-        for (UUID uuid : players) {
-            Player player = Bukkit.getPlayer(uuid);
-            if (player == null) continue;
-            InetSocketAddress address = player.getAddress();
-            if (address == null || address.getAddress() == null) continue;
-            String host = address.getAddress().getHostAddress();
-            if (host == null || host.isBlank()) continue;
-            if (!seen.add(host)) return true;
-        }
-        return false;
     }
 
     private boolean isForfeitReason(String reason) {

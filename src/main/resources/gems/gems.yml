@@ -1,4 +1,5 @@
 gems:
+  enabled: false
   disabled-worlds: []
   current-season: default
   tiers: [ ROUGH, POLISHED, CUT, FLAWLESS, PRISMATIC ]

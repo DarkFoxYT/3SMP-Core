@@ -1,90 +1,204 @@
 presets:
-  sapphires:
-    name: "<gradient:#f4cd2a:#eda323:#d28d0d>&lSapphires</gradient>"
-    skin: ""
+  darkfox:
+    name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>DarkFox</bold></gradient>"
+    type: PLAYER
+    skin: "DarkFox"
+    clear-hologram: true
+    location:
+      world: spawn
+      x: -2.5
+      y: 100.0
+      z: 3.5
+      yaw: 180.0
+      pitch: 0.0
     hologram:
-      - "<gradient:#f4cd2a:#eda323:#d28d0d>&lSapphires</gradient>"
-      - "<gray>Spend premium currency</gray>"
-      - "<#D6E8F7>Right-click to open</#D6E8F7>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>DarkFox</bold></gradient>"
+    commands:
+      - "tellraw {player} {\"text\":\"DarkFox: Start with /rtp for survival, /shop for essentials, /daily for rewards, and /vote to support the server.\",\"color\":\"gold\"}"
+
+  h318:
+    name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>H318</bold></gradient>"
+    type: PLAYER
+    skin: "H318"
+    clear-hologram: true
+    location:
+      world: spawn
+      x: 0.5
+      y: 100.0
+      z: 3.5
+      yaw: 180.0
+      pitch: 0.0
+    hologram:
+      - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>H318</bold></gradient>"
+    commands:
+      - "tellraw {player} {\"text\":\"H318: Sapphires, ranks, crate keys, and supporter extras live in /sapphire shop and at 3smp.paynow.store.\",\"color\":\"gold\"}"
+
+  kronoz:
+    name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Kronoz</bold></gradient>"
+    type: PLAYER
+    skin: "Kronoz"
+    clear-hologram: true
+    location:
+      world: spawn
+      x: 3.5
+      y: 100.0
+      z: 3.5
+      yaw: 180.0
+      pitch: 0.0
+    hologram:
+      - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Kronoz</bold></gradient>"
+    commands:
+      - "tellraw {player} {\"text\":\"Kronoz: Queue duels with /duel, check /souls, and watch for dungeons when they reopen.\",\"color\":\"gold\"}"
+
+  sapphires:
+    name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Sapphires</bold></gradient>"
+    type: PLAYER
+    skin: ""
+    clear-hologram: true
+    location:
+      world: spawn
+      x: -10.5
+      y: 100.0
+      z: -2.5
+      yaw: 0.0
+      pitch: 0.0
+    hologram:
+      - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Sapphires</bold></gradient>"
     commands:
       - "sapphire shop"
-  gems:
-    name: "<gradient:#f4cd2a:#eda323:#d28d0d>&lGems</gradient>"
-    hologram:
-      - "<gradient:#f4cd2a:#eda323:#d28d0d>&lGems</gradient>"
-      - "<gray>Seasonal power and capsules</gray>"
-      - "<#D6E8F7>Right-click to open</#D6E8F7>"
-    commands:
-      - "gems"
-  dungeon:
-    name: "<gradient:#f4cd2a:#eda323:#d28d0d>&lDungeons</gradient>"
-    hologram:
-      - "<gradient:#f4cd2a:#eda323:#d28d0d>&lDungeons</gradient>"
-      - "<gray>Random rooms, bosses, loot</gray>"
-      - "<#D6E8F7>Right-click to enter</#D6E8F7>"
-    commands:
-      - "dungeon"
-  duels:
-    name: "<gradient:#f4cd2a:#eda323:#d28d0d>&lDuels</gradient>"
-    hologram:
-      - "<gradient:#f4cd2a:#eda323:#d28d0d>&lDuels</gradient>"
-      - "<gray>Queue, challenge, and spectate</gray>"
-      - "<#D6E8F7>Right-click to fight</#D6E8F7>"
-    commands:
-      - "duel"
-  fishing:
-    name: "<gradient:#f4cd2a:#eda323:#d28d0d>&lFishing</gradient>"
-    hologram:
-      - "<gradient:#f4cd2a:#eda323:#d28d0d>&lFishing</gradient>"
-      - "<gray>Rods, rewards, and progress</gray>"
-      - "<#D6E8F7>Right-click to open</#D6E8F7>"
-    commands:
-      - "fishing"
+
   shop:
-    name: "<gradient:#f4cd2a:#eda323:#d28d0d>&lShop</gradient>"
+    name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Shop</bold></gradient>"
+    type: PLAYER
+    skin: ""
+    clear-hologram: true
+    location:
+      world: spawn
+      x: -7.5
+      y: 100.0
+      z: -2.5
+      yaw: 0.0
+      pitch: 0.0
     hologram:
-      - "<gradient:#f4cd2a:#eda323:#d28d0d>&lShop</gradient>"
-      - "<gray>Buy server essentials</gray>"
-      - "<#D6E8F7>Right-click to browse</#D6E8F7>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Shop</bold></gradient>"
     commands:
       - "shop"
-  market:
-    name: "<gradient:#f4cd2a:#eda323:#d28d0d>&lMarket</gradient>"
+
+  duels:
+    name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Duels</bold></gradient>"
+    type: PLAYER
+    skin: ""
+    clear-hologram: true
+    location:
+      world: spawn
+      x: -4.5
+      y: 100.0
+      z: -2.5
+      yaw: 0.0
+      pitch: 0.0
     hologram:
-      - "<gradient:#f4cd2a:#eda323:#d28d0d>&lMarket</gradient>"
-      - "<gray>Rent plots and player shops</gray>"
-      - "<#D6E8F7>Right-click to open</#D6E8F7>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Duels</bold></gradient>"
+    commands:
+      - "duel"
+
+  dungeons:
+    name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Dungeons</bold> <gray>- Coming Soon</gray></gradient>"
+    type: PLAYER
+    skin: ""
+    clear-hologram: true
+    location:
+      world: spawn
+      x: -1.5
+      y: 100.0
+      z: -2.5
+      yaw: 0.0
+      pitch: 0.0
+    hologram:
+      - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Dungeons</bold> <gray>Coming Soon</gray></gradient>"
+    commands:
+      - "tellraw {player} {\"text\":\"Dungeons are coming soon. The system is disabled while rooms, bosses, and rewards are being polished.\",\"color\":\"gold\"}"
+
+  market:
+    name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Market</bold></gradient>"
+    type: PLAYER
+    skin: ""
+    clear-hologram: true
+    location:
+      world: spawn
+      x: 1.5
+      y: 100.0
+      z: -2.5
+      yaw: 0.0
+      pitch: 0.0
+    hologram:
+      - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Market</bold></gradient>"
     commands:
       - "market"
+
   ranks:
-    name: "<gradient:#f4cd2a:#eda323:#d28d0d>&lRanks</gradient>"
+    name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Ranks</bold></gradient>"
+    type: PLAYER
+    skin: ""
+    clear-hologram: true
+    location:
+      world: spawn
+      x: 4.5
+      y: 100.0
+      z: -2.5
+      yaw: 0.0
+      pitch: 0.0
     hologram:
-      - "<gradient:#f4cd2a:#eda323:#d28d0d>&lRanks</gradient>"
-      - "<gradient:#f4cd2a:#eda323:#d28d0d>&lULTRA</gradient> <gray>|</gray> <gradient:#f4cd2a:#eda323:#d28d0d>&lMVP</gradient> <gray>|</gray> <gradient:#f4cd2a:#eda323:#d28d0d>&l3SMP</gradient>"
-      - "<gray>Support us at</gray> <gradient:#f4cd2a:#eda323:#d28d0d>3smp.paynow.store</gradient>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Ranks</bold></gradient>"
     commands:
-      - "tellraw {player} {\"text\":\"Ranks: ULTRA, MVP, 3SMP - support us at 3smp.paynow.store\",\"color\":\"gold\"}"
+      - "tellraw {player} {\"text\":\"Ranks: 3SMP, PRO, MVP, and ULTRA are available at 3smp.paynow.store.\",\"color\":\"gold\"}"
+
   spawn:
-    name: "<gradient:#f4cd2a:#eda323:#d28d0d>&lSpawn</gradient>"
+    name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Spawn</bold></gradient>"
+    type: PLAYER
+    skin: ""
+    clear-hologram: true
+    location:
+      world: spawn
+      x: 7.5
+      y: 100.0
+      z: -2.5
+      yaw: 0.0
+      pitch: 0.0
     hologram:
-      - "<gradient:#f4cd2a:#eda323:#d28d0d>&lSpawn</gradient>"
-      - "<gray>Return to the hub</gray>"
-      - "<#D6E8F7>Right-click to teleport</#D6E8F7>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Spawn</bold></gradient>"
     commands:
       - "spawn"
-  help:
-    name: "<gradient:#f4cd2a:#eda323:#d28d0d>&lHelp</gradient>"
+
+  gems:
+    name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Gems</bold> <gray>- Coming Soon</gray></gradient>"
+    type: PLAYER
+    skin: ""
+    clear-hologram: true
+    location:
+      world: spawn
+      x: 10.5
+      y: 100.0
+      z: -2.5
+      yaw: 0.0
+      pitch: 0.0
     hologram:
-      - "<gradient:#f4cd2a:#eda323:#d28d0d>&lHelp</gradient>"
-      - "<gray>Commands and server info</gray>"
-      - "<#D6E8F7>Right-click for help</#D6E8F7>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Gems</bold> <gray>Coming Soon</gray></gradient>"
     commands:
-      - "help"
-  h318:
-    name: "<gradient:#f4cd2a:#eda323:#d28d0d>&lOWNER</gradient> <gradient:#f4cd2a:#eda323:#d28d0d>&lH318</gradient>"
+      - "tellraw {player} {\"text\":\"Gems are coming soon. They are disabled while the system is being polished.\",\"color\":\"gold\"}"
+
+  fishing:
+    name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Fishing</bold> <gray>- Coming Soon</gray></gradient>"
+    type: PLAYER
+    skin: ""
+    clear-hologram: true
+    location:
+      world: spawn
+      x: 13.5
+      y: 100.0
+      z: -2.5
+      yaw: 0.0
+      pitch: 0.0
     hologram:
-      - "<gradient:#f4cd2a:#eda323:#d28d0d>&lOWNER</gradient> <gradient:#f4cd2a:#eda323:#d28d0d>&lH318</gradient><gray>:</gray>"
-      - "<white>Make sure to have fun!</white>"
-      - "<gray>Support us at</gray> <gradient:#f4cd2a:#eda323:#d28d0d>3smp.paynow.store</gradient>"
+      - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Fishing</bold> <gray>Coming Soon</gray></gradient>"
     commands:
-      - "tellraw {player} {\"text\":\"OWNER H318: Make sure to have fun! Support us at 3smp.paynow.store\",\"color\":\"aqua\"}"
+      - "tellraw {player} {\"text\":\"Fishing is coming soon. Rewards and progression are disabled for now.\",\"color\":\"gold\"}"

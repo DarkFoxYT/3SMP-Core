@@ -60,6 +60,36 @@ public final class VisualConfig {
         return yaml().getString(tabPath() + ".player-format", "<rank_image> <tab_prefix>{grad:rank}<player>{/grad} <tab_tag>");
     }
 
+    public boolean afkStatusEnabled() {
+        return yaml().getBoolean(tabPath() + ".afk.enabled", true);
+    }
+
+    public boolean afkWorld(String world) {
+        if (world == null || world.isBlank()) return false;
+        for (String configured : afkWorlds()) {
+            if (configured.equalsIgnoreCase(world)) return true;
+        }
+        return false;
+    }
+
+    public List<String> afkWorlds() {
+        List<String> worlds = yaml().getStringList(tabPath() + ".afk.worlds");
+        if (!worlds.isEmpty()) return worlds;
+        List<String> fallback = new ArrayList<>();
+        ConfigurationSection zones = configs.get("world/afk.yml").getConfigurationSection("zones");
+        if (zones != null) {
+            for (String id : zones.getKeys(false)) {
+                String world = zones.getString(id + ".world", "");
+                if (world != null && !world.isBlank()) fallback.add(world);
+            }
+        }
+        return fallback;
+    }
+
+    public String afkPlayerFormatSuffix() {
+        return yaml().getString(tabPath() + ".afk.suffix", " <dark_gray>[AFK]</dark_gray>");
+    }
+
     public String nametagPrefix() {
         return yaml().getString(tabPath() + ".nametag-prefix", "<rank_image> <tab_prefix> ");
     }
@@ -135,7 +165,7 @@ public final class VisualConfig {
         Set<String> ids = new LinkedHashSet<>();
         ConfigurationSection section = yaml().getConfigurationSection(base() + ".tab.visuals.images.placeholders");
         if (section != null) ids.addAll(section.getKeys(false));
-        if (ids.isEmpty()) ids.addAll(List.of("server_logo", "owner", "dev", "admin", "sr_admin", "mod", "builder", "sr_mod", "jr_mod", "pro", "mvp", "elite", "ultra", "vip", "patron", "3smp"));
+        if (ids.isEmpty()) ids.addAll(List.of("server_logo", "owner", "dev", "admin", "sr_admin", "mod", "builder", "sr_mod", "jr_mod", "3smp", "pro", "mvp", "ultra", "patron"));
         return ids;
     }
 
@@ -161,6 +191,10 @@ public final class VisualConfig {
 
     public String chatMessageColor() {
         return yaml().getString(base() + ".tab.chat.message-color", "#dbeafe");
+    }
+
+    public boolean duelTeamNameColors() {
+        return yaml().getBoolean(base() + ".tab.duels.name-colors-enabled", false);
     }
 
     public String worldDisplayName(String world) {
@@ -189,6 +223,6 @@ public final class VisualConfig {
 
     public List<String> rankOrder() {
         List<String> order = yaml().getStringList(tabPath() + ".sorting.order");
-        return order.isEmpty() ? new ArrayList<>(List.of("owner", "dev", "admin", "ultra", "mvp", "vip", "member", "default")) : order;
+        return order.isEmpty() ? new ArrayList<>(List.of("owner", "dev", "admin", "ultra", "mvp", "pro", "3", "member", "default")) : order;
     }
 }

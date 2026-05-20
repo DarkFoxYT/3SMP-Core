@@ -9,10 +9,12 @@ import net.dark.threecore.model.PlayerProgressionData;
 import net.dark.threecore.text.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
+import org.bukkit.OfflinePlayer;
 import org.bukkit.entity.Player;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
+import org.bukkit.inventory.meta.SkullMeta;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -47,14 +49,16 @@ public final class DuelLeaderboardService {
         int place = 1;
         for (UUID uuid : top) {
             PlayerProgressionData data = repository.load(uuid);
-            String name = Bukkit.getOfflinePlayer(uuid).getName();
+            OfflinePlayer offline = Bukkit.getOfflinePlayer(uuid);
+            String name = offline.getName();
             List<String> lore = new ArrayList<>(List.of(
-                    "<gray>Rating: " + data.duelRating() + "</gray>",
-                    "<gray>Wins: " + data.duelWins() + " | Losses: " + data.duelLosses() + "</gray>",
-                    "<gray>Streak: " + data.duelWinStreak() + " | Best: " + data.duelBestWinStreak() + "</gray>"
+                    "<dark_gray>Monthly placement</dark_gray>",
+                    "<gray>Rating:</gray> <gradient:#f4cd2a:#eda323:#d28d0d>" + data.duelRating() + "</gradient>",
+                    "<gray>Record:</gray> <green>" + data.duelWins() + "W</green> <dark_gray>/</dark_gray> <red>" + data.duelLosses() + "L</red>",
+                    "<gray>Streak:</gray> <yellow>" + data.duelWinStreak() + "</yellow> <dark_gray>|</dark_gray> <gray>Best:</gray> <white>" + data.duelBestWinStreak() + "</white>"
             ));
-            if (place <= 3) lore.add("<gray>Prize: " + prize(place) + "</gray>");
-            inv.setItem(slot++, button(Material.PLAYER_HEAD, "<gradient:#f4cd2a:#eda323:#d28d0d>#" + place + " " + (name == null ? uuid.toString().substring(0, 8) : name) + "</gradient>", lore));
+            if (place <= 3) lore.add("<gray>Prize:</gray> <white>" + prize(place) + "</white>");
+            inv.setItem(slot++, playerHead(offline, "<gradient:#f4cd2a:#eda323:#d28d0d>#" + place + " " + (name == null ? uuid.toString().substring(0, 8) : name) + "</gradient>", lore));
             place++;
             if (slot > 26) break;
         }
@@ -83,6 +87,15 @@ public final class DuelLeaderboardService {
         meta.displayName(net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(name));
         meta.lore(lore.stream().map(s -> net.kyori.adventure.text.minimessage.MiniMessage.miniMessage().deserialize(s)).toList());
         item.setItemMeta(meta);
+        return item;
+    }
+
+    private ItemStack playerHead(OfflinePlayer player, String name, List<String> lore) {
+        ItemStack item = button(Material.PLAYER_HEAD, name, lore);
+        if (item.getItemMeta() instanceof SkullMeta meta) {
+            meta.setOwningPlayer(player);
+            item.setItemMeta(meta);
+        }
         return item;
     }
 }

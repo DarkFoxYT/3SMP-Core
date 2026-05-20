@@ -225,6 +225,7 @@ public final class GemService implements Listener {
     }
 
     private boolean enabledInWorld(Player player) {
+        if (!configs.get("gems/gems.yml").getBoolean("gems.enabled", true) && !player.hasPermission("3smpcore.gems.admin")) return false;
         String world = player.getWorld().getName();
         java.util.List<String> disabled = configs.get("gems/gems.yml").getStringList("gems.disabled-worlds");
         return disabled.stream().noneMatch(w -> w.equalsIgnoreCase(world));

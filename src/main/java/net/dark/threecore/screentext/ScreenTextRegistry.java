@@ -79,7 +79,7 @@ public final class ScreenTextRegistry {
 
     public Set<String> imageIds() {
         Set<String> ids = new LinkedHashSet<>(imageIds);
-        ids.addAll(List.of("server_logo", "owner", "dev", "admin", "sr_admin", "mod", "builder", "sr_mod", "jr_mod", "pro", "mvp", "elite", "ultra", "vip", "patron", "3smp"));
+        ids.addAll(List.of("server_logo", "owner", "dev", "admin", "sr_admin", "mod", "builder", "sr_mod", "jr_mod", "3smp", "pro", "mvp", "ultra", "patron"));
         return ids;
     }
 

@@ -6,10 +6,28 @@ welcome:
   lines:
     - ""
     - "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Welcome to 3SMP, {player}</bold></gradient>"
-    - "<gray>Use <white>/help</white>, <white>/spawn</white>, <white>/duel</white>, and <white>/dungeon</white>.</gray>"
+    - "<gray>Talk to <white>DarkFox</white>, <white>H318</white>, or <white>Kronoz</white> at spawn for guidance.</gray>"
     - ""
   title: "<gradient:#f4cd2a:#eda323:#d28d0d>3SMP</gradient>"
   subtitle: "<gray>Welcome, <white>{player}</white></gray>"
   sound:
     enabled: true
     name: ENTITY_PLAYER_LEVELUP
+
+starter-kit:
+  enabled: true
+  delay-ticks: 30
+  rtp-compass-enabled: false
+  rtp-compass-slot: 0
+  message: "<gradient:#f4cd2a:#eda323:#d28d0d>Starter kit received.</gradient> <gray>Use <white>/rtp</white> when you are ready to begin.</gray>"
+  # Format: MATERIAL;amount;slot;optional MiniMessage name
+  # Slots are player inventory slots, 0-8 for hotbar. Use -1 to add to first free slot.
+  items:
+    - "GOLDEN_SHOVEL;1;1;<gradient:#f4cd2a:#eda323:#d28d0d>Claim Shovel</gradient>"
+    - "STONE_SWORD;1;2;<gray>Starter Sword</gray>"
+    - "STONE_PICKAXE;1;3;<gray>Starter Pickaxe</gray>"
+    - "STONE_AXE;1;4;<gray>Starter Axe</gray>"
+    - "COOKED_BEEF;16;5;<white>Starter Food</white>"
+    - "OAK_LOG;16;6;<white>Starter Logs</white>"
+    - "TORCH;16;7;<yellow>Starter Torches</yellow>"
+    - "GOLDEN_APPLE;1;8;<gradient:#f4cd2a:#eda323:#d28d0d>Emergency Apple</gradient>"

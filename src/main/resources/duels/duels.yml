@@ -68,7 +68,7 @@ duels:
       queue-dodge-cooldown-seconds: 30
       repeated-forfeit-threshold: 3
       repeated-win-threshold: 3
-      block-same-ip-mmr: true
+      block-same-ip-mmr: false
     ranks:
       bronze:
         name: Bronze

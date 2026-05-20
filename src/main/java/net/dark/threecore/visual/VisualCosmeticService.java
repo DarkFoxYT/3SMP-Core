@@ -100,7 +100,7 @@ public final class VisualCosmeticService {
             return new Cosmetic("custom", "Custom " + type.storageKey(), Material.NAME_TAG, value, "");
         }
         Cosmetic cosmetic = cosmetic(type, id);
-        if (cosmetic == null || !owns(player, cosmetic)) {
+        if (cosmetic == null || !owns(player, type, cosmetic)) {
             clear(player, type);
             return null;
         }
@@ -111,8 +111,18 @@ public final class VisualCosmeticService {
         return cosmetics(type).stream().filter(c -> c.id().equalsIgnoreCase(id)).findFirst().orElse(null);
     }
 
-    public boolean owns(Player player, Cosmetic cosmetic) {
-        return player.hasPermission("3smpcore.visuals.admin") || cosmetic.permission().isBlank() || player.hasPermission(cosmetic.permission());
+    public boolean owns(Player player, Type type, Cosmetic cosmetic) {
+        return player.hasPermission("3smpcore.visuals.admin")
+            || cosmetic.permission().isBlank()
+            || unlocked(player.getUniqueId(), type).contains(cosmetic.id().toLowerCase(Locale.ROOT));
+    }
+
+    public void unlock(Player player, Type type, String id) {
+        String normalized = id.toLowerCase(Locale.ROOT);
+        List<String> owned = new ArrayList<>(unlocked(player.getUniqueId(), type));
+        if (!owned.contains(normalized)) owned.add(normalized);
+        storage.set(unlockedPath(player.getUniqueId(), type), owned);
+        save();
     }
 
     public void select(Player player, Type type, String id) {
@@ -139,6 +149,16 @@ public final class VisualCosmeticService {
 
     private String path(UUID uuid, Type type) {
         return "players." + uuid + "." + type.storageKey();
+    }
+
+    private String unlockedPath(UUID uuid, Type type) {
+        return "players." + uuid + ".unlocked." + type.storageKey();
+    }
+
+    private List<String> unlocked(UUID uuid, Type type) {
+        return storage.getStringList(unlockedPath(uuid, type)).stream()
+            .map(value -> value.toLowerCase(Locale.ROOT))
+            .toList();
     }
 
     private void save() {

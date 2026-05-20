@@ -1,4 +1,24 @@
 world: world
+
+command:
+  enabled: true
+  disabled-message: "<red>/survival is disabled.</red> <gray>Use <white>/rtp</white> from spawn to enter survival.</gray>"
+
+inventory:
+  shared-spawn-survival-market: true
+
+homes:
+  default-limit: 3
+  permission-limits:
+    - "3smpcore.home.limit.10:10"
+    - "3smpcore.home.limit.30:30"
+    - "3smpcore.home.limit.unlimited:-1"
+
+end-lock:
+  enabled: true
+  bypass-permission: "3smpcore.survival.end.bypass"
+  message: "<red>The End is locked in survival right now.</red>"
+
 spawn:
   use-world-spawn: true
   x: 0.5
@@ -8,3 +28,59 @@ spawn:
   pitch: 0.0
 messages:
   teleported: "<green>Sent to the survival world.</green>"
+
+command-lock:
+  enabled: false
+  deny-message: "<red>That command is disabled in survival.</red>"
+  bypass-permissions:
+    - "3smpcore.command.bypass"
+    - "3smpcore.staff.sradmin"
+    - "3smpcore.staff.admin"
+    - "3smpcore.admin"
+  allowed:
+    - "3smpcore"
+    - "help"
+    - "?"
+    - "spawn"
+    - "survival"
+    - "survive"
+    - "rtp"
+    - "tp"
+    - "teleport"
+    - "tpa"
+    - "tpahere"
+    - "tpaccept"
+    - "tpdeny"
+    - "back"
+    - "home"
+    - "homes"
+    - "sethome"
+    - "homeset"
+    - "delhome"
+    - "deletehome"
+    - "removehome"
+    - "balance"
+    - "bal"
+    - "money"
+    - "pay"
+    - "ah"
+    - "auction"
+    - "auctionhouse"
+    - "market"
+    - "shop"
+    - "store"
+    - "buy"
+    - "website"
+    - "backpack"
+    - "bp"
+    - "itempower"
+    - "souls"
+    - "gems"
+    - "gem"
+    - "cosmetics"
+    - "perks"
+    - "visuals"
+    - "daily"
+    - "rewards"
+    - "vote"
+    - "warp"

@@ -436,7 +436,16 @@ public final class LaunchpadService implements Listener {
         }
         if (interactEvent != null) interactEvent.setCancelled(true);
         if (player.hasMetadata("launchpad_cooldown")) return;
-        if (!launchpad.definition().enabled()) return;
+        if (!launchpad.definition().enabled()) {
+            if (!player.hasMetadata("launchpad_disabled_cooldown")) {
+                player.setMetadata("launchpad_disabled_cooldown", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
+                Text.send(player, configs.get("world/launchpads.yml").getString("disabled-message", "<yellow>This portal is coming soon.</yellow>"));
+                Bukkit.getScheduler().runTaskLater(plugin, () -> {
+                    if (player.isOnline()) player.removeMetadata("launchpad_disabled_cooldown", plugin);
+                }, 40L);
+            }
+            return;
+        }
         player.setMetadata("launchpad_cooldown", new org.bukkit.metadata.FixedMetadataValue(plugin, true));
         String particleId = perkService == null ? "" : perkService.data(player.getUniqueId()).activeParticle();
         playLaunchParticles(player, particleId);

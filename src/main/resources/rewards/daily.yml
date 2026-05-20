@@ -44,39 +44,32 @@ rewards:
     "1":
       display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Day 1 Reward</gradient>"
       icon:
-        material: EMERALD
+        material: AMETHYST_SHARD
       coins: 250
       lore:
         - "<gray>Simple daily starter reward.</gray>"
       commands: []
-      items:
-        starter_gift:
-          material: PAPER
-          amount: 1
-          display-name: "<white>Starter Ticket</white>"
-          lore:
-            - "<gray>Placeholder for future ItemsAdder icons.</gray>"
     "2":
       display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Day 2 Reward</gradient>"
       icon:
-        material: DIAMOND
+        material: AMETHYST_SHARD
       coins: 500
       lore:
         - "<gray>More coins and a nicer item.</gray>"
     "3":
       display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Day 3 Reward</gradient>"
       icon:
-        material: GOLD_INGOT
+        material: AMETHYST_SHARD
       coins: 750
     "4":
       display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Day 4 Reward</gradient>"
       icon:
-        material: IRON_INGOT
+        material: AMETHYST_SHARD
       coins: 1000
     "5":
       display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Day 5 Reward</gradient>"
       icon:
-        material: NETHER_STAR
+        material: AMETHYST_SHARD
       coins: 1250
     "6":
       display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Day 6 Reward</gradient>"

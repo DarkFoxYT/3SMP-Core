@@ -1,19 +1,30 @@
 title: "<gradient:#f4cd2a:#eda323:#d28d0d>Sapphire Vault</gradient>"
+icon-itemsadder: "threesmp:sapphire"
 size: 27
 menus:
   deluxemenus:
-    enabled: true
+    enabled: false
     vault-menu: "sap_vault"
     install-vault: true
   itemsadder-font-symbols:
     sap_vault: "\\uA425"
+titles:
+  entry: ":offset_-15:&f:sap_vault:"
+  vault: ":offset_-15:&f:sap_vault:"
+  summary: "<gradient:#f4cd2a:#eda323:#d28d0d>Sapphire Summary</gradient>"
+shop:
+  balance-slot: 13
+  store-slot: 49
+  previous-slot: 45
+  next-slot: 53
+  item-slots: [18,20,22,24,26,28,30,32,34,36,38,40,42,44]
 frame:
   material: "LIGHT_BLUE_STAINED_GLASS_PANE"
   name: " "
 buttons:
   balance:
     slot: 11
-    material: EMERALD
+    material: AMETHYST_SHARD
     name: "<gradient:#f4cd2a:#eda323:#d28d0d>Balance</gradient>"
   shop:
     slot: 13

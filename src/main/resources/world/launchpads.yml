@@ -6,4 +6,67 @@ physics:
   max-horizontal-velocity: 4.2
   max-vertical-velocity: 5.0
 
-placements: {}
+disabled-message: "<gradient:#f4cd2a:#eda323:#d28d0d>This portal is coming soon.</gradient> <gray>It is disabled while rewards and rooms are being polished.</gray>"
+
+placements:
+  spawn_survival_portal:
+    definition: default
+    enabled: true
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Survival Portal</gradient>"
+    mode: TARGET
+    world: spawn
+    x: -6.5
+    y: 100.0
+    z: 0.5
+    velocity: { x: 0.0, y: 1.1, z: 0.0 }
+    target:
+      world: world
+      x: 0.5
+      y: 80.0
+      z: 0.5
+      yaw: 0.0
+      pitch: 0.0
+  spawn_market_portal:
+    definition: default
+    enabled: true
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Market Portal</gradient>"
+    mode: TARGET
+    world: spawn
+    x: 6.5
+    y: 100.0
+    z: 0.5
+    velocity: { x: 0.0, y: 1.1, z: 0.0 }
+    target:
+      world: market
+      x: 0.5
+      y: 80.0
+      z: 0.5
+      yaw: 0.0
+      pitch: 0.0
+  spawn_duels_portal:
+    definition: default
+    enabled: true
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Duels Portal</gradient>"
+    mode: TARGET
+    world: spawn
+    x: 0.5
+    y: 100.0
+    z: -6.5
+    velocity: { x: 0.0, y: 1.1, z: 0.0 }
+    target:
+      world: duels
+      x: 0.5
+      y: 80.0
+      z: 0.5
+      yaw: 0.0
+      pitch: 0.0
+  spawn_dungeons_portal:
+    definition: default
+    enabled: false
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Dungeons Portal</gradient> <gray>Coming Soon</gray>"
+    mode: TARGET
+    world: spawn
+    x: 0.5
+    y: 100.0
+    z: 6.5
+    velocity: { x: 0.0, y: 0.0, z: 0.0 }

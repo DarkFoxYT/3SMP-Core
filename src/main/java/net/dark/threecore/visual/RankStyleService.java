@@ -28,7 +28,7 @@ public final class RankStyleService {
         String shadow = "";
         if (cosmetics == null || !cosmetics.enabled()) {
             String duelGradient = duelGradient(player);
-            if (!duelGradient.isBlank()) gradient = duelGradient;
+            if (config.duelTeamNameColors() && !duelGradient.isBlank()) gradient = duelGradient;
             return new RankStyle(base.id(), base.image(), prefix, tabPrefix, gradient, base.sortWeight(), shadow);
         }
         VisualCosmeticService.Cosmetic selectedPrefix = cosmetics.selected(player, VisualCosmeticService.Type.PREFIX);
@@ -45,7 +45,7 @@ public final class RankStyleService {
             else if (selectedColor != null) gradient = selectedColor.id().equals("custom") ? "__color_literal_" + selectedColor.value() : "__color_" + selectedColor.id();
         }
         String duelGradient = duelGradient(player);
-        if (!duelGradient.isBlank()) gradient = duelGradient;
+        if (config.duelTeamNameColors() && !duelGradient.isBlank()) gradient = duelGradient;
         return new RankStyle(base.id(), base.image(), prefix, tabPrefix, gradient, base.sortWeight(), shadow);
     }
 

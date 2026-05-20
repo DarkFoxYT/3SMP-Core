@@ -6,6 +6,7 @@ public enum CoreMenuType {
     DUEL_DEV,
     DUEL_LOADOUT,
     DUEL_LEADERBOARD,
+    DUEL_SPECTATE,
     PARTY_MAIN,
     PERKS_MAIN,
     PERKS_CATEGORY,

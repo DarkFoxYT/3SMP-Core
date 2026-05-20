@@ -4,11 +4,20 @@ import net.dark.threecore.config.ConfigFiles;
 import net.dark.threecore.text.Text;
 import org.bukkit.Bukkit;
 import org.bukkit.Sound;
+import org.bukkit.entity.Player;
+import org.bukkit.event.EventHandler;
+import org.bukkit.event.Listener;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.java.JavaPlugin;
 
-public final class WelcomeService {
+import java.util.Set;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
+
+public final class WelcomeService implements Listener {
     private final JavaPlugin plugin;
     private final ConfigFiles configs;
+    private final Set<UUID> sentThisSession = ConcurrentHashMap.newKeySet();
 
     public WelcomeService(JavaPlugin plugin, ConfigFiles configs) {
         this.plugin = plugin;
@@ -17,9 +26,13 @@ public final class WelcomeService {
 
     public void reload() { }
 
-    public void send(org.bukkit.entity.Player player) { sendDelayed(player); }
+    public void send(Player player) {
+        if (player == null) return;
+        if (!sentThisSession.add(player.getUniqueId())) return;
+        sendDelayed(player);
+    }
 
-    private void sendDelayed(org.bukkit.entity.Player player) {
+    private void sendDelayed(Player player) {
         var yaml = configs.get("core/welcome.yml");
         if (!yaml.getBoolean("welcome.enabled", true)) return;
         long delay = Math.max(0L, yaml.getLong("welcome.delay-ticks", 20L));
@@ -32,6 +45,11 @@ public final class WelcomeService {
                 try { player.playSound(player.getLocation(), Sound.valueOf(yaml.getString("welcome.sound.name", "ENTITY_PLAYER_LEVELUP")), 0.8f, 1.2f); } catch (Exception ignored) {}
             }
         }, delay);
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        sentThisSession.remove(event.getPlayer().getUniqueId());
     }
 
     private String apply(String input, String player) { return input == null ? "" : input.replace("{player}", player); }

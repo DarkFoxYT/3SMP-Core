@@ -43,9 +43,13 @@ public final class MarketPlotManager {
         this.moneyService = moneyService;
         this.worldManager = worldManager;
         this.rentService = rentService;
+        syncConfiguredPlots();
     }
 
-    public void reload() { worldManager.ensureWorld(); }
+    public void reload() {
+        worldManager.ensureWorld();
+        syncConfiguredPlots();
+    }
 
     public void open(Player player) {
         World marketWorld = worldManager.ensureWorld();
@@ -203,7 +207,7 @@ public final class MarketPlotManager {
     public void untrust(String id, UUID uuid) { update(id, plot -> { plot.trusted().remove(uuid); return plot.withTrusted(plot.trusted()); }); }
 
     public void openById(Player player, String id) {
-        MarketPlot plot = storage.load(id);
+        MarketPlot plot = loadStoredOrConfigured(id);
         if (plot == null) { Text.send(player, "<red>Plot not found.</red>"); return; }
         if (plot.owner() != null && !plot.owner().equals(player.getUniqueId()) && !plot.trusted().contains(player.getUniqueId()) && !player.hasPermission("3smpcore.market.admin")) {
             Text.send(player, "<red>You do not have access to that plot.</red>");
@@ -228,7 +232,7 @@ public final class MarketPlotManager {
     }
 
     public void buy(Player player, String id) {
-        MarketPlot plot = storage.load(id);
+        MarketPlot plot = loadStoredOrConfigured(id);
         if (plot == null) { Text.send(player, "<red>Plot not found.</red>"); return; }
         if (plot.owner() != null) { Text.send(player, "<red>This plot is already owned.</red>"); return; }
         if (!moneyService.take(player.getUniqueId(), plot.price())) { Text.send(player, "<red>You cannot afford this plot.</red>"); return; }
@@ -274,7 +278,7 @@ public final class MarketPlotManager {
     private long rentPeriodMillis() { return Math.max(1L, configs.get("world/market.yml").getLong("rent.period-days", 7L)) * 24L * 60L * 60L * 1000L; }
 
     private MarketPlot update(String id, java.util.function.UnaryOperator<MarketPlot> operator) {
-        MarketPlot plot = storage.load(id);
+        MarketPlot plot = loadStoredOrConfigured(id);
         if (plot == null) return null;
         MarketPlot next = operator.apply(plot);
         storage.save(next);
@@ -295,4 +299,22 @@ public final class MarketPlotManager {
     private String title() { return configs.get("menus/market.yml").getString("menu.title", "3SMP Market"); }
     private void save(YamlConfiguration yaml, String file) { try { yaml.save(new File(plugin.getDataFolder(), file)); } catch (Exception ignored) {} }
     private ItemStack wand() { ItemStack stack = new ItemStack(Material.BLAZE_ROD); ItemMeta meta = stack.getItemMeta(); meta.displayName(Text.mm("<gradient:#f4cd2a:#eda323:#d28d0d>Market Plot Wand</gradient>")); meta.lore(List.of(Text.mm("<gray>Left click for pos1, right click for pos2.</gray>"))); stack.setItemMeta(meta); return stack; }
+
+    private MarketPlot loadStoredOrConfigured(String id) {
+        if (id == null || id.isBlank()) return null;
+        MarketPlot plot = storage.load(id.toLowerCase(Locale.ROOT));
+        if (plot != null) return plot;
+        plot = load(id);
+        if (plot != null) storage.save(plot);
+        return plot;
+    }
+
+    private void syncConfiguredPlots() {
+        for (String id : listPlotIds()) {
+            if (storage.load(id.toLowerCase(Locale.ROOT)) == null) {
+                MarketPlot plot = load(id);
+                if (plot != null) storage.save(plot);
+            }
+        }
+    }
 }

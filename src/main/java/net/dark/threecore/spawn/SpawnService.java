@@ -135,6 +135,7 @@ public final class SpawnService implements Listener {
 
     public void refreshSpawnHubItems(Player player) {
         if (!isSpawnWorld(player.getWorld())) return;
+        if (sharedInventoryEnabled()) return;
         player.setItemOnCursor(null);
         for (int slot = 0; slot <= 8; slot++) {
             player.getInventory().setItem(slot, null);
@@ -152,9 +153,15 @@ public final class SpawnService implements Listener {
 
     private void clearSpawnEquipment(Player player) {
         if (!isSpawnWorld(player.getWorld())) return;
+        if (sharedInventoryEnabled()) return;
         player.getInventory().setArmorContents(new ItemStack[4]);
         player.getInventory().setItemInOffHand(null);
         player.updateInventory();
+    }
+
+    private boolean sharedInventoryEnabled() {
+        if (survivalService != null) return survivalService.sharedInventoryEnabled();
+        return configs.get("world/survival.yml").getBoolean("inventory.shared-spawn-survival-market", true);
     }
 }
 

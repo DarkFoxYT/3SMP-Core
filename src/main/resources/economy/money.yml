@@ -3,6 +3,8 @@ currency:
   name-plural: money
   symbol: "$"
 starting-balance: 1000.0
+messages:
+  balance: "<gradient:#f4cd2a:#eda323:#d28d0d>Balance</gradient> <gray>{player} has</gray> <gradient:#f4cd2a:#eda323:#d28d0d>{amount}</gradient><gray>.</gray>"
 placeholders:
   raw: "%smpcore_money%"
   formatted: "%smpcore_money_formatted%"

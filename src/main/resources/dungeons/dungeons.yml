@@ -1,3 +1,5 @@
+enabled: false
+disabled-message: "<yellow>Dungeons are currently disabled.</yellow>"
 world: dungeons_live
 editor-world: dungeons_editor
 spawn:
@@ -271,8 +273,8 @@ world-generation:
   disable-weather: true
   disable-random-ticks: true
   allowed-spawn-reasons:
+    - SPAWNER
     - CUSTOM
-    - COMMAND
 boss:
   mythicmob: Dungeon_Panda
   spawn-command: "mm mobs spawn %mob% 1 %world%,%x%,%y%,%z%"

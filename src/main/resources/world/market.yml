@@ -3,6 +3,12 @@ world:
   generator: VoidGen
   spawn:
     y: 80
+  platform:
+    enabled: true
+    y: 79
+    radius: 40
+    material: SMOOTH_STONE
+    border-material: POLISHED_DEEPSLATE
   multiverse:
     register: true
     hide: true
@@ -12,4 +18,32 @@ rent:
   grace-period-hours: 48
   check-interval-seconds: 3600
 
-plots: {}
+plots:
+  alpha:
+    name: "Alpha Stall"
+    price: 25000.0
+    rent: 2500.0
+    world: market
+    pos1: { x: -24.0, y: 80.0, z: -24.0 }
+    pos2: { x: -9.0, y: 95.0, z: -9.0 }
+  bravo:
+    name: "Bravo Stall"
+    price: 25000.0
+    rent: 2500.0
+    world: market
+    pos1: { x: 9.0, y: 80.0, z: -24.0 }
+    pos2: { x: 24.0, y: 95.0, z: -9.0 }
+  charlie:
+    name: "Charlie Stall"
+    price: 25000.0
+    rent: 2500.0
+    world: market
+    pos1: { x: -24.0, y: 80.0, z: 9.0 }
+    pos2: { x: -9.0, y: 95.0, z: 24.0 }
+  delta:
+    name: "Delta Stall"
+    price: 25000.0
+    rent: 2500.0
+    world: market
+    pos1: { x: 9.0, y: 80.0, z: 9.0 }
+    pos2: { x: 24.0, y: 95.0, z: 24.0 }

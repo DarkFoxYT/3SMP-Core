@@ -29,10 +29,16 @@ public final class CommandRestrictionService implements Listener {
         if (hasBypass(player)) return;
         String command = root(event.getMessage());
         if (command.isBlank()) return;
+        if (isAdminOnly(command) && !hasAdminCommandPermission(player, command)) {
+            event.setCancelled(true);
+            Text.send(player, configs.get("admin/permissions.yml").getString("admin-only-commands.deny-message", "<red>No permission.</red>"));
+            return;
+        }
         String group = groupFor(player.getWorld());
         if (group.isBlank()) return;
         List<String> allowed = configs.get("admin/permissions.yml").getStringList("world-command-rules.groups." + group + ".allowed");
         if (allowed.isEmpty() || matchesAny(command, allowed)) return;
+        if (isUpgradeSafeAllowed(command, group)) return;
         event.setCancelled(true);
         Text.send(player, configs.get("admin/permissions.yml").getString("world-command-rules.deny-message", "<red>You cannot use that command in this world.</red>"));
     }
@@ -61,10 +67,22 @@ public final class CommandRestrictionService implements Listener {
     }
 
     private boolean matchesAny(String command, List<String> allowed) {
+        String bare = command.contains(":") ? command.substring(command.indexOf(':') + 1) : command;
         for (String entry : allowed) {
             String normalized = entry == null ? "" : entry.toLowerCase(Locale.ROOT).replace("/", "").trim();
             if (normalized.isBlank()) continue;
-            if (command.equals(normalized) || command.startsWith(normalized + ":")) return true;
+            if (command.equals(normalized) || bare.equals(normalized) || command.startsWith(normalized + ":")) return true;
+        }
+        return false;
+    }
+
+    private boolean isUpgradeSafeAllowed(String command, String group) {
+        String bare = command.contains(":") ? command.substring(command.indexOf(':') + 1) : command;
+        if (group.equalsIgnoreCase("spawn")) {
+            return List.of("survival", "rtp", "back", "backpack", "home", "homes", "sethome", "homeset", "delhome", "deletehome", "removehome").contains(bare);
+        }
+        if (group.equalsIgnoreCase("survival") || group.equalsIgnoreCase("market")) {
+            return List.of("home", "homes", "sethome", "homeset", "delhome", "deletehome", "removehome").contains(bare);
         }
         return false;
     }
@@ -74,5 +92,24 @@ public final class CommandRestrictionService implements Listener {
             if (!permission.isBlank() && player.hasPermission(permission)) return true;
         }
         return player.hasPermission("3smpcore.admin") || player.isOp();
+    }
+
+    private boolean isAdminOnly(String command) {
+        String bare = command.contains(":") ? command.substring(command.indexOf(':') + 1) : command;
+        for (String entry : configs.get("admin/permissions.yml").getStringList("admin-only-commands.commands")) {
+            String normalized = entry == null ? "" : entry.toLowerCase(Locale.ROOT).replace("/", "").trim();
+            if (!normalized.isBlank() && (command.equals(normalized) || bare.equals(normalized))) return true;
+        }
+        return false;
+    }
+
+    private boolean hasAdminCommandPermission(Player player, String command) {
+        String bare = command.contains(":") ? command.substring(command.indexOf(':') + 1) : command;
+        String specific = configs.get("admin/permissions.yml").getString("admin-only-commands.permissions." + bare, "");
+        if (specific != null && !specific.isBlank() && player.hasPermission(specific)) return true;
+        for (String permission : configs.get("admin/permissions.yml").getStringList("admin-only-commands.bypass-permissions")) {
+            if (!permission.isBlank() && player.hasPermission(permission)) return true;
+        }
+        return false;
     }
 }

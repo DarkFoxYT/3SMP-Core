@@ -24,8 +24,10 @@ import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.scheduler.BukkitTask;
+import net.kyori.adventure.title.Title;
 
 import java.io.File;
+import java.time.Duration;
 import java.util.*;
 
 public final class AfkZoneManager implements Listener {
@@ -40,6 +42,7 @@ public final class AfkZoneManager implements Listener {
     private final Map<UUID, GameMode> returnGameModes = new HashMap<>();
     private final Map<UUID, Boolean> returnAllowFlight = new HashMap<>();
     private final Map<UUID, Boolean> returnFlying = new HashMap<>();
+    private final Map<UUID, Boolean> returnInvulnerable = new HashMap<>();
     private final Map<UUID, Float> returnWalkSpeed = new HashMap<>();
     private final Map<UUID, Float> returnFlySpeed = new HashMap<>();
     private final Map<UUID, Long> inputGraceUntil = new HashMap<>();
@@ -69,6 +72,7 @@ public final class AfkZoneManager implements Listener {
         returnGameModes.clear();
         returnAllowFlight.clear();
         returnFlying.clear();
+        returnInvulnerable.clear();
         returnWalkSpeed.clear();
         returnFlySpeed.clear();
         inputGraceUntil.clear();
@@ -143,7 +147,7 @@ public final class AfkZoneManager implements Listener {
             state.afk(false);
             state.lastRealMovementAt(System.currentTimeMillis());
             state.lastRewardAt(System.currentTimeMillis());
-            Text.send(player, config("messages.entering", "<gradient:#1A2A4A:#D6E8F7>Entered AFK zone.</gradient>"));
+            Text.send(player, config("messages.entering", "<gradient:#f4cd2a:#eda323:#d28d0d>Entered AFK zone.</gradient>"));
         }
     }
 
@@ -179,12 +183,13 @@ public final class AfkZoneManager implements Listener {
                 state.afk(false);
                 state.lastRealMovementAt(System.currentTimeMillis());
                 state.lastRewardAt(System.currentTimeMillis());
-                Text.send(player, config("messages.entering", "<gradient:#1A2A4A:#D6E8F7>Entered AFK zone.</gradient>"));
+                Text.send(player, config("messages.entering", "<gradient:#f4cd2a:#eda323:#d28d0d>Entered AFK zone.</gradient>"));
             }
             if (!state.afk() && System.currentTimeMillis() - state.lastRealMovementAt() >= afkAfter) {
                 state.afk(true);
                 state.lastRewardAt(System.currentTimeMillis());
                 Text.send(player, config("messages.afk", "<yellow>You are now AFK.</yellow>"));
+                showAfkTitle(player);
             }
             if (!state.afk()) continue;
             if (player.getGameMode() == GameMode.CREATIVE && !returnLocations.containsKey(player.getUniqueId())) continue;
@@ -216,6 +221,7 @@ public final class AfkZoneManager implements Listener {
         returnGameModes.put(player.getUniqueId(), player.getGameMode());
         returnAllowFlight.put(player.getUniqueId(), player.getAllowFlight());
         returnFlying.put(player.getUniqueId(), player.isFlying());
+        returnInvulnerable.put(player.getUniqueId(), player.isInvulnerable());
         returnWalkSpeed.put(player.getUniqueId(), player.getWalkSpeed());
         returnFlySpeed.put(player.getUniqueId(), player.getFlySpeed());
         inputGraceUntil.put(player.getUniqueId(), System.currentTimeMillis() + 5000L);
@@ -231,16 +237,19 @@ public final class AfkZoneManager implements Listener {
         Bukkit.getScheduler().runTaskLater(plugin, () -> maintainAfkPlayer(player), 1L);
         Bukkit.getScheduler().runTaskLater(plugin, () -> maintainAfkPlayer(player), 5L);
         Bukkit.getScheduler().runTaskLater(plugin, () -> maintainAfkPlayer(player), 20L);
-        Text.send(player, config("messages.entering", "<gradient:#1A2A4A:#D6E8F7>Entered AFK zone.</gradient>"));
+        Text.send(player, config("messages.entering", "<gradient:#f4cd2a:#eda323:#d28d0d>Entered AFK zone.</gradient>"));
+        showAfkTitle(player);
     }
 
     private void maintainAfkPlayer(Player player) {
         if (player == null || !player.isOnline() || !returnLocations.containsKey(player.getUniqueId())) return;
-        player.setGameMode(GameMode.SPECTATOR);
+        if (player.getGameMode() != GameMode.ADVENTURE) player.setGameMode(GameMode.ADVENTURE);
+        player.setInvulnerable(true);
         player.setAllowFlight(true);
         player.setFlying(true);
         player.setFallDistance(0.0f);
         player.setVelocity(new org.bukkit.util.Vector(0, 0, 0));
+        Text.actionBar(player, config("messages.actionbar", "<gradient:#f4cd2a:#eda323:#d28d0d>AFK mode active</gradient> <gray>Move or interact to return.</gray>"));
     }
 
     private void exitZone(Player player) {
@@ -254,23 +263,26 @@ public final class AfkZoneManager implements Listener {
         GameMode gameMode = returnGameModes.remove(uuid);
         Boolean allowFlight = returnAllowFlight.remove(uuid);
         Boolean flying = returnFlying.remove(uuid);
+        Boolean invulnerable = returnInvulnerable.remove(uuid);
         Float walkSpeed = returnWalkSpeed.remove(uuid);
         Float flySpeed = returnFlySpeed.remove(uuid);
+        player.clearTitle();
         if (back != null && back.getWorld() != null) {
             Bukkit.getScheduler().runTask(plugin, () -> {
-                restoreReturnedPlayer(player, gameMode, allowFlight, flying, walkSpeed, flySpeed);
+                restoreReturnedPlayer(player, gameMode, allowFlight, flying, invulnerable, walkSpeed, flySpeed);
                 player.teleport(back);
-                Bukkit.getScheduler().runTaskLater(plugin, () -> restoreReturnedPlayer(player, gameMode, allowFlight, flying, walkSpeed, flySpeed), 1L);
-                Bukkit.getScheduler().runTaskLater(plugin, () -> restoreReturnedPlayer(player, gameMode, allowFlight, flying, walkSpeed, flySpeed), 5L);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> restoreReturnedPlayer(player, gameMode, allowFlight, flying, invulnerable, walkSpeed, flySpeed), 1L);
+                Bukkit.getScheduler().runTaskLater(plugin, () -> restoreReturnedPlayer(player, gameMode, allowFlight, flying, invulnerable, walkSpeed, flySpeed), 5L);
             });
         }
     }
 
-    private void restoreReturnedPlayer(Player player, GameMode gameMode, Boolean allowFlight, Boolean flying, Float walkSpeed, Float flySpeed) {
+    private void restoreReturnedPlayer(Player player, GameMode gameMode, Boolean allowFlight, Boolean flying, Boolean invulnerable, Float walkSpeed, Float flySpeed) {
         if (player == null || !player.isOnline()) return;
         if (player.getGameMode() == GameMode.SPECTATOR) player.setSpectatorTarget(null);
         GameMode restoredMode = gameMode == null || gameMode == GameMode.SPECTATOR ? GameMode.SURVIVAL : gameMode;
         player.setGameMode(restoredMode);
+        player.setInvulnerable(Boolean.TRUE.equals(invulnerable));
         player.setWalkSpeed(clampSpeed(walkSpeed, 0.2F));
         player.setFlySpeed(clampSpeed(flySpeed, 0.1F));
         player.setAllowFlight(Boolean.TRUE.equals(allowFlight));
@@ -316,17 +328,17 @@ public final class AfkZoneManager implements Listener {
     }
 
     private void listZones(Player player) {
-        Text.send(player, "<gradient:#1A2A4A:#D6E8F7>AFK Zones</gradient> <gray>" + (zones.isEmpty() ? "none" : String.join(", ", zones.keySet())) + "</gray>");
+        Text.send(player, "<gradient:#f4cd2a:#eda323:#d28d0d>AFK Zones</gradient> <gray>" + (zones.isEmpty() ? "none" : String.join(", ", zones.keySet())) + "</gray>");
     }
 
     private void openInfo(Player player) {
-        Text.send(player, "<gradient:#1A2A4A:#D6E8F7>AFK Zones</gradient> <gray>" + String.join(", ", zones.keySet()) + "</gray>");
+        Text.send(player, "<gradient:#f4cd2a:#eda323:#d28d0d>AFK Zones</gradient> <gray>" + String.join(", ", zones.keySet()) + "</gray>");
     }
 
     public ItemStack wand() {
         ItemStack item = new ItemStack(Material.BLAZE_ROD);
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Text.mm("<gradient:#1A2A4A:#D6E8F7>AFK Zone Wand</gradient>"));
+        meta.displayName(Text.mm("<gradient:#f4cd2a:#eda323:#d28d0d>AFK Zone Wand</gradient>"));
         meta.getPersistentDataContainer().set(new org.bukkit.NamespacedKey(plugin, WAND_KEY), PersistentDataType.STRING, "afkzone");
         item.setItemMeta(meta);
         return item;
@@ -424,6 +436,15 @@ public final class AfkZoneManager implements Listener {
         return configs.get("world/afk.yml").getString(path, fallback);
     }
 
+    private void showAfkTitle(Player player) {
+        if (player == null) return;
+        player.showTitle(Title.title(
+                Text.mm(config("messages.title", "<gradient:#f4cd2a:#eda323:#d28d0d>You are now AFK!</gradient>")),
+                Text.mm(config("messages.subtitle", "<gray>Interact to come back.</gray>")),
+                Title.Times.times(Duration.ofMillis(250), Duration.ofSeconds(Math.max(1, configs.get("world/afk.yml").getLong("messages.title-duration-seconds", 86400L))), Duration.ofMillis(500))
+        ));
+    }
+
     @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
     public void onMove(PlayerMoveEvent event) {
         if (event.getTo() == null || event.getFrom().getWorld() == null || event.getTo().getWorld() == null) return;
@@ -505,6 +526,7 @@ public final class AfkZoneManager implements Listener {
         returnGameModes.remove(event.getPlayer().getUniqueId());
         returnAllowFlight.remove(event.getPlayer().getUniqueId());
         returnFlying.remove(event.getPlayer().getUniqueId());
+        returnInvulnerable.remove(event.getPlayer().getUniqueId());
         returnWalkSpeed.remove(event.getPlayer().getUniqueId());
         returnFlySpeed.remove(event.getPlayer().getUniqueId());
         inputGraceUntil.remove(event.getPlayer().getUniqueId());

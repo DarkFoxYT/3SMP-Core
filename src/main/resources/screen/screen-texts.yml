@@ -1,4 +1,4 @@
-screen-text:
+﻿screen-text:
   enabled: true
   render-interval-ticks: 2
   rainbow-enabled: false
@@ -25,9 +25,7 @@ screen-text:
       jr_mod: "%img_jr_mod%"
       pro: "%img_pro%"
       mvp: "%img_mvp%"
-      elite: "%img_elite%"
       ultra: "%img_ultra%"
-      vip: "%img_vip%"
       patron: "%img_patron%"
       3smp: "%img_3smp%"
 

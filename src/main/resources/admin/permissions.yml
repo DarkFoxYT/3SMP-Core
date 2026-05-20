@@ -8,21 +8,28 @@ groups:
     - "3smpcore.rankperms.admin"
     - "3smpcore.rank.admin"
     - "3smpcore.hologram.admin"
+    - "altdetector.notify"
+    - "altdetector.notify.seevanished"
+    - "altdetector.alt"
+    - "altdetector.alt.seevanished"
   cosmetics:
     - "3smpcore.perks.use"
     - "3smpcore.perks.admin"
     - "3smpcore.chat.gradient"
     - "3smpcore.chat.hex"
-    - "3smpcore.chat.color.vip"
+    - "3smpcore.chat.color.3"
     - "3smpcore.chat.color.mvp"
-    - "3smpcore.chat.color.elite"
+    - "3smpcore.chat.color.ultra"
   duel:
     - "3smpcore.duel.use"
     - "3smpcore.duel.admin"
     - "3smpcore.party.use"
     - "3smpcore.party.admin"
     - "3smpcore.queue.bypass"
-    - "3smpcore.queue.priority.vip"
+    - "3smpcore.queue.priority.3"
+    - "3smpcore.queue.priority.pro"
+    - "3smpcore.queue.priority.mvp"
+    - "3smpcore.queue.priority.ultra"
     - "3smpcore.queue.priority.staff"
     - "3smpcore.queue.priority.owner"
   economy:
@@ -41,6 +48,7 @@ groups:
     - "3smpcore.spawn.admin"
     - "3smpcore.spawn.build"
     - "3smpcore.survival.use"
+    - "3smpcore.survival.end.bypass"
     - "3smpcore.warp.admin"
     - "3smpcore.zonepvp.admin"
     - "3smpcore.launchpad.admin"
@@ -63,20 +71,47 @@ groups:
     - "3smpcore.essentials"
     - "3smpcore.back.use"
     - "3smpcore.backpack.use"
+    - "3smpcore.backpack.limit.1"
+    - "3smpcore.home.use"
+    - "3smpcore.home.set"
+    - "3smpcore.home.delete"
+    - "3smpcore.home.limit.10"
+    - "3smpcore.home.limit.30"
+    - "3smpcore.home.limit.unlimited"
     - "3smpcore.command.bypass"
     - "3smpcore.staff.sradmin"
     - "3smpcore.staff.admin"
+    - "3smpcore.staff.srmod"
+    - "3smpcore.staff.altalerts"
     - "3smpcore.command.speed"
     - "3smpcore.command.fly"
     - "3smpcore.command.gamemode"
+    - "3smpcore.command.gamemode.creative"
     - "3smpcore.command.gamemode.others"
     - "3smpcore.command.time"
     - "3smpcore.command.gamerule"
 
 utility:
   backpack:
-    size: 27
-    title: "Backpack"
+    size: 54
+    title: "Backpack {index}"
+    all-worlds: true
+    default-limit: 1
+    unlimited-max-openable: 54
+    deny-world-message: "<red>Backpacks are not available in this world.</red>"
+
+admin-only-commands:
+  deny-message: "<red>Only Admin+ can use that command.</red>"
+  commands:
+    - "give"
+    - "minecraft:give"
+  bypass-permissions:
+    - "3smpcore.command.bypass"
+    - "3smpcore.staff.admin"
+    - "3smpcore.staff.sradmin"
+    - "3smpcore.admin"
+  permissions:
+    give: "3smpcore.staff.admin"
 
 world-command-rules:
   enabled: true
@@ -84,6 +119,7 @@ world-command-rules:
   bypass-permissions:
     - "3smpcore.command.bypass"
     - "3smpcore.staff.sradmin"
+    - "3smpcore.staff.admin"
     - "3smpcore.admin"
   groups:
     spawn:
@@ -114,6 +150,23 @@ world-command-rules:
         - sap
         - afk
         - spawn
+        - survival
+        - survive
+        - rtp
+        - store
+        - buy
+        - website
+        - backpack
+        - bp
+        - itempower
+        - back
+        - home
+        - homes
+        - sethome
+        - homeset
+        - delhome
+        - deletehome
+        - removehome
     survival:
       worlds:
         - "world"
@@ -151,21 +204,48 @@ world-command-rules:
         - auction
         - auctionhouse
         - shop
+        - store
+        - buy
+        - website
         - backpack
+        - bp
+        - itempower
         - spawn
+        - survival
+        - survive
         - home
+        - homes
         - sethome
+        - homeset
         - delhome
+        - deletehome
+        - removehome
+        - tp
+        - teleport
+        - tphere
         - tpa
         - tpahere
         - tpaccept
         - tpdeny
         - fly
         - hat
+        - nick
+        - nickname
         - ec
         - enderchest
         - workbench
         - anvil
+        - feed
+        - heal
+        - skull
+        - ptime
+        - pweather
+        - stonecutter
+        - grindstone
+        - smithingtable
+        - loom
+        - smoker
+        - blastfurnace
     dungeons:
       worlds:
         - "dungeons_spawn"
@@ -177,12 +257,20 @@ world-command-rules:
         - dungeon
         - dungeons
         - d
+        - spawn
+        - survival
+        - survive
+        - rtp
         - leave
         - party
         - p
         - help
         - friends
         - friend
+        - store
+        - buy
+        - website
+        - itempower
     duels:
       world-prefixes:
         - "arena_"
@@ -194,6 +282,10 @@ world-command-rules:
         - "basalt_arena_"
       allowed:
         - duel
+        - spawn
+        - survival
+        - survive
+        - rtp
         - leave
         - spectate
         - spec
@@ -201,38 +293,69 @@ world-command-rules:
         - p
         - friends
         - friend
+        - store
+        - buy
+        - website
+        - itempower
     market:
       worlds:
         - "market"
       allowed:
         - market
+        - spawn
+        - survival
+        - survive
+        - rtp
+        - store
+        - buy
+        - website
         - shop
+        - ah
+        - auction
+        - auctionhouse
+        - backpack
+        - bp
+        - itempower
+        - back
+        - home
+        - homes
+        - sethome
+        - homeset
+        - delhome
+        - deletehome
+        - removehome
+        - daily
+        - vote
+        - souls
+        - gems
+        - gem
+        - balance
+        - bal
         - claim
         - trust
         - help
         - friends
         - friend
 
+alt-detection:
+  enabled: true
+  show-ip-to-staff: true
+  max-accounts-per-ip: 5
+  limit-message: "<red>You can only have <white>{max}</white> accounts online from the same connection.</red>"
+  permissions:
+    - "altdetector.notify"
+    - "3smpcore.staff.altalerts"
+    - "3smpcore.staff.sradmin"
+    - "3smpcore.staff.admin"
+    - "3smpcore.admin"
+  message: "<gradient:#f4cd2a:#eda323:#d28d0d>[Alt Check]</gradient> <white>{player}</white> <gray>joined from the same IP as</gray> <white>{matches}</white> <dark_gray>({ip})</dark_gray>"
+
 rank-presets:
-  vip:
-    luckperms-group: "vip"
-    permissions:
-      - "essentials.sethome.multiple.vip"
-      - "essentials.hat"
-      - "3smpcore.chat.color.vip"
-      - "3smpcore.queue.priority.vip"
-      - "3smpcore.perks.use"
-      - "3smpcore.sapphires.use"
-      - "3smpcore.gems.use"
-      - "3smpcore.souls.use"
-      - "3smpcore.daily.use"
-    commands:
-      - "lp group {group} meta setsuffix 10 \"&aVIP\""
-      - "lp group {group} meta sethomes 5"
   pro:
     luckperms-group: "pro"
     permissions:
       - "essentials.sethome.multiple.pro"
+      - "3smpcore.home.limit.10"
       - "essentials.hat"
       - "essentials.fly"
       - "essentials.ec"
@@ -242,9 +365,10 @@ rank-presets:
       - "essentials.workbench"
       - "essentials.enderchest"
       - "essentials.back"
-      - "3smpcore.chat.color.vip"
+      - "3smpcore.chat.color.3"
       - "3smpcore.chat.color.mvp"
-      - "3smpcore.queue.priority.vip"
+      - "3smpcore.queue.priority.pro"
+      - "3smpcore.backpack.limit.1"
       - "3smpcore.perks.use"
       - "3smpcore.sapphires.use"
       - "3smpcore.gems.use"
@@ -257,6 +381,7 @@ rank-presets:
     luckperms-group: "mvp"
     permissions:
       - "essentials.sethome.multiple.mvp"
+      - "3smpcore.home.limit.30"
       - "essentials.hat"
       - "essentials.fly"
       - "essentials.ec"
@@ -269,9 +394,10 @@ rank-presets:
       - "essentials.anvil"
       - "essentials.smithingtable"
       - "essentials.grindstone"
-      - "3smpcore.chat.color.vip"
+      - "3smpcore.chat.color.3"
       - "3smpcore.chat.color.mvp"
-      - "3smpcore.queue.priority.vip"
+      - "3smpcore.queue.priority.mvp"
+      - "3smpcore.backpack.limit.2"
       - "3smpcore.perks.use"
       - "3smpcore.sapphires.use"
       - "3smpcore.gems.use"
@@ -284,6 +410,7 @@ rank-presets:
     luckperms-group: "ultra"
     permissions:
       - "essentials.sethome.multiple.ultra"
+      - "3smpcore.home.limit.unlimited"
       - "essentials.hat"
       - "essentials.fly"
       - "essentials.ec"
@@ -298,10 +425,11 @@ rank-presets:
       - "essentials.grindstone"
       - "essentials.loom"
       - "essentials.nick"
-      - "3smpcore.chat.color.vip"
+      - "3smpcore.chat.color.3"
       - "3smpcore.chat.color.mvp"
-      - "3smpcore.chat.color.elite"
-      - "3smpcore.queue.priority.vip"
+      - "3smpcore.chat.color.ultra"
+      - "3smpcore.queue.priority.ultra"
+      - "3smpcore.backpack.limit.3"
       - "3smpcore.perks.use"
       - "3smpcore.sapphires.use"
       - "3smpcore.gems.use"
@@ -313,8 +441,8 @@ rank-presets:
 
 rank-packages:
   subscriptions:
-    3rank:
-      luckperms-group: "3rank"
+    "3":
+      luckperms-group: "3"
       commands:
         - "lp user {player} parent addtemp {group} 30d accumulate"
         - "sapphire give {player} 1000"
@@ -322,6 +450,7 @@ rank-packages:
         - "eco give {player} 350000"
         - "giveclaim {player} 5000"
         - "lp user {player} permission set essentials.sethome.multiple.15 true"
+        - "lp user {player} permission set 3smpcore.home.limit.10 true"
         - "lp user {player} permission set auctionhouse.maxsell.3 true"
         - "lp user {player} permission set essentials.nick true"
         - "lp user {player} permission set essentials.workbench true"
@@ -330,7 +459,7 @@ rank-packages:
         - "lp user {player} permission set essentials.ptime true"
         - "lp user {player} permission set essentials.pweather true"
         - "lp user {player} meta set player-shops 200"
-        - "vs backpack give {player} 1"
+        - "lp user {player} permission set 3smpcore.backpack.limit.1 true"
   permanent:
     pro:
       luckperms-group: "pro"
@@ -339,6 +468,7 @@ rank-packages:
         - "eco give {player} 500000"
         - "giveclaim {player} 7500"
         - "lp user {player} permission set essentials.sethome.multiple.20 true"
+        - "lp user {player} permission set 3smpcore.home.limit.10 true"
         - "lp user {player} permission set auctionhouse.maxsell.4 true"
         - "lp user {player} permission set essentials.nick true"
         - "lp user {player} permission set essentials.workbench true"
@@ -347,7 +477,7 @@ rank-packages:
         - "lp user {player} permission set essentials.ptime true"
         - "lp user {player} permission set essentials.pweather true"
         - "lp user {player} meta set player-shops 250"
-        - "vs backpack give {player} 1"
+        - "lp user {player} permission set 3smpcore.backpack.limit.1 true"
     mvp:
       luckperms-group: "mvp"
       commands:
@@ -355,6 +485,7 @@ rank-packages:
         - "eco give {player} 750000"
         - "giveclaim {player} 10000"
         - "lp user {player} permission set essentials.sethome.multiple.35 true"
+        - "lp user {player} permission set 3smpcore.home.limit.30 true"
         - "lp user {player} permission set auctionhouse.maxsell.6 true"
         - "lp user {player} permission set essentials.skull true"
         - "lp user {player} permission set essentials.feed true"
@@ -365,7 +496,7 @@ rank-packages:
         - "lp user {player} permission set essentials.workbench true"
         - "lp user {player} permission set essentials.enderchest true"
         - "lp user {player} meta set player-shops 500"
-        - "vs backpack give {player} 2"
+        - "lp user {player} permission set 3smpcore.backpack.limit.2 true"
         - "lp user {player} permission set 3smpcore.command.fly true"
     ultra:
       luckperms-group: "ultra"
@@ -374,6 +505,7 @@ rank-packages:
         - "eco give {player} 1000000"
         - "giveclaim {player} 15000"
         - "lp user {player} permission set essentials.sethome.multiple.unlimited true"
+        - "lp user {player} permission set 3smpcore.home.limit.unlimited true"
         - "lp user {player} permission set auctionhouse.maxsell.8 true"
         - "lp user {player} permission set essentials.heal true"
         - "lp user {player} permission set essentials.skull true"
@@ -386,7 +518,7 @@ rank-packages:
         - "lp user {player} permission set essentials.enderchest true"
         - "lp user {player} permission set 3smpcore.command.fly true"
         - "lp user {player} meta set player-shops unlimited"
-        - "vs backpack give {player} 3"
+        - "lp user {player} permission set 3smpcore.backpack.limit.3 true"
 
 notes:
   - "LuckPerms prefixes are always the main chat prefix source."

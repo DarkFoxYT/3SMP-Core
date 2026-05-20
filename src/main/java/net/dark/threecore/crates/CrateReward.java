@@ -3,6 +3,7 @@ package net.dark.threecore.crates;
 import org.bukkit.Material;
 
 import java.util.List;
+import java.util.Map;
 
 record CrateReward(
         String id,
@@ -14,6 +15,7 @@ record CrateReward(
         String itemsAdderId,
         boolean giveItem,
         List<String> commands,
+        Map<String, Integer> enchantments,
         List<String> lore
 ) {
 }

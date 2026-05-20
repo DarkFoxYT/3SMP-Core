@@ -29,7 +29,7 @@ public final class DungeonMenu {
 
     public Inventory build(Player player) {
         MenuState state = manager.menuState(player);
-        Inventory inv = Bukkit.createInventory(null, 27, TITLE);
+        Inventory inv = Bukkit.createInventory(null, 54, TITLE);
         fill(inv);
         inv.setItem(10, option("Party", state.solo ? Material.LIGHT_BLUE_WOOL : Material.ORANGE_WOOL, state.solo ? "Solo" : "Team"));
         inv.setItem(11, option("Level", Material.END_CRYSTAL, DungeonLevel.byId(state.level).displayName));
@@ -41,7 +41,7 @@ public final class DungeonMenu {
     public Inventory buildLevels(Player player) {
         MenuState state = manager.menuState(player);
         int unlockedLevel = manager.unlockedLevelValue(player);
-        Inventory inv = Bukkit.createInventory(null, 27, LEVELS_TITLE);
+        Inventory inv = Bukkit.createInventory(null, 54, LEVELS_TITLE);
         fill(inv);
         inv.setItem(10, levelItem(DungeonLevel.JUNGLE, state.level == 1, unlockedLevel >= 1));
         inv.setItem(11, levelItem(DungeonLevel.DESERT, state.level == 2, unlockedLevel >= 2));

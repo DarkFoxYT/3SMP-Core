@@ -13,9 +13,11 @@ import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.NamespacedKey;
 import org.bukkit.Particle;
+import org.bukkit.Registry;
 import org.bukkit.Sound;
 import org.bukkit.World;
 import org.bukkit.block.Block;
+import org.bukkit.block.Container;
 import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.configuration.file.YamlConfiguration;
@@ -25,6 +27,7 @@ import org.bukkit.entity.Interaction;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.Event;
 import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.BlockBreakEvent;
@@ -34,8 +37,10 @@ import org.bukkit.event.inventory.InventoryCloseEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.event.player.PlayerInteractEntityEvent;
 import org.bukkit.inventory.Inventory;
+import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
 import org.bukkit.inventory.ItemStack;
+import org.bukkit.enchantments.Enchantment;
 import org.bukkit.inventory.meta.ItemMeta;
 import org.bukkit.persistence.PersistentDataContainer;
 import org.bukkit.persistence.PersistentDataType;
@@ -61,8 +66,10 @@ public final class CrateService implements Listener {
     private static final String ENTITY_TAG = "3smp_crate";
     private static final String HOLOGRAM_PREFIX = "3smp_crate_";
     private static final int PREVIEW_SIZE = 54;
+    private static final int OPENING_SIZE = 27;
     private static final int[] REWARD_SLOTS = {10, 11, 12, 13, 14, 15, 16, 19, 20, 21, 22, 23, 24, 25, 28, 29, 30, 31, 32, 33, 34};
-    private static final int[] ROLL_SLOTS = {9, 10, 11, 12, 13, 14, 15, 16, 17};
+    private static final int[] ROLL_SLOTS = {10, 11, 12, 13, 14, 15, 16};
+    private static final int WINNING_SLOT = 13;
 
     private final JavaPlugin plugin;
     private final ConfigFiles configs;
@@ -71,7 +78,9 @@ public final class CrateService implements Listener {
     private final NamespacedKey crateItemKey;
     private final NamespacedKey keyItemKey;
     private final NamespacedKey previewRewardKey;
+    private final NamespacedKey selectionCrateKey;
     private static final LegacyComponentSerializer LEGACY = LegacyComponentSerializer.legacySection();
+    private static final LegacyComponentSerializer LEGACY_AMPERSAND = LegacyComponentSerializer.legacyAmpersand();
     private final Map<String, CrateDefinition> crates = new HashMap<>();
     private final Map<UUID, OpeningState> openings = new HashMap<>();
     private final Set<String> activeHolograms = new HashSet<>();
@@ -85,6 +94,7 @@ public final class CrateService implements Listener {
         this.crateItemKey = new NamespacedKey(plugin, "crate_item_id");
         this.keyItemKey = new NamespacedKey(plugin, "crate_key_id");
         this.previewRewardKey = new NamespacedKey(plugin, "crate_preview_reward");
+        this.selectionCrateKey = new NamespacedKey(plugin, "crate_selection_id");
     }
 
     public void start() {
@@ -123,8 +133,8 @@ public final class CrateService implements Listener {
     public void handle(CommandContext context) {
         CommandSender sender = context.sender();
         if (context.args().length == 0) {
-            if (sender instanceof Player player) openPreview(player, defaultCrateId());
-            else Text.send(sender, "<yellow>/crate givekey <player> [amount] | place <crate> | preview <crate> | reload</yellow>");
+            if (sender instanceof Player player) openSelection(player);
+            else Text.send(sender, "<yellow>/crate givekey <player|all> [amount] [crate] | give <player|all> <crate> [amount] | place <crate> | preview <crate> | reload</yellow>");
             return;
         }
         String sub = context.arg(0).toLowerCase(Locale.ROOT);
@@ -142,6 +152,7 @@ public final class CrateService implements Listener {
                 else giveKeyCommand(context);
             }
             case "give" -> giveCrateItemCommand(context);
+            case "circulation", "circulate" -> circulationCommand(sender);
             case "place" -> placeCommand(context);
             case "remove", "delete" -> removeCommand(context);
             case "list" -> Text.send(sender, "<gray>Crates:</gray> <white>" + String.join(", ", crates.keySet()) + "</white>");
@@ -154,14 +165,19 @@ public final class CrateService implements Listener {
                 spawnConfiguredCrates();
                 Text.send(sender, "<green>Crates reloaded.</green>");
             }
-            default -> Text.send(sender, "<yellow>/crate preview [crate] | givekey <player> [amount] | give <player> <crate> [amount] | place <crate> | remove <nearest|id> | reload</yellow>");
+            default -> Text.send(sender, "<yellow>/crate preview [crate] | givekey <player> [amount] | give <player> <crate> [amount] | circulation | place <crate> | remove <nearest|id> | reload</yellow>");
         }
     }
 
     public List<String> complete(String[] args) {
-        if (args.length <= 1) return List.of("preview", "givekey", "key", "give", "place", "remove", "list", "reload");
+        if (args.length <= 1) return List.of("preview", "givekey", "key", "give", "circulation", "place", "remove", "list", "reload");
         if (args.length == 2 && (args[0].equalsIgnoreCase("preview") || args[0].equalsIgnoreCase("place"))) return crateIds();
-        if (args.length == 2 && (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("givekey"))) return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
+        if (args.length == 2 && (args[0].equalsIgnoreCase("give") || args[0].equalsIgnoreCase("givekey"))) {
+            List<String> players = new ArrayList<>();
+            players.add("all");
+            players.addAll(Bukkit.getOnlinePlayers().stream().map(Player::getName).toList());
+            return players;
+        }
         if (args.length == 2 && args[0].equalsIgnoreCase("key")) return List.of("give");
         if (args.length == 3 && args[0].equalsIgnoreCase("key") && args[1].equalsIgnoreCase("give")) return Bukkit.getOnlinePlayers().stream().map(Player::getName).toList();
         if (args.length == 4 && args[0].equalsIgnoreCase("key") && args[1].equalsIgnoreCase("give")) return crateIds();
@@ -170,8 +186,9 @@ public final class CrateService implements Listener {
         return List.of();
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     public void onEntityInteract(PlayerInteractEntityEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
         Entity entity = event.getRightClicked();
         String crateId = entity.getPersistentDataContainer().get(crateEntityKey, PersistentDataType.STRING);
         if (crateId == null || crateId.isBlank()) return;
@@ -183,14 +200,15 @@ public final class CrateService implements Listener {
         openCrate(event.getPlayer(), crateId);
     }
 
-    @EventHandler(priority = EventPriority.HIGH)
+    @EventHandler(priority = EventPriority.HIGHEST, ignoreCancelled = false)
     public void onBlockInteract(PlayerInteractEvent event) {
+        if (event.getHand() != EquipmentSlot.HAND) return;
         if (!event.getAction().isRightClick() || event.getClickedBlock() == null) return;
         PlacedCrate placed = placedAt(event.getClickedBlock());
         if (placed == null) {
             CrateDefinition crate = crateFromBlock(event.getClickedBlock());
             if (crate == null) return;
-            event.setCancelled(true);
+            consumeCrateClick(event);
             if (event.getPlayer().isSneaking()) {
                 openPreview(event.getPlayer(), crate.id());
                 return;
@@ -198,12 +216,18 @@ public final class CrateService implements Listener {
             openCrate(event.getPlayer(), crate.id());
             return;
         }
-        event.setCancelled(true);
+        consumeCrateClick(event);
         if (event.getPlayer().isSneaking()) {
             openPreview(event.getPlayer(), placed.crateId());
             return;
         }
         openCrate(event.getPlayer(), placed.crateId());
+    }
+
+    private void consumeCrateClick(PlayerInteractEvent event) {
+        event.setCancelled(true);
+        event.setUseInteractedBlock(Event.Result.DENY);
+        event.setUseItemInHand(Event.Result.DENY);
     }
 
     @EventHandler(priority = EventPriority.HIGH, ignoreCancelled = true)
@@ -245,6 +269,14 @@ public final class CrateService implements Listener {
         if (!(event.getInventory().getHolder() instanceof CrateHolder holder)) return;
         event.setCancelled(true);
         if (!(event.getWhoClicked() instanceof Player player)) return;
+        if (holder.mode() == CrateHolder.Mode.SELECTION) {
+            if (event.getRawSlot() < 0 || event.getRawSlot() >= event.getView().getTopInventory().getSize()) return;
+            ItemStack clicked = event.getCurrentItem();
+            if (clicked == null || !clicked.hasItemMeta()) return;
+            String crateId = clicked.getItemMeta().getPersistentDataContainer().get(selectionCrateKey, PersistentDataType.STRING);
+            if (crateId != null && !crateId.isBlank()) openPreview(player, crateId);
+            return;
+        }
         if (holder.mode() != CrateHolder.Mode.PREVIEW) return;
         if (event.getRawSlot() == 49) openCrate(player, holder.crateId());
     }
@@ -254,9 +286,7 @@ public final class CrateService implements Listener {
         if (!(event.getInventory().getHolder() instanceof CrateHolder holder)) return;
         if (holder.mode() != CrateHolder.Mode.OPENING) return;
         OpeningState state = openings.get(event.getPlayer().getUniqueId());
-        if (state != null && !state.finished) {
-            Bukkit.getScheduler().runTask(plugin, () -> event.getPlayer().openInventory(event.getInventory()));
-        }
+        if (state != null && !state.finished && event.getPlayer() instanceof Player player) completeOpening(player, state, false);
     }
 
     private void giveKeyCommand(CommandContext context) {
@@ -268,8 +298,9 @@ public final class CrateService implements Listener {
             Text.send(context.sender(), "<red>Usage: /crate givekey <player> [amount] [crate]</red>");
             return;
         }
-        Player target = Bukkit.getPlayerExact(context.arg(1));
-        if (target == null) {
+        boolean all = context.arg(1).equalsIgnoreCase("all") || context.arg(1).equalsIgnoreCase("*");
+        Player target = all ? null : Bukkit.getPlayerExact(context.arg(1));
+        if (!all && target == null) {
             Text.send(context.sender(), "<red>That player must be online.</red>");
             return;
         }
@@ -287,7 +318,8 @@ public final class CrateService implements Listener {
             if (isWholeNumber(context.arg(2))) amount = parseAmount(context.arg(2));
             else crateId = context.arg(2).toLowerCase(Locale.ROOT);
         }
-        giveKey(context.sender(), target, crateId, amount);
+        if (all) giveKeyAll(context.sender(), crateId, amount);
+        else giveKey(context.sender(), target, crateId, amount);
     }
 
     private void giveLegacyKeyCommand(CommandContext context) {
@@ -299,8 +331,9 @@ public final class CrateService implements Listener {
             Text.send(context.sender(), "<red>Usage: /crate key give <player> <crate> [amount]</red>");
             return;
         }
-        Player target = Bukkit.getPlayerExact(context.arg(2));
-        if (target == null) {
+        boolean all = context.arg(2).equalsIgnoreCase("all") || context.arg(2).equalsIgnoreCase("*");
+        Player target = all ? null : Bukkit.getPlayerExact(context.arg(2));
+        if (!all && target == null) {
             Text.send(context.sender(), "<red>That player must be online.</red>");
             return;
         }
@@ -319,7 +352,8 @@ public final class CrateService implements Listener {
         } else {
             crateId = context.arg(3).toLowerCase(Locale.ROOT);
         }
-        giveKey(context.sender(), target, crateId, amount);
+        if (all) giveKeyAll(context.sender(), crateId, amount);
+        else giveKey(context.sender(), target, crateId, amount);
     }
 
     private void giveKey(CommandSender sender, Player target, String crateId, int amount) {
@@ -332,24 +366,55 @@ public final class CrateService implements Listener {
         Text.send(sender, "<green>Gave " + amount + " " + plain(crate.displayName()) + " key(s) to " + target.getName() + ".</green>");
     }
 
+    private void giveKeyAll(CommandSender sender, String crateId, int amount) {
+        CrateDefinition crate = crates.get(crateId);
+        if (crate == null) {
+            Text.send(sender, "<red>Unknown crate.</red>");
+            return;
+        }
+        int count = 0;
+        for (Player target : Bukkit.getOnlinePlayers()) {
+            give(target, keyItem(crate, amount));
+            Text.send(target, "<gradient:#f4cd2a:#7c3aed>Crate key received:</gradient> <white>" + amount + "x " + plain(crate.displayName()) + "</white>");
+            count++;
+        }
+        Text.send(sender, "<green>Gave " + amount + " " + plain(crate.displayName()) + " key(s) to " + count + " online player(s).</green>");
+    }
+
     private void giveCrateItemCommand(CommandContext context) {
         if (!context.sender().hasPermission("3smpcore.crates.admin")) {
             Text.send(context.sender(), "<red>No permission.</red>");
             return;
         }
-        if (context.args().length < 3) {
-            Text.send(context.sender(), "<red>Usage: /crate give <player> <crate> [amount]</red>");
+        if (context.args().length < 2) {
+            Text.send(context.sender(), "<red>Usage: /crate give <player|all> [crate] [amount]</red>");
             return;
         }
-        Player target = Bukkit.getPlayerExact(context.arg(1));
-        CrateDefinition crate = crates.get(context.arg(2).toLowerCase(Locale.ROOT));
-        if (target == null || crate == null) {
+        boolean all = context.arg(1).equalsIgnoreCase("all") || context.arg(1).equalsIgnoreCase("*");
+        Player target = all ? null : Bukkit.getPlayerExact(context.arg(1));
+        String crateId = defaultCrateId();
+        int amount = 1;
+        if (context.args().length >= 3) {
+            if (isWholeNumber(context.arg(2))) amount = parseAmount(context.arg(2));
+            else crateId = context.arg(2).toLowerCase(Locale.ROOT);
+        }
+        if (context.args().length >= 4) amount = parseAmount(context.arg(3));
+        CrateDefinition crate = crates.get(crateId);
+        if ((!all && target == null) || crate == null) {
             Text.send(context.sender(), "<red>Player or crate not found.</red>");
             return;
         }
-        int amount = parseAmount(context.args().length >= 4 ? context.arg(3) : "1");
-        give(target, crateItem(crate, amount));
-        Text.send(context.sender(), "<green>Gave crate placer to " + target.getName() + ".</green>");
+        if (all) {
+            int count = 0;
+            for (Player online : Bukkit.getOnlinePlayers()) {
+                give(online, crateItem(crate, amount));
+                count++;
+            }
+            Text.send(context.sender(), "<green>Gave crate placer to " + count + " online player(s).</green>");
+        } else {
+            give(target, crateItem(crate, amount));
+            Text.send(context.sender(), "<green>Gave crate placer to " + target.getName() + ".</green>");
+        }
     }
 
     private void placeCommand(CommandContext context) {
@@ -406,8 +471,7 @@ public final class CrateService implements Listener {
             Text.send(player, "<red>Unknown crate.</red>");
             return;
         }
-        Inventory inv = Bukkit.createInventory(new CrateHolder(crate.id(), CrateHolder.Mode.PREVIEW), PREVIEW_SIZE, Text.mm(crate.displayName() + " <dark_gray>Rewards</dark_gray>"));
-        fill(inv, Material.BLACK_STAINED_GLASS_PANE, " ");
+        Inventory inv = Bukkit.createInventory(new CrateHolder(crate.id(), CrateHolder.Mode.PREVIEW), PREVIEW_SIZE, inventoryTitle(crate, "preview-title", crate.displayName() + " <dark_gray>Rewards</dark_gray>"));
         for (int i = 0; i < Math.min(crate.rewards().size(), REWARD_SLOTS.length); i++) {
             inv.setItem(REWARD_SLOTS[i], rewardIcon(crate.rewards().get(i)));
         }
@@ -419,6 +483,18 @@ public final class CrateService implements Listener {
         inv.setItem(46, tierItem(Material.DIAMOND_SWORD, "<#38bdf8>Epic</#38bdf8>", crate, "epic"));
         inv.setItem(47, tierItem(Material.AMETHYST_SHARD, "<#c084fc>Rare</#c084fc>", crate, "rare"));
         inv.setItem(48, tierItem(Material.IRON_INGOT, "<#d1d5db>Common</#d1d5db>", crate, "common"));
+        player.openInventory(inv);
+    }
+
+    private void openSelection(Player player) {
+        Inventory inv = Bukkit.createInventory(new CrateHolder(defaultCrateId(), CrateHolder.Mode.SELECTION), PREVIEW_SIZE, inventoryTitle("selection-title", "<gradient:#f4cd2a:#7c3aed>Crates</gradient>"));
+        int[] slots = {10, 11, 12, 13, 14, 15, 16};
+        List<CrateDefinition> sorted = crates.values().stream()
+                .sorted(Comparator.comparing(CrateDefinition::id))
+                .toList();
+        for (int i = 0; i < Math.min(sorted.size(), slots.length); i++) {
+            inv.setItem(slots[i], selectionIcon(sorted.get(i)));
+        }
         player.openInventory(inv);
     }
 
@@ -438,8 +514,7 @@ public final class CrateService implements Listener {
             return;
         }
         CrateReward reward = roll(crate);
-        Inventory inv = Bukkit.createInventory(new CrateHolder(crate.id(), CrateHolder.Mode.OPENING), 27, Text.mm("<gradient:#f4cd2a:#7c3aed>Prophecy is choosing...</gradient>"));
-        fill(inv, Material.PURPLE_STAINED_GLASS_PANE, " ");
+        Inventory inv = Bukkit.createInventory(new CrateHolder(crate.id(), CrateHolder.Mode.OPENING), OPENING_SIZE, inventoryTitle(crate, "opening-title", "<gradient:#f4cd2a:#7c3aed>Prophecy is choosing...</gradient>"));
         player.openInventory(inv);
         player.playSound(player.getLocation(), Sound.BLOCK_TRIAL_SPAWNER_OMINOUS_ACTIVATE, 0.8F, 1.25F);
         player.getWorld().spawnParticle(Particle.ENCHANT, player.getLocation().add(0.0D, 1.1D, 0.0D), 60, 0.55D, 0.45D, 0.55D, 0.02D);
@@ -449,7 +524,7 @@ public final class CrateService implements Listener {
     private void startRoll(Player player, CrateDefinition crate, CrateReward reward, Inventory inv) {
         List<ItemStack> wheel = new ArrayList<>();
         for (int i = 0; i < 4; i++) crate.rewards().forEach(r -> wheel.add(rewardIcon(r)));
-        OpeningState state = new OpeningState();
+        OpeningState state = new OpeningState(crate, reward, inv);
         openings.put(player.getUniqueId(), state);
         state.task = new BukkitRunnable() {
             private int tick;
@@ -463,26 +538,33 @@ public final class CrateService implements Listener {
                 for (int i = 0; i < ROLL_SLOTS.length; i++) {
                     inv.setItem(ROLL_SLOTS[i], wheel.get((tick + i) % wheel.size()));
                 }
-                inv.setItem(4, actionItem(Material.END_CRYSTAL, "<gradient:#f4cd2a:#7c3aed><bold>The Prophecy Spins</bold></gradient>", List.of("<gray>Listen for the crack.</gray>")));
-                inv.setItem(22, actionItem(Material.HOPPER, "<white>Winning slot</white>", List.of("<dark_gray>The middle item lands here.</dark_gray>")));
                 player.playSound(player.getLocation(), Sound.UI_BUTTON_CLICK, 0.35F, 1.0F + Math.min(1.0F, tick * 0.02F));
                 if (++tick >= openingTicks()) finish(true);
             }
 
             private void finish(boolean award) {
                 cancel();
-                state.finished = true;
-                openings.remove(player.getUniqueId());
-                if (!award) return;
-                inv.setItem(13, rewardIcon(reward));
-                giveReward(player, reward);
-                announce(player, crate, reward);
-                player.playSound(player.getLocation(), Sound.BLOCK_AMETHYST_CLUSTER_BREAK, 1.0F, 0.75F);
-                player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8F, 1.25F);
-                player.getWorld().spawnParticle(Particle.FIREWORK, player.getLocation().add(0.0D, 1.2D, 0.0D), 65, 0.65D, 0.65D, 0.65D, 0.08D);
-                Bukkit.getScheduler().runTaskLater(plugin, () -> player.closeInventory(), 45L);
+                if (award) completeOpening(player, state, true);
+                else {
+                    state.finished = true;
+                    openings.remove(player.getUniqueId());
+                }
             }
         }.runTaskTimer(plugin, 0L, openingIntervalTicks());
+    }
+
+    private void completeOpening(Player player, OpeningState state, boolean closeLater) {
+        if (state == null || state.finished) return;
+        state.finished = true;
+        openings.remove(player.getUniqueId());
+        if (state.task != null) state.task.cancel();
+        state.inventory.setItem(WINNING_SLOT, rewardIcon(state.reward));
+        giveReward(player, state.reward);
+        announce(player, state.crate, state.reward);
+        player.playSound(player.getLocation(), Sound.BLOCK_AMETHYST_CLUSTER_BREAK, 1.0F, 0.75F);
+        player.playSound(player.getLocation(), Sound.UI_TOAST_CHALLENGE_COMPLETE, 0.8F, 1.25F);
+        player.getWorld().spawnParticle(Particle.FIREWORK, player.getLocation().add(0.0D, 1.2D, 0.0D), 65, 0.65D, 0.65D, 0.65D, 0.08D);
+        if (closeLater) Bukkit.getScheduler().runTaskLater(plugin, () -> player.closeInventory(), 45L);
     }
 
     private CrateReward roll(CrateDefinition crate) {
@@ -505,17 +587,24 @@ public final class CrateService implements Listener {
                     .replace("{uuid}", player.getUniqueId().toString())
                     .replace("%amount%", String.valueOf(Math.max(1, reward.amount())))
                     .replace("{amount}", String.valueOf(Math.max(1, reward.amount())));
-            boolean accepted = Bukkit.dispatchCommand(Bukkit.getConsoleSender(), resolved);
-            if (!accepted) plugin.getLogger().warning("Crate reward command was not accepted: " + resolved);
+            try {
+                boolean accepted = Bukkit.dispatchCommand(Bukkit.getConsoleSender(), resolved);
+                if (!accepted) plugin.getLogger().warning("Crate reward command was not accepted: " + resolved);
+            } catch (org.bukkit.command.CommandException ex) {
+                plugin.getLogger().warning("Crate reward command failed: " + resolved + " (" + ex.getMessage() + ")");
+            }
         }
         if (reward.giveItem() && reward.material() != Material.AIR) {
             ItemStack item = reward.itemsAdderId().isBlank() ? new ItemStack(reward.material(), Math.max(1, reward.amount())) : itemsAdder.item(reward.itemsAdderId(), reward.material());
             item.setAmount(Math.max(1, reward.amount()));
-            ItemMeta meta = item.getItemMeta();
-            if (meta != null) {
-                meta.displayName(Text.mm(reward.display()));
-                if (!reward.lore().isEmpty()) meta.lore(reward.lore().stream().map(Text::mm).toList());
-                item.setItemMeta(meta);
+            applyEnchantments(item, reward.enchantments());
+            if (reward.itemsAdderId().isBlank()) {
+                ItemMeta meta = item.getItemMeta();
+                if (meta != null) {
+                    meta.displayName(Text.mm(reward.display()));
+                    if (!reward.lore().isEmpty()) meta.lore(reward.lore().stream().map(Text::mm).toList());
+                    item.setItemMeta(meta);
+                }
             }
             give(player, item);
         }
@@ -523,10 +612,24 @@ public final class CrateService implements Listener {
 
     private void announce(Player player, CrateDefinition crate, CrateReward reward) {
         if (isBroadcastTier(reward.tier())) {
-            Bukkit.getOnlinePlayers().forEach(target -> Text.raw(target, crate.displayName() + " <gray>|</gray> <white>" + player.getName() + "</white> <gray>won</gray> " + reward.display() + " <gray>(" + reward.tier() + ")</gray>"));
+            String message = configs.get(CONFIG_PATH).getString("settings.broadcast-message",
+                    "<dark_gray>[</dark_gray>{crate}<dark_gray>]</dark_gray> <gradient:#f4cd2a:#ffffff>{player}</gradient> <gray>opened destiny and found</gray> {reward} <dark_gray>(</dark_gray>{tier}<dark_gray>)</dark_gray>");
+            Bukkit.getOnlinePlayers().forEach(target -> Text.raw(target, placeholders(message, player, crate, reward)));
         } else {
             Text.send(player, "<gray>You won</gray> " + reward.display() + " <gray>from " + crate.displayName() + "<gray>.</gray>");
         }
+    }
+
+    private String placeholders(String message, Player player, CrateDefinition crate, CrateReward reward) {
+        return (message == null ? "" : message)
+                .replace("{crate}", crate.displayName())
+                .replace("%crate%", crate.displayName())
+                .replace("{player}", player.getName())
+                .replace("%player%", player.getName())
+                .replace("{reward}", reward.display())
+                .replace("%reward%", reward.display())
+                .replace("{tier}", tierDisplay(reward.tier()))
+                .replace("%tier%", tierDisplay(reward.tier()));
     }
 
     private boolean isBroadcastTier(String tier) {
@@ -590,10 +693,10 @@ public final class CrateService implements Listener {
         ItemStack item = itemsAdder.item(crate.keyItem(), Material.TRIPWIRE_HOOK).clone();
         item.setAmount(Math.max(1, amount));
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Text.mm("<gradient:#f4cd2a:#7c3aed><bold>Prophecy Key</bold></gradient>"));
-        meta.lore(List.of(
-                Text.mm("<gray>Unlocks " + crate.displayName() + "<gray>.</gray>"),
-                Text.mm("<dark_gray>Right-click a prophecy crate to open.</dark_gray>")
+        setFallbackName(meta, "<gradient:#f4cd2a:#7c3aed><bold>Prophecy Key</bold></gradient>");
+        appendLore(meta, List.of(
+                "<gray>Unlocks " + crate.displayName() + "<gray>.</gray>",
+                "<dark_gray>Right-click a prophecy crate to open.</dark_gray>"
         ));
         meta.getPersistentDataContainer().set(keyItemKey, PersistentDataType.STRING, crate.id());
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
@@ -605,37 +708,147 @@ public final class CrateService implements Listener {
         ItemStack item = itemsAdder.item(crate.blockItem(), crate.fallbackBlock()).clone();
         item.setAmount(Math.max(1, amount));
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Text.mm(crate.displayName()));
-        meta.lore(List.of(
-                Text.mm("<gray>Admin crate block.</gray>"),
-                Text.mm("<gray>Block item:</gray> <white>" + crate.blockItem() + "</white>"),
-                Text.mm("<dark_gray>Place it or use /crate place " + crate.id() + ".</dark_gray>")
+        setFallbackName(meta, crate.displayName());
+        appendLore(meta, List.of(
+                "<gray>Admin crate block.</gray>",
+                "<gray>Block item:</gray> <white>" + crate.blockItem() + "</white>",
+                "<dark_gray>Place it or use /crate place " + crate.id() + ".</dark_gray>"
         ));
         meta.getPersistentDataContainer().set(crateItemKey, PersistentDataType.STRING, crate.id());
         item.setItemMeta(meta);
         return item;
     }
 
+    private ItemStack selectionIcon(CrateDefinition crate) {
+        ItemStack item = itemsAdder.item(crate.blockItem(), crate.fallbackBlock()).clone();
+        item.setAmount(1);
+        ItemMeta meta = item.getItemMeta();
+        setFallbackName(meta, crate.displayName());
+        List<String> lore = new ArrayList<>(crate.description());
+        lore.add("");
+        lore.add("<gray>Rewards:</gray> <white>" + crate.rewards().size() + "</white>");
+        lore.add("<#f4cd2a>Click</#f4cd2a> <gray>to preview this crate.</gray>");
+        appendLore(meta, lore);
+        meta.getPersistentDataContainer().set(selectionCrateKey, PersistentDataType.STRING, crate.id());
+        meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
+        item.setItemMeta(meta);
+        return item;
+    }
+
     private ItemStack rewardIcon(CrateReward reward) {
         Material material = reward.material() == Material.AIR ? Material.PAPER : reward.material();
-        ItemStack item = reward.itemsAdderId().isBlank() ? new ItemStack(material, Math.max(1, reward.amount())) : itemsAdder.item(reward.itemsAdderId(), material);
+        boolean itemsAdderReward = !reward.itemsAdderId().isBlank();
+        ItemStack item = itemsAdderReward ? itemsAdder.item(reward.itemsAdderId(), material).clone() : new ItemStack(material, Math.max(1, reward.amount()));
         item.setAmount(Math.max(1, reward.amount()));
         ItemMeta meta = item.getItemMeta();
-        meta.displayName(Text.mm(reward.display()));
+        if (!itemsAdderReward) meta.displayName(Text.mm(reward.display()));
+        else setFallbackName(meta, reward.display());
         List<String> lore = new ArrayList<>();
-        lore.add("<gray>Tier:</gray> " + tierColor(reward.tier()) + reward.tier());
+        lore.add("<gray>Tier:</gray> " + tierColor(reward.tier()) + tierDisplay(reward.tier()));
         lore.add("<gray>Chance:</gray> <white>" + formatChance(reward.chance()) + "%</white>");
+        if (!reward.enchantments().isEmpty()) lore.add("<gray>Enchantments:</gray> <white>" + reward.enchantments().size() + "</white>");
         lore.addAll(reward.lore());
-        meta.lore(lore.stream().map(Text::mm).toList());
+        if (itemsAdderReward) appendLore(meta, lore);
+        else meta.lore(lore.stream().map(Text::mm).toList());
         meta.getPersistentDataContainer().set(previewRewardKey, PersistentDataType.STRING, reward.id());
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         item.setItemMeta(meta);
         return item;
     }
 
+    private void setFallbackName(ItemMeta meta, String fallback) {
+        if (meta == null || meta.hasDisplayName()) return;
+        meta.displayName(Text.mm(fallback));
+    }
+
+    private void appendLore(ItemMeta meta, List<String> lines) {
+        if (meta == null || lines == null || lines.isEmpty()) return;
+        List<Component> lore = meta.hasLore() && meta.lore() != null ? new ArrayList<>(meta.lore()) : new ArrayList<>();
+        if (!lore.isEmpty()) lore.add(Component.empty());
+        lore.addAll(lines.stream().filter(line -> line != null && !line.isBlank()).map(Text::mm).toList());
+        meta.lore(lore);
+    }
+
     private ItemStack tierItem(Material material, String name, CrateDefinition crate, String tier) {
         double total = crate.rewards().stream().filter(reward -> reward.tier().equalsIgnoreCase(tier)).mapToDouble(CrateReward::chance).sum();
         return actionItem(material, name, List.of("<gray>Total chance:</gray> <white>" + formatChance(total) + "%</white>"));
+    }
+
+    private Component inventoryTitle(CrateDefinition crate, String key, String fallback) {
+        YamlConfiguration config = configs.get(CONFIG_PATH);
+        String raw = config.getString("crates." + crate.id() + ".gui." + key, config.getString("settings.gui." + key, fallback));
+        return renderInventoryTitle(raw, fallback);
+    }
+
+    private Component inventoryTitle(String key, String fallback) {
+        YamlConfiguration config = configs.get(CONFIG_PATH);
+        String raw = config.getString("settings.gui." + key, fallback);
+        return renderInventoryTitle(raw, fallback);
+    }
+
+    private Component renderInventoryTitle(String raw, String fallback) {
+        raw = replaceGuiSymbols(raw == null || raw.isBlank() ? fallback : raw);
+        Component title = raw.contains("<") && raw.contains(">") ? Text.mm(raw) : LEGACY_AMPERSAND.deserialize(raw);
+        return applyItemsAdderFontImages(title);
+    }
+
+    private String replaceGuiSymbols(String input) {
+        String output = applyItemsAdderFontImages(input);
+        ConfigurationSection crateSymbols = configs.get(CONFIG_PATH).getConfigurationSection("settings.gui.itemsadder-font-symbols");
+        if (crateSymbols != null) {
+            for (String key : crateSymbols.getKeys(false)) {
+                output = output.replace(":" + key + ":", decodeUnicodeEscapes(crateSymbols.getString(key, "")));
+            }
+        }
+        ConfigurationSection symbols = configs.get("menus/sapphires.yml").getConfigurationSection("menus.itemsadder-font-symbols");
+        if (symbols != null) {
+            for (String key : symbols.getKeys(false)) {
+                output = output.replace(":" + key + ":", decodeUnicodeEscapes(symbols.getString(key, "")));
+            }
+        }
+        return decodeUnicodeEscapes(output);
+    }
+
+    private String applyItemsAdderFontImages(String input) {
+        if (input == null || input.isBlank() || !Bukkit.getPluginManager().isPluginEnabled("ItemsAdder")) return input;
+        try {
+            Class<?> wrapper = Class.forName("dev.lone.itemsadder.api.FontImages.FontImageWrapper");
+            Method replace = wrapper.getMethod("replaceFontImages", String.class);
+            Object result = replace.invoke(null, input);
+            return result instanceof String text ? text : input;
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return input;
+        }
+    }
+
+    private Component applyItemsAdderFontImages(Component input) {
+        if (input == null || !Bukkit.getPluginManager().isPluginEnabled("ItemsAdder")) return input;
+        try {
+            Class<?> wrapper = Class.forName("dev.lone.itemsadder.api.FontImages.FontImageWrapper");
+            Method replace = wrapper.getMethod("replaceFontImages", Component.class);
+            Object result = replace.invoke(null, input);
+            return result instanceof Component component ? component : input;
+        } catch (ReflectiveOperationException | RuntimeException ignored) {
+            return input;
+        }
+    }
+
+    private String decodeUnicodeEscapes(String input) {
+        StringBuilder output = new StringBuilder(input.length());
+        for (int i = 0; i < input.length(); i++) {
+            char current = input.charAt(i);
+            if (current == '\\' && i + 5 < input.length() && input.charAt(i + 1) == 'u') {
+                String hex = input.substring(i + 2, i + 6);
+                try {
+                    output.append((char) Integer.parseInt(hex, 16));
+                    i += 5;
+                    continue;
+                } catch (NumberFormatException ignored) {
+                }
+            }
+            output.append(current);
+        }
+        return output.toString();
     }
 
     private ItemStack actionItem(Material material, String name, List<String> lore) {
@@ -841,6 +1054,7 @@ public final class CrateService implements Listener {
                         config.getString(rewardPath + ".itemsadder", ""),
                         config.getBoolean(rewardPath + ".give-item", true),
                         config.getStringList(rewardPath + ".commands"),
+                        enchantments(config.getConfigurationSection(rewardPath + ".enchantments")),
                         config.getStringList(rewardPath + ".lore")
                 ));
             }
@@ -859,6 +1073,33 @@ public final class CrateService implements Listener {
                 config.getStringList(path + ".hologram"),
                 rewards
         );
+    }
+
+    private void applyEnchantments(ItemStack item, Map<String, Integer> enchantments) {
+        if (item == null || enchantments == null || enchantments.isEmpty()) return;
+        for (Map.Entry<String, Integer> entry : enchantments.entrySet()) {
+            Enchantment enchantment = enchantment(entry.getKey());
+            if (enchantment == null) {
+                plugin.getLogger().warning("Unknown crate enchantment: " + entry.getKey());
+                continue;
+            }
+            item.addUnsafeEnchantment(enchantment, Math.max(1, entry.getValue()));
+        }
+    }
+
+    private Map<String, Integer> enchantments(ConfigurationSection section) {
+        if (section == null) return Map.of();
+        Map<String, Integer> out = new HashMap<>();
+        for (String key : section.getKeys(false)) {
+            out.put(key.toLowerCase(Locale.ROOT), Math.max(1, section.getInt(key, 1)));
+        }
+        return out;
+    }
+
+    private Enchantment enchantment(String raw) {
+        if (raw == null || raw.isBlank()) return null;
+        String key = raw.toLowerCase(Locale.ROOT).replace("minecraft:", "").replace('-', '_');
+        return Registry.ENCHANTMENT.get(NamespacedKey.minecraft(key));
     }
 
     private List<PlacedCrate> placedCrates() {
@@ -1011,6 +1252,76 @@ public final class CrateService implements Listener {
         return true;
     }
 
+    private void circulationCommand(CommandSender sender) {
+        if (!sender.hasPermission("3smpcore.crates.admin")) {
+            Text.send(sender, "<red>No permission.</red>");
+            return;
+        }
+        Map<String, Integer> counts = new HashMap<>();
+        for (Player player : Bukkit.getOnlinePlayers()) {
+            scanInventory(player.getInventory(), counts);
+            scanInventory(player.getEnderChest(), counts);
+        }
+        for (World world : Bukkit.getWorlds()) {
+            for (org.bukkit.Chunk chunk : world.getLoadedChunks()) {
+                for (org.bukkit.block.BlockState state : chunk.getTileEntities()) {
+                    if (state instanceof Container container) scanInventory(container.getInventory(), counts);
+                }
+            }
+        }
+        if (counts.isEmpty()) {
+            Text.send(sender, "<yellow>No crate items were found in online inventories, ender chests, or loaded containers.</yellow>");
+            return;
+        }
+        Text.send(sender, "<gradient:#f4cd2a:#7c3aed>Crate circulation</gradient> <gray>(loaded server state)</gray>");
+        counts.entrySet().stream()
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed().thenComparing(Map.Entry.comparingByKey()))
+                .limit(25)
+                .forEach(entry -> Text.send(sender, "<gray>" + entry.getKey() + ":</gray> <white>" + entry.getValue() + "</white>"));
+    }
+
+    private void scanInventory(Inventory inventory, Map<String, Integer> counts) {
+        if (inventory == null) return;
+        for (ItemStack item : inventory.getContents()) {
+            String id = crateItemLabel(item);
+            if (id.isBlank()) continue;
+            counts.merge(id, item.getAmount(), Integer::sum);
+        }
+    }
+
+    private String crateItemLabel(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR || !item.hasItemMeta()) return "";
+        ItemMeta meta = item.getItemMeta();
+        PersistentDataContainer data = meta.getPersistentDataContainer();
+        String key = data.get(keyItemKey, PersistentDataType.STRING);
+        if (key != null && !key.isBlank()) return labelForCrate(key) + " Key";
+        String crate = data.get(crateItemKey, PersistentDataType.STRING);
+        if (crate != null && !crate.isBlank()) return labelForCrate(crate) + " Crate Block";
+        String itemsAdderId = itemsAdderId(item);
+        if (!itemsAdderId.isBlank()) {
+            for (CrateDefinition definition : crates.values()) {
+                if (matchesId(definition.keyItem(), itemsAdderId)) return plain(definition.displayName()) + " Key";
+                if (matchesId(definition.blockItem(), itemsAdderId)) return plain(definition.displayName()) + " Crate Block";
+                for (CrateReward reward : definition.rewards()) {
+                    if (!reward.itemsAdderId().isBlank() && matchesId(reward.itemsAdderId(), itemsAdderId)) return plain(reward.display());
+                }
+            }
+        }
+        for (CrateDefinition definition : crates.values()) {
+            for (CrateReward reward : definition.rewards()) {
+                if (reward.itemsAdderId().isBlank() && reward.material() == item.getType() && meta.hasDisplayName() && plain(reward.display()).equalsIgnoreCase(PlainTextComponentSerializer.plainText().serialize(meta.displayName()))) {
+                    return plain(reward.display());
+                }
+            }
+        }
+        return "";
+    }
+
+    private String labelForCrate(String crateId) {
+        CrateDefinition crate = crates.get(crateId.toLowerCase(Locale.ROOT));
+        return crate == null ? tierDisplay(crateId) : plain(crate.displayName());
+    }
+
     private String tierColor(String tier) {
         return switch (tier.toLowerCase(Locale.ROOT)) {
             case "legendary" -> "<#facc15>";
@@ -1018,6 +1329,18 @@ public final class CrateService implements Listener {
             case "rare" -> "<#c084fc>";
             default -> "<#d1d5db>";
         };
+    }
+
+    private String tierDisplay(String tier) {
+        if (tier == null || tier.isBlank()) return "Common";
+        String normalized = tier.toLowerCase(Locale.ROOT).replace('-', ' ').replace('_', ' ');
+        StringBuilder out = new StringBuilder();
+        for (String part : normalized.split(" ")) {
+            if (part.isBlank()) continue;
+            if (!out.isEmpty()) out.append(' ');
+            out.append(Character.toUpperCase(part.charAt(0))).append(part.substring(1));
+        }
+        return out.isEmpty() ? "Common" : out.toString();
     }
 
     private String formatChance(double chance) {
@@ -1035,7 +1358,16 @@ public final class CrateService implements Listener {
     }
 
     private static final class OpeningState {
+        private final CrateDefinition crate;
+        private final CrateReward reward;
+        private final Inventory inventory;
         private BukkitTask task;
         private boolean finished;
+
+        private OpeningState(CrateDefinition crate, CrateReward reward, Inventory inventory) {
+            this.crate = crate;
+            this.reward = reward;
+            this.inventory = inventory;
+        }
     }
 }
