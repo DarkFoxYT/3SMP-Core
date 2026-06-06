@@ -1,5 +1,9 @@
 package net.dark.threecore.items;
 
+import io.lumine.mythic.api.mobs.MythicMob;
+import io.lumine.mythic.api.mobs.entities.SpawnReason;
+import io.lumine.mythic.bukkit.BukkitAdapter;
+import io.lumine.mythic.bukkit.MythicBukkit;
 import net.dark.threecore.command.base.CommandContext;
 import net.dark.threecore.text.Text;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
@@ -22,6 +26,7 @@ import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.block.Action;
 import org.bukkit.event.entity.EntityDamageByEntityEvent;
+import org.bukkit.event.player.PlayerAnimationEvent;
 import org.bukkit.event.player.PlayerInteractEvent;
 import org.bukkit.inventory.EquipmentSlot;
 import org.bukkit.inventory.ItemFlag;
@@ -31,11 +36,14 @@ import org.bukkit.persistence.PersistentDataType;
 import org.bukkit.plugin.java.JavaPlugin;
 import org.bukkit.potion.PotionEffect;
 import org.bukkit.potion.PotionEffectType;
+import org.bukkit.scoreboard.Team;
 import org.bukkit.scheduler.BukkitRunnable;
+import org.bukkit.util.Vector;
 
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ThreadLocalRandom;
@@ -43,8 +51,14 @@ import java.util.concurrent.ThreadLocalRandom;
 public final class VeilcutterService implements Listener {
     private static final String ITEM_ID = "veilcutter";
     private static final String ITEM_NAMESPACED_ID = "threesmp:veilcutter";
+    private static final String SLASH_MOB_ID = "VeilCutterSlash";
+    private static final String SLASH_GLOW_TEAM = "veil_slash_red";
+    private static final int VEILCUTTER_CUSTOM_MODEL_DATA = 10000;
+    private static final double SLASH_SIDE_VARIANCE = 0.32D;
     private static final long EDGE_COOLDOWN_MILLIS = 30_000L;
     private static final long VEIL_COOLDOWN_MILLIS = 60_000L;
+    private static final long SLASH_DEDUPE_MILLIS = 175L;
+    private static final long BLOCK_HIT_SUPPRESS_MILLIS = 140L;
     private static final int VEIL_DURATION_TICKS = 7 * 20;
     private static final double EDGE_CHANCE = 0.05D;
     private static final Color SAPPHIRE = Color.fromRGB(45, 165, 255);
@@ -53,6 +67,8 @@ public final class VeilcutterService implements Listener {
     private final NamespacedKey itemKey;
     private final Map<UUID, Long> edgeCooldowns = new ConcurrentHashMap<>();
     private final Map<UUID, Long> veilCooldowns = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> slashAttempts = new ConcurrentHashMap<>();
+    private final Map<UUID, Long> blockHitSuppressions = new ConcurrentHashMap<>();
 
     public VeilcutterService(JavaPlugin plugin) {
         this.plugin = plugin;
@@ -103,6 +119,7 @@ public final class VeilcutterService implements Listener {
         ItemStack weapon = player.getInventory().getItemInMainHand();
         if (!isVeilcutter(weapon)) return;
         enchantVeilcutter(weapon);
+        spawnSlashAtTarget(player, target);
 
         long now = System.currentTimeMillis();
         if (edgeCooldowns.getOrDefault(player.getUniqueId(), 0L) > now) return;
@@ -115,9 +132,45 @@ public final class VeilcutterService implements Listener {
         Text.actionBar(player, "<gradient:#38bdf8:#2563eb>Prophecy's Edge</gradient> <gray>cut through the veil.</gray>");
     }
 
+    @EventHandler(priority = EventPriority.MONITOR, ignoreCancelled = true)
+    public void onSwing(PlayerAnimationEvent event) {
+        Player player = event.getPlayer();
+        if (!isVeilcutter(player.getInventory().getItemInMainHand())) return;
+        if (blockHitSuppressed(player)) return;
+        scheduleAirSlash(player);
+    }
+
+    private void scheduleAirSlash(Player player) {
+        Bukkit.getScheduler().runTask(plugin, () -> {
+            if (!player.isOnline()) return;
+            if (!isVeilcutter(player.getInventory().getItemInMainHand())) return;
+            if (blockHitSuppressed(player)) return;
+            if (slashRecently(player)) return;
+            markSlash(player);
+
+            Location spawnLocation = player.getEyeLocation();
+            Vector direction = spawnLocation.getDirection().normalize();
+            spawnLocation.add(direction.multiply(2.4D));
+            spawnLocation.setY(spawnLocation.getY() - 0.35D);
+            spawnSlash(player, spawnLocation);
+        });
+    }
+
     @EventHandler(priority = EventPriority.HIGH)
     public void onRightClick(PlayerInteractEvent event) {
         Action action = event.getAction();
+        if (action == Action.LEFT_CLICK_BLOCK) {
+            if (event.getHand() == EquipmentSlot.OFF_HAND) return;
+            if (!isVeilcutter(event.getPlayer().getInventory().getItemInMainHand())) return;
+            suppressBlockHitSlash(event.getPlayer());
+            return;
+        }
+        if (action == Action.LEFT_CLICK_AIR) {
+            if (event.getHand() == EquipmentSlot.OFF_HAND) return;
+            if (!isVeilcutter(event.getPlayer().getInventory().getItemInMainHand())) return;
+            scheduleAirSlash(event.getPlayer());
+            return;
+        }
         if (action != Action.RIGHT_CLICK_AIR && action != Action.RIGHT_CLICK_BLOCK) return;
         EquipmentSlot hand = event.getHand();
         if (hand == null) return;
@@ -186,6 +239,140 @@ public final class VeilcutterService implements Listener {
         if (tick % 8 == 0) {
             world.spawnParticle(Particle.DUST, base.clone().add(0.0D, 1.0D, 0.0D), 10, 0.32D, 0.55D, 0.32D, 0.0D, new Particle.DustOptions(SAPPHIRE, 0.85F));
         }
+    }
+
+    private void spawnSlashAtTarget(Player attacker, LivingEntity target) {
+        if (slashRecently(attacker)) return;
+        markSlash(attacker);
+        Location spawnLocation = target.getLocation().add(0.0D, Math.max(0.8D, target.getHeight() * 0.55D), 0.0D);
+        spawnSlash(attacker, spawnLocation);
+    }
+
+    private boolean slashRecently(Player player) {
+        Long last = slashAttempts.get(player.getUniqueId());
+        return last != null && System.currentTimeMillis() - last < SLASH_DEDUPE_MILLIS;
+    }
+
+    private void markSlash(Player player) {
+        slashAttempts.put(player.getUniqueId(), System.currentTimeMillis());
+    }
+
+    private void spawnSlash(Player attacker, Location location) {
+        if (Bukkit.getPluginManager().getPlugin("MythicMobs") == null) return;
+        try {
+            Optional<MythicMob> mob = MythicBukkit.inst().getMobManager().getMythicMob(SLASH_MOB_ID);
+            if (mob.isEmpty()) {
+                plugin.getLogger().warning("Unable to spawn VeilCutterSlash: MythicMob '" + SLASH_MOB_ID + "' is not loaded.");
+                fallbackSlash(attacker, location);
+                return;
+            }
+
+            Location spawnLocation = variedSlashLocation(attacker, location);
+            float yaw = slashYaw(attacker);
+            spawnLocation.setYaw(yaw);
+            spawnLocation.setPitch(0.0F);
+            mob.get().spawn(BukkitAdapter.adapt(spawnLocation), 1.0D, SpawnReason.OTHER, spawned -> {
+                org.bukkit.entity.Entity entity = spawned;
+                if (entity == null) return;
+                entity.teleport(spawnLocation);
+                entity.setRotation(yaw, 0.0F);
+                applyRedGlow(entity);
+                entity.setVelocity(new Vector(0.0D, 0.0D, 0.0D));
+                stabilizeSlashEntity(entity, yaw);
+                playSlashSound(spawnLocation);
+            });
+        } catch (Throwable throwable) {
+            plugin.getLogger().warning("Unable to spawn VeilCutterSlash: " + throwable.getMessage());
+            fallbackSlash(attacker, location);
+        }
+    }
+
+    private Location variedSlashLocation(Player attacker, Location location) {
+        Location varied = location.clone();
+        Vector direction = attacker.getEyeLocation().getDirection().setY(0.0D);
+        if (direction.lengthSquared() < 0.0001D) return varied;
+        direction.normalize();
+        Vector side = new Vector(-direction.getZ(), 0.0D, direction.getX());
+        varied.add(side.multiply(ThreadLocalRandom.current().nextDouble(-SLASH_SIDE_VARIANCE, SLASH_SIDE_VARIANCE)));
+        return varied;
+    }
+
+    private float slashYaw(Player attacker) {
+        return attacker.getEyeLocation().getYaw();
+    }
+
+    private void stabilizeSlashEntity(org.bukkit.entity.Entity entity, float yaw) {
+        UUID uuid = entity.getUniqueId();
+        new BukkitRunnable() {
+            private int ticks;
+
+            @Override
+            public void run() {
+                org.bukkit.entity.Entity current = Bukkit.getEntity(uuid);
+                if (current == null || current.isDead()) {
+                    cancel();
+                    return;
+                }
+                if (ticks++ >= 9) {
+                    clearRedGlow(current);
+                    current.remove();
+                    cancel();
+                    return;
+                }
+                Location location = current.getLocation();
+                location.setYaw(yaw);
+                location.setPitch(0.0F);
+                current.teleport(location);
+                current.setRotation(yaw, 0.0F);
+                applyRedGlow(current);
+                current.setVelocity(new Vector(0.0D, 0.0D, 0.0D));
+            }
+        }.runTaskTimer(plugin, 0L, 1L);
+    }
+
+    private void applyRedGlow(org.bukkit.entity.Entity entity) {
+        entity.setGlowing(true);
+        Team team = Bukkit.getScoreboardManager().getMainScoreboard().getTeam(SLASH_GLOW_TEAM);
+        if (team == null) {
+            team = Bukkit.getScoreboardManager().getMainScoreboard().registerNewTeam(SLASH_GLOW_TEAM);
+            team.setColor(org.bukkit.ChatColor.RED);
+        }
+        team.addEntry(entity.getUniqueId().toString());
+    }
+
+    private void clearRedGlow(org.bukkit.entity.Entity entity) {
+        Team team = Bukkit.getScoreboardManager().getMainScoreboard().getTeam(SLASH_GLOW_TEAM);
+        if (team != null) team.removeEntry(entity.getUniqueId().toString());
+        entity.setGlowing(false);
+    }
+
+    private void fallbackSlash(Player attacker, Location location) {
+        World world = location.getWorld();
+        if (world == null) return;
+        Location center = variedSlashLocation(attacker, location);
+        center.setYaw(slashYaw(attacker));
+        Particle.DustOptions brightRed = new Particle.DustOptions(Color.fromRGB(255, 0, 60), 1.35F);
+        Particle.DustOptions darkRed = new Particle.DustOptions(Color.fromRGB(122, 0, 29), 1.8F);
+        world.spawnParticle(Particle.DUST, center, 24, 0.58D, 0.22D, 0.58D, 0.0D, brightRed);
+        world.spawnParticle(Particle.DUST, center, 10, 0.35D, 0.12D, 0.35D, 0.0D, darkRed);
+        playSlashSound(center);
+    }
+
+    private void playSlashSound(Location location) {
+        World world = location.getWorld();
+        if (world == null) return;
+        world.playSound(location, Sound.ENTITY_PLAYER_ATTACK_SWEEP, 1.1F, 1.65F);
+        world.playSound(location, Sound.ENTITY_WITHER_SHOOT, 0.32F, 1.85F);
+        world.playSound(location, Sound.BLOCK_RESPAWN_ANCHOR_CHARGE, 0.42F, 1.9F);
+        world.playSound(location, Sound.ENTITY_GLOW_SQUID_AMBIENT, 0.28F, 1.75F);
+    }
+
+    private void suppressBlockHitSlash(Player player) {
+        blockHitSuppressions.put(player.getUniqueId(), System.currentTimeMillis() + BLOCK_HIT_SUPPRESS_MILLIS);
+    }
+
+    private boolean blockHitSuppressed(Player player) {
+        return blockHitSuppressions.getOrDefault(player.getUniqueId(), 0L) > System.currentTimeMillis();
     }
 
     public void give(Player player) {
@@ -258,6 +445,10 @@ public final class VeilcutterService implements Listener {
         if (meta.getPersistentDataContainer().has(itemKey, PersistentDataType.BYTE)) return true;
         String itemsAdderId = itemsAdderId(item);
         if (ITEM_NAMESPACED_ID.equalsIgnoreCase(itemsAdderId) || ITEM_ID.equalsIgnoreCase(itemsAdderId)) return true;
+        if (item.getType() == Material.NETHERITE_SWORD && meta.hasCustomModelData()
+                && meta.getCustomModelData() == VEILCUTTER_CUSTOM_MODEL_DATA) {
+            return true;
+        }
         if (!item.getType().name().endsWith("_SWORD")) return false;
         if (!meta.hasDisplayName()) return false;
         String name = PlainTextComponentSerializer.plainText().serialize(meta.displayName()).toLowerCase(Locale.ROOT);

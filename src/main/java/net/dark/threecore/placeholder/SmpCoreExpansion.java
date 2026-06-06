@@ -66,11 +66,9 @@ public class SmpCoreExpansion extends PlaceholderExpansion {
         if (player == null) return "";
         var data = perkService.data(player.getUniqueId());
         return switch (params.toLowerCase(java.util.Locale.ROOT)) {
-            case "tag" -> data.activeTag();
-            case "tag_id" -> data.activeTag();
-            case "has_tag" -> String.valueOf(!data.activeTag().isBlank());
-            case "tag_priority" -> String.valueOf(priority(data.activeTag()));
-            case "available_tags" -> String.valueOf(data.unlockedPerks().size());
+            case "tag", "tag_id" -> "";
+            case "has_tag" -> "false";
+            case "tag_priority", "available_tags" -> "0";
             case "spawn_set" -> String.valueOf(spawnService.getSpawnLocation() != null);
             case "spawn_world" -> spawnService.getSpawnLocation() != null && spawnService.getSpawnLocation().getWorld() != null ? spawnService.getSpawnLocation().getWorld().getName() : "";
             case "spawn_x" -> spawnService.getSpawnLocation() != null ? String.valueOf(spawnService.getSpawnLocation().getX()) : "0";

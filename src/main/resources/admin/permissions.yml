@@ -70,8 +70,6 @@ groups:
   utility:
     - "3smpcore.essentials"
     - "3smpcore.back.use"
-    - "3smpcore.backpack.use"
-    - "3smpcore.backpack.limit.1"
     - "3smpcore.home.use"
     - "3smpcore.home.set"
     - "3smpcore.home.delete"
@@ -96,7 +94,7 @@ utility:
     size: 54
     title: "Backpack {index}"
     all-worlds: true
-    default-limit: 1
+    default-limit: 0
     unlimited-max-openable: 54
     deny-world-message: "<red>Backpacks are not available in this world.</red>"
 
@@ -367,7 +365,11 @@ rank-presets:
       - "essentials.back"
       - "3smpcore.chat.color.3"
       - "3smpcore.chat.color.mvp"
+      - "3smpcore.chat.hex"
+      - "3smpcore.chat.gradient"
+      - "3smpcore.visual.*"
       - "3smpcore.queue.priority.pro"
+      - "3smpcore.backpack.use"
       - "3smpcore.backpack.limit.1"
       - "3smpcore.perks.use"
       - "3smpcore.sapphires.use"
@@ -396,7 +398,11 @@ rank-presets:
       - "essentials.grindstone"
       - "3smpcore.chat.color.3"
       - "3smpcore.chat.color.mvp"
+      - "3smpcore.chat.hex"
+      - "3smpcore.chat.gradient"
+      - "3smpcore.visual.*"
       - "3smpcore.queue.priority.mvp"
+      - "3smpcore.backpack.use"
       - "3smpcore.backpack.limit.2"
       - "3smpcore.perks.use"
       - "3smpcore.sapphires.use"
@@ -428,7 +434,11 @@ rank-presets:
       - "3smpcore.chat.color.3"
       - "3smpcore.chat.color.mvp"
       - "3smpcore.chat.color.ultra"
+      - "3smpcore.chat.hex"
+      - "3smpcore.chat.gradient"
+      - "3smpcore.visual.*"
       - "3smpcore.queue.priority.ultra"
+      - "3smpcore.backpack.use"
       - "3smpcore.backpack.limit.3"
       - "3smpcore.perks.use"
       - "3smpcore.sapphires.use"
@@ -438,6 +448,36 @@ rank-presets:
     commands:
       - "lp group {group} meta setsuffix 40 \"<gradient:#f4cd2a:#eda323:#d28d0d>ULTRA</gradient>\""
       - "lp group {group} meta sethomes 30"
+  patron:
+    luckperms-group: "patron"
+    permissions:
+      - "3smpcore.chat.hex"
+      - "3smpcore.chat.gradient"
+      - "3smpcore.visual.*"
+      - "3smpcore.backpack.use"
+      - "3smpcore.backpack.limit.10"
+      - "3smpcore.perks.use"
+      - "3smpcore.sapphires.use"
+      - "3smpcore.gems.use"
+      - "3smpcore.souls.use"
+      - "3smpcore.daily.use"
+    commands:
+      - "lp group {group} meta setsuffix 35 \"<gradient:#f4cd2a:#eda323:#d28d0d>Patron</gradient>\""
+  h318:
+    luckperms-group: "h318"
+    permissions:
+      - "3smpcore.chat.hex"
+      - "3smpcore.chat.gradient"
+      - "3smpcore.visual.*"
+      - "3smpcore.backpack.use"
+      - "3smpcore.backpack.limit.unlimited"
+      - "3smpcore.perks.use"
+      - "3smpcore.sapphires.use"
+      - "3smpcore.gems.use"
+      - "3smpcore.souls.use"
+      - "3smpcore.daily.use"
+    commands:
+      - "lp group {group} meta setsuffix 45 \"<gradient:#60a5fa:#c084fc>H318</gradient>\""
 
 rank-packages:
   subscriptions:
@@ -519,6 +559,16 @@ rank-packages:
         - "lp user {player} permission set 3smpcore.command.fly true"
         - "lp user {player} meta set player-shops unlimited"
         - "lp user {player} permission set 3smpcore.backpack.limit.3 true"
+    patron:
+      luckperms-group: "patron"
+      commands:
+        - "lp user {player} parent set {group}"
+        - "lp user {player} permission set 3smpcore.backpack.limit.10 true"
+    h318:
+      luckperms-group: "h318"
+      commands:
+        - "lp user {player} parent set {group}"
+        - "lp user {player} permission set 3smpcore.backpack.limit.unlimited true"
 
 notes:
   - "LuckPerms prefixes are always the main chat prefix source."

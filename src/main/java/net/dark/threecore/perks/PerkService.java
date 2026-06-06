@@ -78,7 +78,7 @@ public final class PerkService implements Listener {
             case "settag", "setbadge", "settrim", "setmessagecolor", "setparticle", "setcosmetic", "setjoinquit" -> { if (!sender.hasPermission("3smpcore.perks.admin")) { net.dark.threecore.text.Text.send(sender, "<red>No permission.</red>"); return; } if (args.length < 3) { net.dark.threecore.text.Text.send(sender, "<red>Usage: /perks " + sub + " <player> <perkId></red>"); return; } OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]); setActive(target.getUniqueId(), sub.substring(3), args[2]); net.dark.threecore.text.Text.send(sender, "<green>Selection updated for " + target.getName() + ".</green>"); }
             case "clearparticle" -> { if (!sender.hasPermission("3smpcore.perks.admin")) { net.dark.threecore.text.Text.send(sender, "<red>No permission.</red>"); return; } if (args.length < 2) { net.dark.threecore.text.Text.send(sender, "<red>Usage: /perks clearparticle <player></red>"); return; } OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]); data(target.getUniqueId()).activeParticle(""); save(target.getUniqueId()); if (particleManager != null && target.isOnline()) particleManager.set(target.getUniqueId(), ""); net.dark.threecore.text.Text.send(sender, "<green>Particle cosmetic cleared for " + target.getName() + ".</green>"); }
             case "list" -> { if (!sender.hasPermission("3smpcore.perks.admin")) { net.dark.threecore.text.Text.send(sender, "<red>No permission.</red>"); return; } if (args.length < 2) { net.dark.threecore.text.Text.send(sender, "<red>Usage: /perks list <player></red>"); return; } OfflinePlayer target = Bukkit.getOfflinePlayer(args[1]); net.dark.threecore.text.Text.send(sender, "<gray>Unlocked perks for " + target.getName() + ": " + String.join(", ", data(target.getUniqueId()).unlockedPerks()) + "</gray>"); }
-            default -> { if (sender instanceof Player player) openMainMenu(player); else net.dark.threecore.text.Text.send(sender, "<gray>Use /perks reload, /perks unlock, /perks remove, /perks list, /perks settag, /perks settrim, or /perks setmessagecolor.</gray>"); }
+            default -> { if (sender instanceof Player player) openMainMenu(player); else net.dark.threecore.text.Text.send(sender, "<gray>Use /perks reload, /perks unlock, /perks remove, /perks list, /perks settrim, or /perks setmessagecolor.</gray>"); }
         }
     }
 
@@ -111,8 +111,7 @@ public final class PerkService implements Listener {
         inv.setItem(20, icon(org.bukkit.Material.YELLOW_DYE, "<gradient:#f4cd2a:#eda323:#d28d0d>Chat Colors</gradient>", List.of("<gray>Choose how your sent messages look.</gray>")));
         inv.setItem(22, icon(org.bukkit.Material.NETHER_STAR, "<gradient:#f4cd2a:#eda323:#d28d0d>Badges</gradient>", List.of("<gray>Optional cosmetic badges for supported views.</gray>")));
         inv.setItem(24, icon(org.bukkit.Material.WRITABLE_BOOK, "<gradient:#f4cd2a:#eda323:#d28d0d>Join & Quit Messages</gradient>", List.of("<gray>Choose your server join and leave lines.</gray>")));
-        inv.setItem(28, icon(org.bukkit.Material.NAME_TAG, "<gradient:#f4cd2a:#eda323:#d28d0d>Tags</gradient>", List.of("<gray>Choose unlocked profile tags.</gray>")));
-        inv.setItem(30, icon(org.bukkit.Material.SPYGLASS, "<gradient:#f4cd2a:#eda323:#d28d0d>Name Visuals</gradient>", List.of("<gray>Name colors, gradients, and shadows.</gray>")));
+        inv.setItem(28, icon(org.bukkit.Material.SPYGLASS, "<gradient:#f4cd2a:#eda323:#d28d0d>Name Visuals</gradient>", List.of("<gray>Name colors, gradients, and shadows.</gray>")));
         inv.setItem(31, icon(org.bukkit.Material.FIREWORK_ROCKET, "<gradient:#f4cd2a:#eda323:#d28d0d>Particles</gradient>", List.of("<gray>Choose unlocked aura particles.</gray>")));
         inv.setItem(32, icon(org.bukkit.Material.ENCHANTED_BOOK, "<gradient:#f4cd2a:#eda323:#d28d0d>Kill Effects</gradient>", List.of("<gray>Particles and sounds that play when you win a duel.</gray>")));
         inv.setItem(40, icon(org.bukkit.Material.BOOK, "<gradient:#f4cd2a:#eda323:#d28d0d>Summary</gradient>", List.of("<gray>Review active cosmetics.</gray>")));
@@ -124,8 +123,7 @@ public final class PerkService implements Listener {
         else if (slot == 20) menuService.open(player, buildCategoryMenu(player, "colors", "Chat Colors"));
         else if (slot == 22) menuService.open(player, buildCategoryMenu(player, "badges", "Badges"));
         else if (slot == 24) menuService.open(player, buildCategoryMenu(player, "join_quit_messages", "Join & Quit Messages"));
-        else if (slot == 28) menuService.open(player, buildCategoryMenu(player, "tags", "Tags"));
-        else if (slot == 30) player.performCommand("visuals");
+        else if (slot == 28) player.performCommand("visuals");
         else if (slot == 31) menuService.open(player, buildCategoryMenu(player, "particles", "Particles"));
         else if (slot == 32) menuService.open(player, buildCategoryMenu(player, "kill_effects", "Kill Effects"));
     }
@@ -258,7 +256,7 @@ public final class PerkService implements Listener {
 
     public String summary(UUID uuid) {
         PlayerProgressionData data = data(uuid);
-        return "<gray>LuckPerms Prefix: automatic | Tag: " + data.activeTag() + " | Badge: " + data.activeBadge() + " | Trim: " + data.activeTrim() + " | Msg: " + data.activeMessageColor() + "</gray>";
+        return "<gray>LuckPerms Prefix: automatic | Badge: " + data.activeBadge() + " | Trim: " + data.activeTrim() + " | Msg: " + data.activeMessageColor() + "</gray>";
     }
 
     public boolean hasUnlocked(UUID uuid, String perkId) { return data(uuid).unlockedPerks().contains(perkId.toLowerCase(Locale.ROOT)); }
@@ -354,9 +352,26 @@ public final class PerkService implements Listener {
 
     private boolean canUse(Player player, PerkDefinition def) {
         if (hasFullPerkBypass(player)) return true;
-        if (def.permission != null && !def.permission.isBlank() && player.hasPermission(def.permission)) return true;
-        if (def.requiredRank != null && !def.requiredRank.isBlank() && matchesRank(player, def.requiredRank)) return true;
+        if (def.category.equalsIgnoreCase("colors")) {
+            if (def.defaultUnlocked) return true;
+            return hasUnlocked(player.getUniqueId(), def.id) && colorGateSatisfied(player, def);
+        }
+        if (permissionSatisfied(player, def)) return true;
+        if (rankSatisfied(player, def)) return true;
         return def.defaultUnlocked || hasUnlocked(player.getUniqueId(), def.id);
+    }
+
+    private boolean colorGateSatisfied(Player player, PerkDefinition def) {
+        boolean hasGate = (def.permission != null && !def.permission.isBlank()) || (def.requiredRank != null && !def.requiredRank.isBlank());
+        return hasGate && (permissionSatisfied(player, def) || rankSatisfied(player, def));
+    }
+
+    private boolean permissionSatisfied(Player player, PerkDefinition def) {
+        return def.permission != null && !def.permission.isBlank() && player.hasPermission(def.permission);
+    }
+
+    private boolean rankSatisfied(Player player, PerkDefinition def) {
+        return def.requiredRank != null && !def.requiredRank.isBlank() && matchesRank(player, def.requiredRank);
     }
 
     private boolean hasFullPerkBypass(Player player) {
@@ -394,7 +409,6 @@ public final class PerkService implements Listener {
     }
 
     private void loadDefinitions() {
-        loadSection("cosmetics/tags.yml", "tags", org.bukkit.Material.PAPER);
         loadSection("cosmetics/badges.yml", "badges", org.bukkit.Material.NETHER_STAR);
         loadSection("cosmetics/colors.yml", "colors", org.bukkit.Material.BLUE_DYE);
         loadSection("cosmetics/trims.yml", "trims", org.bukkit.Material.AMETHYST_SHARD);
@@ -440,7 +454,32 @@ public final class PerkService implements Listener {
     private boolean matchesRank(Player player, String requiredRank) {
         if (requiredRank == null || requiredRank.isBlank()) return true;
         String currentRank = luckPermsPrimaryGroup(player);
-        return currentRank != null && currentRank.equalsIgnoreCase(requiredRank);
+        if (currentRank == null) return false;
+        if (currentRank.equalsIgnoreCase(requiredRank)) return true;
+        int currentWeight = rankGateWeight(currentRank);
+        int requiredWeight = rankGateWeight(requiredRank);
+        return currentWeight > 0 && requiredWeight > 0 && currentWeight <= requiredWeight;
+    }
+
+    private int rankGateWeight(String rank) {
+        if (rank == null) return -1;
+        return switch (rank.toLowerCase(Locale.ROOT)) {
+            case "owner" -> 1;
+            case "dev" -> 2;
+            case "admin" -> 3;
+            case "sr-admin", "sradmin" -> 4;
+            case "h318", "mod" -> 5;
+            case "sr-mod", "srmod" -> 6;
+            case "jr-mod", "jrmod" -> 7;
+            case "builder" -> 8;
+            case "ultra" -> 10;
+            case "patron" -> 15;
+            case "mvp" -> 20;
+            case "pro" -> 35;
+            case "3", "3smp" -> 40;
+            case "member", "default" -> 100;
+            default -> -1;
+        };
     }
 
     private String luckPermsPrimaryGroup(Player player) {
@@ -484,6 +523,10 @@ public final class PerkService implements Listener {
     private boolean purchaseLockedPerk(Player player, String category, PerkDefinition def, int page) {
         String shopItem = sapphireShopItemFor(category);
         if (shopItem == null) return false;
+        if (category.equalsIgnoreCase("colors") && !colorGateSatisfied(player, def)) {
+            net.dark.threecore.text.Text.send(player, "<red>Chat colors are donor and staff cosmetics.</red>");
+            return true;
+        }
         long price = sapphirePriceFor(category);
         if (price <= 0L) {
             net.dark.threecore.text.Text.send(player, "<yellow>That unlock is coming soon.</yellow>");
@@ -511,7 +554,6 @@ public final class PerkService implements Listener {
         if (category.equalsIgnoreCase("cosmetics")) return "cosmetic";
         if (category.equalsIgnoreCase("weapon_cosmetics")) return "weapon_cosmetic";
         if (category.equalsIgnoreCase("kill_effects")) return "kill_effect";
-        if (category.equalsIgnoreCase("tags")) return "tag";
         if (category.equalsIgnoreCase("particles")) return "particle";
         return null;
     }
@@ -521,7 +563,6 @@ public final class PerkService implements Listener {
             case "colors" -> "messagecolor";
             case "badges" -> "badge";
             case "trims" -> "trim";
-            case "tags" -> "tag";
             case "particles" -> "particle";
             case "join_quit_messages" -> "joinquit";
             case "cosmetics", "weapon_cosmetics", "kill_effects" -> "cosmetic";
@@ -550,7 +591,7 @@ public final class PerkService implements Listener {
     }
 
     private List<PerkDefinition> definitionsFor(String category) {
-        if (category.equalsIgnoreCase("trims") || category.equalsIgnoreCase("ranks")) return List.of();
+        if (category.equalsIgnoreCase("trims") || category.equalsIgnoreCase("ranks") || category.equalsIgnoreCase("tags")) return List.of();
         return definitions.values().stream()
             .filter(def -> def.category.equalsIgnoreCase(category))
             .toList();
@@ -581,7 +622,6 @@ public final class PerkService implements Listener {
             case "weapon_cosmetics" -> "Weapon Cosmetics";
             case "kill_effects" -> "Kill Effects";
             case "trims" -> "Trims";
-            case "tags" -> "Tags";
             case "particles" -> "Particles";
             default -> "Cosmetics";
         };

@@ -1,10 +1,12 @@
 package net.dark.threecore.shop;
 
+import io.papermc.paper.event.player.AsyncChatEvent;
 import net.dark.threecore.config.ConfigFiles;
 import net.dark.threecore.gui.menu.CoreMenuHolder;
 import net.dark.threecore.gui.menu.CoreMenuType;
 import net.dark.threecore.money.MoneyService;
 import net.dark.threecore.text.Text;
+import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import org.bukkit.Bukkit;
 import org.bukkit.Material;
 import org.bukkit.Sound;
@@ -12,9 +14,11 @@ import org.bukkit.command.CommandSender;
 import org.bukkit.configuration.ConfigurationSection;
 import org.bukkit.entity.Player;
 import org.bukkit.event.EventHandler;
+import org.bukkit.event.EventPriority;
 import org.bukkit.event.Listener;
 import org.bukkit.event.inventory.InventoryClickEvent;
 import org.bukkit.event.inventory.ClickType;
+import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.inventory.Inventory;
 import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
@@ -26,6 +30,8 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.UUID;
+import java.util.concurrent.ConcurrentHashMap;
 
 public final class ShopService implements Listener {
     private static final int[] DEFAULT_ITEM_SLOTS = {10,11,12,13,14,15,16,19,20,21,22,23,24,25,28,29,30,31,32,33,34,37,38,39,40,41,42,43};
@@ -34,6 +40,7 @@ public final class ShopService implements Listener {
     private final MoneyService moneyService;
     private List<ShopCategory> cachedCategories = List.of();
     private final Map<String, List<ShopItem>> cachedItems = new LinkedHashMap<>();
+    private final Map<UUID, PendingQuantity> pendingQuantities = new ConcurrentHashMap<>();
 
     public ShopService(JavaPlugin plugin, ConfigFiles configs, MoneyService moneyService) {
         this.plugin = plugin;
@@ -81,12 +88,12 @@ public final class ShopService implements Listener {
         for (int i = 0; i < itemSlots.length && start + i < items.size(); i++) {
             ShopItem item = items.get(start + i);
             inv.setItem(itemSlots[i], button(icon(item), item.name(), List.of(
-                    "<gray>Buy:</gray> <gradient:#f4cd2a:#eda323:#d28d0d>" + moneyService.format(item.buyPrice()) + "</gradient>",
+                    item.buyPrice() > 0.0D ? "<gray>Buy:</gray> <gradient:#f4cd2a:#eda323:#d28d0d>" + moneyService.format(item.buyPrice()) + "</gradient>" : "<gray>Buy:</gray> <red>Not available</red>",
                     item.sellPrice() > 0.0D ? "<gray>Sell:</gray> <green>" + moneyService.format(item.sellPrice()) + "</green>" : "<gray>Sell:</gray> <red>Not available</red>",
                     "<gray>Amount:</gray> <white>" + item.amount() + "</white>",
-                    "<green>Left-click to buy.</green>",
+                    item.buyPrice() > 0.0D ? "<green>Left-click to buy.</green>" : "<dark_gray>Buying is disabled for this item.</dark_gray>",
                     item.sellPrice() > 0.0D ? "<yellow>Right-click to sell this amount.</yellow>" : "<dark_gray>Sell price has not been configured yet.</dark_gray>",
-                    "<aqua>Shift-click uses the bulk amount.</aqua>"
+                    "<aqua>Shift-click to choose a quantity.</aqua>"
             )));
         }
         int previousSlot = configs.get("economy/shop.yml").getInt("menu.previous-slot", 45);
@@ -123,21 +130,36 @@ public final class ShopService implements Listener {
         int itemIndex = page * configuredSlots("menu.item-slots", DEFAULT_ITEM_SLOTS).length + index;
         if (itemIndex >= items.size()) return;
         ShopItem item = items.get(itemIndex);
-        if (click != null && click.isShiftClick()) item = item.withAmount(Math.max(item.amount(), configs.get("economy/shop.yml").getInt("menu.bulk-amount", 64)));
+        if (click != null && click.isShiftClick()) {
+            promptQuantity(player, category, page, item, click.isRightClick());
+            return;
+        }
         if (click != null && click.isRightClick()) sell(player, item);
         else buy(player, item);
         openCategory(player, category, page);
     }
 
     private void buy(Player player, ShopItem item) {
-        ItemStack purchase = stack(item);
-        if (!canFit(player, purchase)) {
+        if (item.buyPrice() <= 0.0D) {
+            Text.send(player, "<red>This item cannot be bought here.</red>");
+            return;
+        }
+        ItemStack unit = stack(item);
+        unit.setAmount(1);
+        if (!canFit(player, unit, item.amount())) {
             Text.send(player, "<red>You need more inventory space.</red>");
             player.playSound(player.getLocation(), Sound.BLOCK_NOTE_BLOCK_BASS, 0.6f, 0.7f);
             return;
         }
         if (!moneyService.take(player.getUniqueId(), item.buyPrice())) { Text.send(player, "<red>You need " + moneyService.format(item.buyPrice()) + ".</red>"); return; }
-        player.getInventory().addItem(purchase);
+        int remaining = item.amount();
+        while (remaining > 0) {
+            ItemStack purchase = unit.clone();
+            int take = Math.min(remaining, purchase.getMaxStackSize());
+            purchase.setAmount(take);
+            player.getInventory().addItem(purchase);
+            remaining -= take;
+        }
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.7f, 1.35f);
         Text.actionBar(player, "<green>Bought</green> <white>" + item.amount() + "x " + item.material().name().toLowerCase(Locale.ROOT) + "</white> <gray>for</gray> <gradient:#f4cd2a:#eda323:#d28d0d>" + moneyService.format(item.buyPrice()) + "</gradient>");
     }
@@ -166,6 +188,67 @@ public final class ShopService implements Listener {
         moneyService.give(player.getUniqueId(), payout);
         player.playSound(player.getLocation(), Sound.ENTITY_EXPERIENCE_ORB_PICKUP, 0.7f, 1.0f);
         Text.actionBar(player, "<green>Sold</green> <white>" + sold + "x " + item.material().name().toLowerCase(Locale.ROOT) + "</white> <gray>for</gray> <green>" + moneyService.format(payout) + "</green>");
+    }
+
+    private void promptQuantity(Player player, String category, int page, ShopItem item, boolean selling) {
+        if (selling && item.sellPrice() <= 0.0D) {
+            Text.send(player, "<red>This item cannot be sold here.</red>");
+            return;
+        }
+        if (!selling && item.buyPrice() <= 0.0D) {
+            Text.send(player, "<red>This item cannot be bought here.</red>");
+            return;
+        }
+        pendingQuantities.put(player.getUniqueId(), new PendingQuantity(category, page, item, selling, System.currentTimeMillis() + 30_000L));
+        player.closeInventory();
+        Text.send(player, "<yellow>Type the quantity in chat, or type <white>cancel</white>.</yellow>");
+    }
+
+    @EventHandler(priority = EventPriority.LOWEST)
+    public void onQuantityChat(AsyncChatEvent event) {
+        PendingQuantity pending = pendingQuantities.get(event.getPlayer().getUniqueId());
+        if (pending == null) {
+            return;
+        }
+        event.setCancelled(true);
+        String input = PlainTextComponentSerializer.plainText().serialize(event.message()).trim();
+        Bukkit.getScheduler().runTask(plugin, () -> handleQuantityInput(event.getPlayer(), input, pending));
+    }
+
+    @EventHandler
+    public void onQuit(PlayerQuitEvent event) {
+        pendingQuantities.remove(event.getPlayer().getUniqueId());
+    }
+
+    private void handleQuantityInput(Player player, String input, PendingQuantity pending) {
+        if (input.equalsIgnoreCase("cancel")) {
+            pendingQuantities.remove(player.getUniqueId());
+            Text.send(player, "<gray>Shop quantity cancelled.</gray>");
+            openCategory(player, pending.category(), pending.page());
+            return;
+        }
+        if (System.currentTimeMillis() > pending.expiresAtMillis()) {
+            pendingQuantities.remove(player.getUniqueId());
+            Text.send(player, "<red>That shop quantity prompt expired.</red>");
+            return;
+        }
+        int quantity;
+        try {
+            quantity = Integer.parseInt(input);
+        } catch (NumberFormatException ex) {
+            Text.send(player, "<red>Enter a whole number, or type cancel.</red>");
+            return;
+        }
+        int max = Math.max(1, configs.get("economy/shop.yml").getInt("menu.max-quantity", 2304));
+        if (quantity < 1 || quantity > max) {
+            Text.send(player, "<red>Quantity must be between 1 and " + max + ".</red>");
+            return;
+        }
+        pendingQuantities.remove(player.getUniqueId());
+        ShopItem item = pending.item().withAmount(quantity);
+        if (pending.selling()) sell(player, item);
+        else buy(player, item);
+        openCategory(player, pending.category(), pending.page());
     }
 
     private List<ShopCategory> categories() {
@@ -202,8 +285,8 @@ public final class ShopService implements Listener {
         return out;
     }
 
-    private boolean canFit(Player player, ItemStack purchase) {
-        int remaining = purchase.getAmount();
+    private boolean canFit(Player player, ItemStack purchase, int amount) {
+        int remaining = amount;
         int max = purchase.getMaxStackSize();
         for (ItemStack stack : player.getInventory().getStorageContents()) {
             if (stack == null || stack.getType().isAir()) {
@@ -312,6 +395,7 @@ public final class ShopService implements Listener {
     private ItemStack button(Material material, String name, List<String> lore) { return button(new ItemStack(material), name, lore); }
     private ItemStack button(ItemStack item, String name, List<String> lore) { ItemMeta meta = item.getItemMeta(); meta.displayName(Text.mm(name)); meta.lore(lore.stream().map(Text::mm).toList()); item.setItemMeta(meta); return item; }
     private record ShopCategory(String id, String name, Material icon) {}
+    private record PendingQuantity(String category, int page, ShopItem item, boolean selling, long expiresAtMillis) {}
     private record ShopItem(String id, Material material, String itemsAdder, int amount, double buyPrice, double sellPrice, String name) {
         private ShopItem withAmount(int newAmount) {
             double multiplier = newAmount / (double) amount;

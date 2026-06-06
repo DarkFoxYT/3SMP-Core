@@ -1,168 +1,200 @@
 menu:
   size: 54
-  title: ":offset_-15:&f:shop_gui:"
-  category-title: ":offset_-15:&f:shop_gui:"
+  title: ":offset_-26:&f:shop_gui:"
+  category-title: ":offset_-26:&f:shop_gui:"
   header: "<gradient:#f4cd2a:#eda323:#d28d0d>3SMP Shop</gradient>"
-  header-slot: 4
+  header-slot: 49
   header-material: CHEST
   previous-slot: 45
   back-slot: 49
   next-slot: 53
-  bulk-amount: 64
+  bulk-amount: 1
+  max-quantity: 2304
   fill:
-    enabled: true
+    enabled: false
     material: BLACK_STAINED_GLASS_PANE
     name: " "
-  category-slots: [18,20,22,24,26,28,30,32,34,36,38,40,42,44]
-  item-slots: [18,20,22,24,26,28,30,32,34,36,38,40,42,44]
+  category-slots: [10,11,12,13,14,15,16,19,20,21,22,23,24,25]
+  item-slots: [10,11,12,13,14,15,16,19,20,21,22,23,24,25,28,29,30,31,32,33,34,37,38,39,40,41,42,43]
   itemsadder-font-symbols:
     shop_gui: "\\uA428"
 
 categories:
   blocks:
-    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Building Blocks</gradient>"
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Blocks</gradient>"
     icon: BRICKS
     items:
-      stone: { material: STONE, amount: 64, buy-price: 25.0, sell-price: 8.0, display-name: "<white>Stone</white>" }
-      cobblestone: { material: COBBLESTONE, amount: 64, buy-price: 18.0, sell-price: 5.0, display-name: "<white>Cobblestone</white>" }
-      deepslate: { material: DEEPSLATE, amount: 64, buy-price: 35.0, sell-price: 10.0, display-name: "<white>Deepslate</white>" }
-      bricks: { material: BRICKS, amount: 32, buy-price: 58.0, sell-price: 16.0, display-name: "<white>Bricks</white>" }
-      glass: { material: GLASS, amount: 32, buy-price: 35.0, sell-price: 9.0, display-name: "<white>Glass</white>" }
-      terracotta: { material: TERRACOTTA, amount: 32, buy-price: 42.0, sell-price: 10.0, display-name: "<white>Terracotta</white>" }
-      white_concrete: { material: WHITE_CONCRETE, amount: 32, buy-price: 55.0, sell-price: 14.0, display-name: "<white>White Concrete</white>" }
-      black_concrete: { material: BLACK_CONCRETE, amount: 32, buy-price: 55.0, sell-price: 14.0, display-name: "<white>Black Concrete</white>" }
-      quartz_block: { material: QUARTZ_BLOCK, amount: 16, buy-price: 90.0, sell-price: 24.0, display-name: "<white>Quartz Block</white>" }
-      lantern: { material: LANTERN, amount: 8, buy-price: 45.0, sell-price: 12.0, display-name: "<white>Lanterns</white>" }
+      dirt: { material: DIRT, amount: 1, buy-price: 12.0, sell-price: 2.0, display-name: "<white>Dirt</white>" }
+      grass_block: { material: GRASS_BLOCK, amount: 1, buy-price: 25.0, sell-price: 3.5, display-name: "<white>Grass Block</white>" }
+      mycelium: { material: MYCELIUM, amount: 1, buy-price: 35.0, sell-price: 4.5, display-name: "<white>Mycelium</white>" }
+      podzol: { material: PODZOL, amount: 1, buy-price: 15.0, sell-price: 2.25, display-name: "<white>Podzol</white>" }
+      gravel: { material: GRAVEL, amount: 1, buy-price: 8.0, sell-price: 1.0, display-name: "<white>Gravel</white>" }
+      sand: { material: SAND, amount: 1, buy-price: 12.0, sell-price: 2.0, display-name: "<white>Sand</white>" }
+      sandstone: { material: SANDSTONE, amount: 1, buy-price: 16.0, sell-price: 2.5, display-name: "<white>Sandstone</white>" }
+      red_sand: { material: RED_SAND, amount: 1, buy-price: 12.0, sell-price: 2.0, display-name: "<white>Red Sand</white>" }
+      red_sandstone: { material: RED_SANDSTONE, amount: 1, buy-price: 16.0, sell-price: 2.5, display-name: "<white>Red Sandstone</white>" }
+      oak_log: { material: OAK_LOG, amount: 1, buy-price: 25.0, sell-price: 5.25, display-name: "<white>Oak Log</white>" }
+      spruce_log: { material: SPRUCE_LOG, amount: 1, buy-price: 25.0, sell-price: 5.25, display-name: "<white>Spruce Log</white>" }
+      birch_log: { material: BIRCH_LOG, amount: 1, buy-price: 25.0, sell-price: 5.25, display-name: "<white>Birch Log</white>" }
+      jungle_log: { material: JUNGLE_LOG, amount: 1, buy-price: 25.0, sell-price: 5.25, display-name: "<white>Jungle Log</white>" }
+      acacia_log: { material: ACACIA_LOG, amount: 1, buy-price: 25.0, sell-price: 5.25, display-name: "<white>Acacia Log</white>" }
+      dark_oak_log: { material: DARK_OAK_LOG, amount: 1, buy-price: 25.0, sell-price: 5.25, display-name: "<white>Dark Oak Log</white>" }
+      mangrove_log: { material: MANGROVE_LOG, amount: 1, buy-price: 25.0, sell-price: 5.25, display-name: "<white>Mangrove Log</white>" }
+      cherry_log: { material: CHERRY_LOG, amount: 1, buy-price: 25.0, sell-price: 5.25, display-name: "<white>Cherry Log</white>" }
+      stone: { material: STONE, amount: 1, buy-price: 25.0, sell-price: 3.5, display-name: "<white>Stone</white>" }
+      cobblestone: { material: COBBLESTONE, amount: 1, buy-price: 12.0, sell-price: 2.0, display-name: "<white>Cobblestone</white>" }
+      mossy_cobblestone: { material: MOSSY_COBBLESTONE, amount: 1, buy-price: 30.0, sell-price: 4.5, display-name: "<white>Mossy Cobblestone</white>" }
+      stone_bricks: { material: STONE_BRICKS, amount: 1, buy-price: 18.0, sell-price: 3.5, display-name: "<white>Stone Bricks</white>" }
+      cobbled_deepslate: { material: COBBLED_DEEPSLATE, amount: 1, buy-price: 12.0, sell-price: 2.0, display-name: "<white>Cobbled Deepslate</white>" }
+      granite: { material: GRANITE, amount: 1, buy-price: 8.0, sell-price: 1.5, display-name: "<white>Granite</white>" }
+      diorite: { material: DIORITE, amount: 1, buy-price: 8.0, sell-price: 1.5, display-name: "<white>Diorite</white>" }
+      andesite: { material: ANDESITE, amount: 1, buy-price: 8.0, sell-price: 1.5, display-name: "<white>Andesite</white>" }
+      calcite: { material: CALCITE, amount: 1, buy-price: 8.0, sell-price: 1.5, display-name: "<white>Calcite</white>" }
+      tuff: { material: TUFF, amount: 1, buy-price: 8.0, sell-price: 1.5, display-name: "<white>Tuff</white>" }
+      bricks: { material: BRICKS, amount: 1, buy-price: 30.0, sell-price: 3.5, display-name: "<white>Bricks</white>" }
+      nether_bricks: { material: NETHER_BRICKS, amount: 1, buy-price: 30.0, sell-price: 3.5, display-name: "<white>Nether Bricks</white>" }
+      prismarine: { material: PRISMARINE, amount: 1, buy-price: 35.0, sell-price: 4.5, display-name: "<white>Prismarine</white>" }
+      purpur_block: { material: PURPUR_BLOCK, amount: 1, buy-price: 35.0, sell-price: 4.5, display-name: "<white>Purpur Block</white>" }
+      end_stone: { material: END_STONE, amount: 1, buy-price: 15.0, sell-price: 2.25, display-name: "<white>End Stone</white>" }
+      obsidian: { material: OBSIDIAN, amount: 1, buy-price: 275.0, sell-price: 18.0, display-name: "<white>Obsidian</white>" }
+      blackstone: { material: BLACKSTONE, amount: 1, buy-price: 20.0, sell-price: 3.5, display-name: "<white>Blackstone</white>" }
+      basalt: { material: BASALT, amount: 1, buy-price: 20.0, sell-price: 3.5, display-name: "<white>Basalt</white>" }
+      magma_block: { material: MAGMA_BLOCK, amount: 1, buy-price: 18.0, sell-price: 2.5, display-name: "<white>Magma Block</white>" }
+      netherrack: { material: NETHERRACK, amount: 1, buy-price: 12.0, sell-price: 2.0, display-name: "<white>Netherrack</white>" }
+      soul_sand: { material: SOUL_SAND, amount: 1, buy-price: 12.0, sell-price: 2.0, display-name: "<white>Soul Sand</white>" }
+      soul_soil: { material: SOUL_SOIL, amount: 1, buy-price: 12.0, sell-price: 2.0, display-name: "<white>Soul Soil</white>" }
+      terracotta: { material: TERRACOTTA, amount: 1, buy-price: 12.0, sell-price: 2.0, display-name: "<white>Terracotta</white>" }
+      white_wool: { material: WHITE_WOOL, amount: 1, buy-price: 15.0, sell-price: 2.5, display-name: "<white>White Wool</white>" }
+      glass: { material: GLASS, amount: 1, buy-price: 18.0, sell-price: 2.5, display-name: "<white>Glass</white>" }
+      ice: { material: ICE, amount: 1, buy-price: 12.0, sell-price: 2.0, display-name: "<white>Ice</white>" }
+      mud: { material: MUD, amount: 1, buy-price: 12.0, sell-price: 2.0, display-name: "<white>Mud</white>" }
 
-  wood:
-    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Wood</gradient>"
-    icon: OAK_LOG
+  nature:
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Nature</gradient>"
+    icon: OAK_SAPLING
     items:
-      oak_logs: { material: OAK_LOG, amount: 32, buy-price: 40.0, sell-price: 12.0, display-name: "<white>Oak Logs</white>" }
-      spruce_logs: { material: SPRUCE_LOG, amount: 32, buy-price: 40.0, sell-price: 12.0, display-name: "<white>Spruce Logs</white>" }
-      birch_logs: { material: BIRCH_LOG, amount: 32, buy-price: 40.0, sell-price: 12.0, display-name: "<white>Birch Logs</white>" }
-      jungle_logs: { material: JUNGLE_LOG, amount: 32, buy-price: 42.0, sell-price: 12.0, display-name: "<white>Jungle Logs</white>" }
-      acacia_logs: { material: ACACIA_LOG, amount: 32, buy-price: 42.0, sell-price: 12.0, display-name: "<white>Acacia Logs</white>" }
-      dark_oak_logs: { material: DARK_OAK_LOG, amount: 32, buy-price: 44.0, sell-price: 13.0, display-name: "<white>Dark Oak Logs</white>" }
-      mangrove_logs: { material: MANGROVE_LOG, amount: 32, buy-price: 48.0, sell-price: 14.0, display-name: "<white>Mangrove Logs</white>" }
-      cherry_logs: { material: CHERRY_LOG, amount: 32, buy-price: 55.0, sell-price: 16.0, display-name: "<white>Cherry Logs</white>" }
-      bamboo_block: { material: BAMBOO_BLOCK, amount: 16, buy-price: 40.0, sell-price: 10.0, display-name: "<white>Bamboo Blocks</white>" }
+      cactus: { material: CACTUS, amount: 1, buy-price: 12.0, sell-price: 0.0, display-name: "<white>Cactus</white>", notes: "Lag machines" }
+      bamboo: { material: BAMBOO, amount: 1, buy-price: 12.0, sell-price: 0.0, display-name: "<white>Bamboo</white>", notes: "Lag machines" }
+      pumpkin: { material: PUMPKIN, amount: 1, buy-price: 14.0, sell-price: 0.0, display-name: "<white>Pumpkin</white>", notes: "Lag machines" }
+      sugar_cane: { material: SUGAR_CANE, amount: 1, buy-price: 12.0, sell-price: 1.5, display-name: "<white>Sugar Cane</white>" }
+      moss_block: { material: MOSS_BLOCK, amount: 1, buy-price: 15.0, sell-price: 2.0, display-name: "<white>Moss Block</white>" }
+      sea_pickle: { material: SEA_PICKLE, amount: 1, buy-price: 6.0, sell-price: 0.75, display-name: "<white>Sea Pickle</white>" }
+      kelp: { material: KELP, amount: 1, buy-price: 6.0, sell-price: 0.75, display-name: "<white>Kelp</white>" }
+      shroomlight: { material: SHROOMLIGHT, amount: 1, buy-price: 45.0, sell-price: 5.25, display-name: "<white>Shroomlight</white>" }
+      brown_mushroom: { material: BROWN_MUSHROOM, amount: 1, buy-price: 12.0, sell-price: 0.0, display-name: "<white>Brown Mushroom</white>", notes: "Lag machines/eco breaker" }
+      red_mushroom: { material: RED_MUSHROOM, amount: 1, buy-price: 12.0, sell-price: 0.0, display-name: "<white>Red Mushroom</white>", notes: "Lag machines/eco breaker" }
+      brown_mushroom_block: { material: BROWN_MUSHROOM_BLOCK, amount: 1, buy-price: 20.0, sell-price: 2.5, display-name: "<white>Brown Mushroom Block</white>" }
+      red_mushroom_block: { material: RED_MUSHROOM_BLOCK, amount: 1, buy-price: 20.0, sell-price: 2.5, display-name: "<white>Red Mushroom Block</white>" }
+      mushroom_stem: { material: MUSHROOM_STEM, amount: 1, buy-price: 15.0, sell-price: 1.5, display-name: "<white>Mushroom Stem</white>" }
+      cherry_sapling: { material: CHERRY_SAPLING, amount: 1, buy-price: 14.0, sell-price: 3.0, display-name: "<white>Cherry Sapling</white>" }
+      oak_sapling: { material: OAK_SAPLING, amount: 1, buy-price: 14.0, sell-price: 1.5, display-name: "<white>Oak Sapling</white>" }
+      spruce_sapling: { material: SPRUCE_SAPLING, amount: 1, buy-price: 14.0, sell-price: 1.5, display-name: "<white>Spruce Sapling</white>" }
+      birch_sapling: { material: BIRCH_SAPLING, amount: 1, buy-price: 14.0, sell-price: 1.5, display-name: "<white>Birch Sapling</white>" }
+      jungle_sapling: { material: JUNGLE_SAPLING, amount: 1, buy-price: 14.0, sell-price: 1.5, display-name: "<white>Jungle Sapling</white>" }
+      acacia_sapling: { material: ACACIA_SAPLING, amount: 1, buy-price: 14.0, sell-price: 1.5, display-name: "<white>Acacia Sapling</white>" }
+      dark_oak_sapling: { material: DARK_OAK_SAPLING, amount: 1, buy-price: 14.0, sell-price: 1.5, display-name: "<white>Dark Oak Sapling</white>" }
 
-  farming:
-    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Farming</gradient>"
-    icon: WHEAT
+  minerals:
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Minerals</gradient>"
+    icon: DIAMOND
     items:
-      wheat_seeds: { material: WHEAT_SEEDS, amount: 32, buy-price: 20.0, sell-price: 4.0, display-name: "<white>Wheat Seeds</white>" }
-      wheat: { material: WHEAT, amount: 32, buy-price: 30.0, sell-price: 8.0, display-name: "<white>Wheat</white>" }
-      carrots: { material: CARROT, amount: 32, buy-price: 18.0, sell-price: 5.0, display-name: "<white>Carrots</white>" }
-      potatoes: { material: POTATO, amount: 32, buy-price: 18.0, sell-price: 5.0, display-name: "<white>Potatoes</white>" }
-      beetroot_seeds: { material: BEETROOT_SEEDS, amount: 32, buy-price: 20.0, sell-price: 4.0, display-name: "<white>Beetroot Seeds</white>" }
-      sugar_cane: { material: SUGAR_CANE, amount: 32, buy-price: 26.0, sell-price: 7.0, display-name: "<white>Sugar Cane</white>" }
-      cactus: { material: CACTUS, amount: 16, buy-price: 24.0, sell-price: 6.0, display-name: "<white>Cactus</white>" }
-      bamboo: { material: BAMBOO, amount: 32, buy-price: 22.0, sell-price: 5.0, display-name: "<white>Bamboo</white>" }
-      cocoa_beans: { material: COCOA_BEANS, amount: 16, buy-price: 28.0, sell-price: 7.0, display-name: "<white>Cocoa Beans</white>" }
+      coal: { material: COAL, amount: 1, buy-price: 35.0, sell-price: 4.5, display-name: "<white>Coal</white>" }
+      iron_ingot: { material: IRON_INGOT, amount: 1, buy-price: 100.0, sell-price: 9.75, display-name: "<white>Iron Ingot</white>" }
+      copper_ingot: { material: COPPER_INGOT, amount: 1, buy-price: 55.0, sell-price: 7.75, display-name: "<white>Copper Ingot</white>" }
+      gold_ingot: { material: GOLD_INGOT, amount: 1, buy-price: 250.0, sell-price: 18.5, display-name: "<white>Gold Ingot</white>" }
+      redstone_dust: { material: REDSTONE, amount: 1, buy-price: 45.0, sell-price: 7.0, display-name: "<white>Redstone Dust</white>" }
+      lapis_lazuli: { material: LAPIS_LAZULI, amount: 1, buy-price: 65.0, sell-price: 8.0, display-name: "<white>Lapis Lazuli</white>" }
+      diamond: { material: DIAMOND, amount: 1, buy-price: 850.0, sell-price: 75.0, display-name: "<gradient:#38bdf8:#ffffff>Diamond</gradient>" }
+      emerald: { material: EMERALD, amount: 1, buy-price: 1000.0, sell-price: 80.0, display-name: "<gradient:#22c55e:#bbf7d0>Emerald</gradient>" }
+      nether_quartz: { material: QUARTZ, amount: 1, buy-price: 65.0, sell-price: 8.0, display-name: "<white>Nether Quartz</white>" }
+      ancient_debris: { material: ANCIENT_DEBRIS, amount: 1, buy-price: 3000.0, sell-price: 350.0, display-name: "<white>Ancient Debris</white>", notes: "Not fair, gotta grind" }
+      netherite_scrap: { material: NETHERITE_SCRAP, amount: 1, buy-price: 2850.0, sell-price: 275.0, display-name: "<white>Netherite Scrap</white>", notes: "Not fair, gotta grind" }
+      netherite_ingot: { material: NETHERITE_INGOT, amount: 1, buy-price: 3400.0, sell-price: 750.0, display-name: "<white>Netherite Ingot</white>", notes: "Not fair, gotta grind" }
+      amethyst_shard: { material: AMETHYST_SHARD, amount: 1, buy-price: 70.0, sell-price: 7.25, display-name: "<white>Amethyst Shard</white>" }
 
   food:
     display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Food</gradient>"
     icon: COOKED_BEEF
     items:
-      bread: { material: BREAD, amount: 16, buy-price: 18.0, sell-price: 5.0, display-name: "<white>Bread</white>" }
-      steak: { material: COOKED_BEEF, amount: 16, buy-price: 30.0, sell-price: 10.0, display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Steak</gradient>" }
-      cooked_porkchop: { material: COOKED_PORKCHOP, amount: 16, buy-price: 28.0, sell-price: 9.0, display-name: "<white>Cooked Porkchop</white>" }
-      cooked_chicken: { material: COOKED_CHICKEN, amount: 16, buy-price: 26.0, sell-price: 8.0, display-name: "<white>Cooked Chicken</white>" }
-      cooked_mutton: { material: COOKED_MUTTON, amount: 16, buy-price: 28.0, sell-price: 9.0, display-name: "<white>Cooked Mutton</white>" }
-      baked_potato: { material: BAKED_POTATO, amount: 16, buy-price: 20.0, sell-price: 6.0, display-name: "<white>Baked Potatoes</white>" }
-      golden_carrots: { material: GOLDEN_CARROT, amount: 8, buy-price: 45.0, sell-price: 14.0, display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Golden Carrots</gradient>" }
-      golden_apple: { material: GOLDEN_APPLE, amount: 1, buy-price: 125.0, sell-price: 35.0, display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Golden Apple</gradient>" }
-
-  mob_drops:
-    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Mob Drops</gradient>"
-    icon: BONE
-    items:
-      string: { material: STRING, amount: 16, buy-price: 28.0, sell-price: 8.0, display-name: "<white>String</white>" }
-      bones: { material: BONE, amount: 16, buy-price: 26.0, sell-price: 7.0, display-name: "<white>Bones</white>" }
-      gunpowder: { material: GUNPOWDER, amount: 16, buy-price: 42.0, sell-price: 14.0, display-name: "<white>Gunpowder</white>" }
-      rotten_flesh: { material: ROTTEN_FLESH, amount: 32, buy-price: 20.0, sell-price: 5.0, display-name: "<white>Rotten Flesh</white>" }
-      spider_eye: { material: SPIDER_EYE, amount: 8, buy-price: 32.0, sell-price: 9.0, display-name: "<white>Spider Eyes</white>" }
-      leather: { material: LEATHER, amount: 16, buy-price: 35.0, sell-price: 10.0, display-name: "<white>Leather</white>" }
-      feathers: { material: FEATHER, amount: 16, buy-price: 22.0, sell-price: 6.0, display-name: "<white>Feathers</white>" }
-      slimeballs: { material: SLIME_BALL, amount: 8, buy-price: 48.0, sell-price: 16.0, display-name: "<white>Slimeballs</white>" }
-      ender_pearls: { material: ENDER_PEARL, amount: 4, buy-price: 60.0, sell-price: 18.0, display-name: "<white>Ender Pearls</white>" }
-
-  ores_minerals:
-    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Ores & Minerals</gradient>"
-    icon: RAW_IRON
-    items:
-      coal: { material: COAL, amount: 32, buy-price: 48.0, sell-price: 14.0, display-name: "<white>Coal</white>" }
-      raw_copper: { material: RAW_COPPER, amount: 32, buy-price: 45.0, sell-price: 13.0, display-name: "<white>Raw Copper</white>" }
-      raw_iron: { material: RAW_IRON, amount: 16, buy-price: 80.0, sell-price: 28.0, display-name: "<white>Raw Iron</white>" }
-      raw_gold: { material: RAW_GOLD, amount: 16, buy-price: 96.0, sell-price: 34.0, display-name: "<white>Raw Gold</white>" }
-      redstone: { material: REDSTONE, amount: 32, buy-price: 42.0, sell-price: 12.0, display-name: "<white>Redstone</white>" }
-      lapis: { material: LAPIS_LAZULI, amount: 16, buy-price: 50.0, sell-price: 15.0, display-name: "<white>Lapis Lazuli</white>" }
-      quartz: { material: QUARTZ, amount: 16, buy-price: 54.0, sell-price: 16.0, display-name: "<white>Quartz</white>" }
-      amethyst: { material: AMETHYST_SHARD, amount: 8, buy-price: 64.0, sell-price: 18.0, display-name: "<white>Amethyst Shards</white>" }
-      diamond: { material: DIAMOND, amount: 1, buy-price: 450.0, sell-price: 120.0, display-name: "<gradient:#38bdf8:#ffffff>Diamond</gradient>" }
-      emerald: { material: EMERALD, amount: 1, buy-price: 350.0, sell-price: 90.0, display-name: "<gradient:#22c55e:#bbf7d0>Emerald</gradient>" }
+      apple: { material: APPLE, amount: 1, buy-price: 0.0, sell-price: 4.75, display-name: "<white>Apple</white>", notes: "Too easy to make golden apples" }
+      bread: { material: BREAD, amount: 1, buy-price: 10.0, sell-price: 3.0, display-name: "<white>Bread</white>" }
+      melon: { material: MELON, amount: 1, buy-price: 8.0, sell-price: 0.0, display-name: "<white>Melon</white>", notes: "Lag machines" }
+      potato: { material: POTATO, amount: 1, buy-price: 8.0, sell-price: 1.75, display-name: "<white>Potato</white>" }
+      carrot: { material: CARROT, amount: 1, buy-price: 8.0, sell-price: 1.75, display-name: "<white>Carrot</white>" }
+      beetroot: { material: BEETROOT, amount: 1, buy-price: 8.0, sell-price: 1.75, display-name: "<white>Beetroot</white>" }
+      wheat: { material: WHEAT, amount: 1, buy-price: 6.75, sell-price: 1.25, display-name: "<white>Wheat</white>" }
+      wheat_seeds: { material: WHEAT_SEEDS, amount: 1, buy-price: 3.5, sell-price: 0.25, display-name: "<white>Wheat Seeds</white>" }
+      pumpkin_seeds: { material: PUMPKIN_SEEDS, amount: 1, buy-price: 12.0, sell-price: 1.5, display-name: "<white>Pumpkin Seeds</white>" }
+      melon_seeds: { material: MELON_SEEDS, amount: 1, buy-price: 12.0, sell-price: 1.5, display-name: "<white>Melon Seeds</white>" }
+      beetroot_seeds: { material: BEETROOT_SEEDS, amount: 1, buy-price: 12.0, sell-price: 1.5, display-name: "<white>Beetroot Seeds</white>" }
+      cocoa_beans: { material: COCOA_BEANS, amount: 1, buy-price: 12.0, sell-price: 1.5, display-name: "<white>Cocoa Beans</white>" }
+      sweet_berries: { material: SWEET_BERRIES, amount: 1, buy-price: 10.0, sell-price: 1.25, display-name: "<white>Sweet Berries</white>" }
+      glow_berries: { material: GLOW_BERRIES, amount: 1, buy-price: 15.0, sell-price: 2.25, display-name: "<white>Glow Berries</white>" }
+      chorus_fruit: { material: CHORUS_FRUIT, amount: 1, buy-price: 20.0, sell-price: 3.25, display-name: "<white>Chorus Fruit</white>" }
+      cooked_beef: { material: COOKED_BEEF, amount: 1, buy-price: 15.0, sell-price: 5.0, display-name: "<white>Cooked Beef</white>" }
+      cooked_chicken: { material: COOKED_CHICKEN, amount: 1, buy-price: 15.0, sell-price: 4.0, display-name: "<white>Cooked Chicken</white>" }
+      cooked_mutton: { material: COOKED_MUTTON, amount: 1, buy-price: 15.0, sell-price: 4.0, display-name: "<white>Cooked Mutton</white>" }
+      cooked_rabbit: { material: COOKED_RABBIT, amount: 1, buy-price: 12.0, sell-price: 4.0, display-name: "<white>Cooked Rabbit</white>" }
+      cooked_salmon: { material: COOKED_SALMON, amount: 1, buy-price: 12.0, sell-price: 2.5, display-name: "<white>Cooked Salmon</white>" }
+      cooked_cod: { material: COOKED_COD, amount: 1, buy-price: 12.0, sell-price: 2.5, display-name: "<white>Cooked Cod</white>" }
+      tropical_fish: { material: TROPICAL_FISH, amount: 1, buy-price: 25.0, sell-price: 3.5, display-name: "<white>Tropical Fish</white>" }
+      honeycomb: { material: HONEYCOMB, amount: 1, buy-price: 20.0, sell-price: 2.5, display-name: "<white>Honeycomb</white>" }
+      milk_bucket: { material: MILK_BUCKET, amount: 1, buy-price: 25.0, sell-price: 3.75, display-name: "<white>Milk Bucket</white>" }
 
   redstone:
     display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Redstone</gradient>"
     icon: REDSTONE
     items:
-      redstone: { material: REDSTONE, amount: 32, buy-price: 42.0, sell-price: 12.0, display-name: "<white>Redstone Dust</white>" }
-      repeater: { material: REPEATER, amount: 8, buy-price: 55.0, sell-price: 12.0, display-name: "<white>Repeaters</white>" }
-      comparator: { material: COMPARATOR, amount: 4, buy-price: 70.0, sell-price: 16.0, display-name: "<white>Comparators</white>" }
-      observer: { material: OBSERVER, amount: 4, buy-price: 80.0, sell-price: 20.0, display-name: "<white>Observers</white>" }
-      piston: { material: PISTON, amount: 4, buy-price: 65.0, sell-price: 16.0, display-name: "<white>Pistons</white>" }
-      sticky_piston: { material: STICKY_PISTON, amount: 4, buy-price: 95.0, sell-price: 24.0, display-name: "<white>Sticky Pistons</white>" }
-      hopper: { material: HOPPER, amount: 2, buy-price: 110.0, sell-price: 30.0, display-name: "<white>Hoppers</white>" }
-      dispenser: { material: DISPENSER, amount: 4, buy-price: 75.0, sell-price: 18.0, display-name: "<white>Dispensers</white>" }
+      hopper: { material: HOPPER, amount: 1, buy-price: 325.0, sell-price: 25.0, display-name: "<white>Hopper</white>" }
+      dropper: { material: DROPPER, amount: 1, buy-price: 50.0, sell-price: 4.5, display-name: "<white>Dropper</white>" }
+      dispenser: { material: DISPENSER, amount: 1, buy-price: 70.0, sell-price: 6.0, display-name: "<white>Dispenser</white>" }
+      observer: { material: OBSERVER, amount: 1, buy-price: 90.0, sell-price: 7.5, display-name: "<white>Observer</white>" }
+      piston: { material: PISTON, amount: 1, buy-price: 50.0, sell-price: 4.5, display-name: "<white>Piston</white>" }
+      sticky_piston: { material: STICKY_PISTON, amount: 1, buy-price: 85.0, sell-price: 6.5, display-name: "<white>Sticky Piston</white>" }
+      lever: { material: LEVER, amount: 1, buy-price: 5.0, sell-price: 1.0, display-name: "<white>Lever</white>" }
+      stone_button: { material: STONE_BUTTON, amount: 1, buy-price: 5.0, sell-price: 1.0, display-name: "<white>Button (Stone)</white>" }
+      stone_pressure_plate: { material: STONE_PRESSURE_PLATE, amount: 1, buy-price: 5.0, sell-price: 1.0, display-name: "<white>Pressure Plate (Stone)</white>" }
+      tripwire_hook: { material: TRIPWIRE_HOOK, amount: 1, buy-price: 25.0, sell-price: 2.5, display-name: "<white>Tripwire Hook</white>" }
+      redstone_torch: { material: REDSTONE_TORCH, amount: 1, buy-price: 15.0, sell-price: 1.75, display-name: "<white>Redstone Torch</white>" }
+      comparator: { material: COMPARATOR, amount: 1, buy-price: 85.0, sell-price: 6.5, display-name: "<white>Redstone Comparator</white>" }
+      repeater: { material: REPEATER, amount: 1, buy-price: 65.0, sell-price: 5.5, display-name: "<white>Redstone Repeater</white>" }
+      daylight_detector: { material: DAYLIGHT_DETECTOR, amount: 1, buy-price: 175.0, sell-price: 9.5, display-name: "<white>Daylight Detector</white>" }
 
-  nether:
-    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Nether</gradient>"
-    icon: NETHERRACK
+  mob_drops:
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Mob Drops</gradient>"
+    icon: BONE
     items:
-      netherrack: { material: NETHERRACK, amount: 64, buy-price: 18.0, sell-price: 4.0, display-name: "<white>Netherrack</white>" }
-      soul_sand: { material: SOUL_SAND, amount: 32, buy-price: 45.0, sell-price: 12.0, display-name: "<white>Soul Sand</white>" }
-      soul_soil: { material: SOUL_SOIL, amount: 32, buy-price: 45.0, sell-price: 12.0, display-name: "<white>Soul Soil</white>" }
-      glowstone: { material: GLOWSTONE, amount: 16, buy-price: 70.0, sell-price: 20.0, display-name: "<white>Glowstone</white>" }
-      magma_block: { material: MAGMA_BLOCK, amount: 16, buy-price: 55.0, sell-price: 14.0, display-name: "<white>Magma Blocks</white>" }
-      nether_wart: { material: NETHER_WART, amount: 16, buy-price: 58.0, sell-price: 16.0, display-name: "<white>Nether Wart</white>" }
-      blaze_rods: { material: BLAZE_ROD, amount: 4, buy-price: 80.0, sell-price: 24.0, display-name: "<gradient:#f97316:#f4cd2a>Blaze Rods</gradient>" }
-      ghast_tears: { material: GHAST_TEAR, amount: 1, buy-price: 125.0, sell-price: 35.0, display-name: "<gradient:#f4cd2a:#ffffff>Ghast Tear</gradient>" }
+      string: { material: STRING, amount: 1, buy-price: 5.0, sell-price: 0.75, display-name: "<white>String</white>" }
+      spider_eye: { material: SPIDER_EYE, amount: 1, buy-price: 8.0, sell-price: 1.0, display-name: "<white>Spider Eye</white>" }
+      fermented_spider_eye: { material: FERMENTED_SPIDER_EYE, amount: 1, buy-price: 10.0, sell-price: 2.25, display-name: "<white>Fermented Spider Eye</white>" }
+      slimeball: { material: SLIME_BALL, amount: 1, buy-price: 30.0, sell-price: 3.5, display-name: "<white>Slimeball</white>" }
+      magma_cream: { material: MAGMA_CREAM, amount: 1, buy-price: 20.0, sell-price: 3.0, display-name: "<white>Magma Cream</white>" }
+      blaze_rod: { material: BLAZE_ROD, amount: 1, buy-price: 35.0, sell-price: 3.75, display-name: "<white>Blaze Rod</white>" }
+      ghast_tear: { material: GHAST_TEAR, amount: 1, buy-price: 225.0, sell-price: 12.5, display-name: "<white>Ghast Tear</white>" }
+      gunpowder: { material: GUNPOWDER, amount: 1, buy-price: 8.0, sell-price: 2.0, display-name: "<white>Gunpowder</white>" }
+      rotten_flesh: { material: ROTTEN_FLESH, amount: 1, buy-price: 4.0, sell-price: 0.6, display-name: "<white>Rotten Flesh</white>" }
+      bone: { material: BONE, amount: 1, buy-price: 8.0, sell-price: 2.0, display-name: "<white>Bone</white>" }
+      feather: { material: FEATHER, amount: 1, buy-price: 6.5, sell-price: 1.0, display-name: "<white>Feather</white>" }
+      leather: { material: LEATHER, amount: 1, buy-price: 15.0, sell-price: 2.5, display-name: "<white>Leather</white>" }
+      rabbit_hide: { material: RABBIT_HIDE, amount: 1, buy-price: 18.0, sell-price: 2.75, display-name: "<white>Rabbit Hide</white>" }
+      rabbit_foot: { material: RABBIT_FOOT, amount: 1, buy-price: 15.0, sell-price: 2.5, display-name: "<white>Rabbit's Foot</white>" }
+      ink_sac: { material: INK_SAC, amount: 1, buy-price: 12.0, sell-price: 2.25, display-name: "<white>Ink Sac</white>" }
+      glow_ink_sac: { material: GLOW_INK_SAC, amount: 1, buy-price: 15.0, sell-price: 2.5, display-name: "<white>Glow Ink Sac</white>" }
+      ender_pearl: { material: ENDER_PEARL, amount: 1, buy-price: 25.0, sell-price: 5.0, display-name: "<white>Ender Pearl</white>" }
+      turtle_egg: { material: TURTLE_EGG, amount: 1, buy-price: 125.0, sell-price: 9.5, display-name: "<white>Turtle Egg</white>" }
+      scute: { material: TURTLE_SCUTE, amount: 1, buy-price: 45.0, sell-price: 4.75, display-name: "<white>Scute</white>" }
+      phantom_membrane: { material: PHANTOM_MEMBRANE, amount: 1, buy-price: 125.0, sell-price: 9.5, display-name: "<white>Phantom Membrane</white>" }
 
-  ocean:
-    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Ocean</gradient>"
-    icon: PRISMARINE
+  miscellaneous:
+    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Miscellaneous</gradient>"
+    icon: COMPASS
     items:
-      kelp: { material: KELP, amount: 32, buy-price: 18.0, sell-price: 4.0, display-name: "<white>Kelp</white>" }
-      prismarine: { material: PRISMARINE, amount: 32, buy-price: 70.0, sell-price: 18.0, display-name: "<white>Prismarine</white>" }
-      sea_lantern: { material: SEA_LANTERN, amount: 8, buy-price: 95.0, sell-price: 26.0, display-name: "<gradient:#38bdf8:#ffffff>Sea Lanterns</gradient>" }
-      sponge: { material: SPONGE, amount: 1, buy-price: 300.0, sell-price: 80.0, display-name: "<gradient:#f4cd2a:#ffffff>Sponge</gradient>" }
-      ink_sac: { material: INK_SAC, amount: 16, buy-price: 35.0, sell-price: 10.0, display-name: "<white>Ink Sacs</white>" }
-      nautilus_shell: { material: NAUTILUS_SHELL, amount: 1, buy-price: 180.0, sell-price: 45.0, display-name: "<white>Nautilus Shell</white>" }
-
-  utility:
-    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Utility</gradient>"
-    icon: CRAFTING_TABLE
-    items:
-      crafting_table: { material: CRAFTING_TABLE, amount: 4, buy-price: 18.0, sell-price: 4.0, display-name: "<white>Crafting Tables</white>" }
-      furnace: { material: FURNACE, amount: 4, buy-price: 25.0, sell-price: 6.0, display-name: "<white>Furnaces</white>" }
-      chest: { material: CHEST, amount: 8, buy-price: 45.0, sell-price: 12.0, display-name: "<white>Chests</white>" }
-      barrel: { material: BARREL, amount: 8, buy-price: 48.0, sell-price: 12.0, display-name: "<white>Barrels</white>" }
-      anvil: { material: ANVIL, amount: 1, buy-price: 260.0, sell-price: 70.0, display-name: "<white>Anvil</white>" }
-      enchanting_table: { material: ENCHANTING_TABLE, amount: 1, buy-price: 550.0, sell-price: 120.0, display-name: "<gradient:#7c3aed:#f4cd2a>Enchanting Table</gradient>" }
-      ender_chest: { material: ENDER_CHEST, amount: 1, buy-price: 400.0, sell-price: 100.0, display-name: "<gradient:#7c3aed:#38bdf8>Ender Chest</gradient>" }
-      name_tag: { material: NAME_TAG, amount: 1, buy-price: 175.0, sell-price: 40.0, display-name: "<white>Name Tag</white>" }
-
-  gear:
-    display-name: "<gradient:#f4cd2a:#eda323:#d28d0d>Tools & Gear</gradient>"
-    icon: IRON_PICKAXE
-    items:
-      iron_pickaxe: { material: IRON_PICKAXE, amount: 1, buy-price: 130.0, sell-price: 30.0, display-name: "<white>Iron Pickaxe</white>" }
-      iron_axe: { material: IRON_AXE, amount: 1, buy-price: 130.0, sell-price: 30.0, display-name: "<white>Iron Axe</white>" }
-      iron_shovel: { material: IRON_SHOVEL, amount: 1, buy-price: 70.0, sell-price: 18.0, display-name: "<white>Iron Shovel</white>" }
-      diamond_pickaxe: { material: DIAMOND_PICKAXE, amount: 1, buy-price: 1400.0, sell-price: 320.0, display-name: "<gradient:#38bdf8:#ffffff>Diamond Pickaxe</gradient>" }
-      diamond_axe: { material: DIAMOND_AXE, amount: 1, buy-price: 1400.0, sell-price: 320.0, display-name: "<gradient:#38bdf8:#ffffff>Diamond Axe</gradient>" }
-      shield: { material: SHIELD, amount: 1, buy-price: 100.0, sell-price: 22.0, display-name: "<white>Shield</white>" }
-      bow: { material: BOW, amount: 1, buy-price: 120.0, sell-price: 28.0, display-name: "<white>Bow</white>" }
-      arrows: { material: ARROW, amount: 32, buy-price: 45.0, sell-price: 12.0, display-name: "<white>Arrows</white>" }
+      map: { material: MAP, amount: 1, buy-price: 225.0, sell-price: 9.75, display-name: "<white>Map</white>" }
+      compass: { material: COMPASS, amount: 1, buy-price: 175.0, sell-price: 8.5, display-name: "<white>Compass</white>" }
+      clock: { material: CLOCK, amount: 1, buy-price: 495.0, sell-price: 15.0, display-name: "<white>Clock</white>" }
+      spyglass: { material: SPYGLASS, amount: 1, buy-price: 180.0, sell-price: 8.65, display-name: "<white>Spyglass</white>" }
+      brush: { material: BRUSH, amount: 1, buy-price: 75.0, sell-price: 4.5, display-name: "<white>Brush</white>" }
+      leather_bundle: { material: BUNDLE, amount: 1, buy-price: 145.0, sell-price: 6.75, display-name: "<white>Leather Bundle</white>" }
+      shears: { material: SHEARS, amount: 1, buy-price: 200.0, sell-price: 6.5, display-name: "<white>Shears</white>" }
+      flint_and_steel: { material: FLINT_AND_STEEL, amount: 1, buy-price: 125.0, sell-price: 3.5, display-name: "<white>Flint & Steel</white>" }
+      item_frame: { material: ITEM_FRAME, amount: 1, buy-price: 35.0, sell-price: 4.5, display-name: "<white>Item Frame</white>" }

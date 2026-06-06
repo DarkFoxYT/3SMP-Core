@@ -1,7 +1,7 @@
 # 3SMPCore Help Configuration
 #
-# /help opens an ItemsAdder textured menu. Each page uses a font image title
-# and transparent click zones so the PNG remains the visible layout.
+# /help opens the ItemsAdder-textured help menu. The command category screens are
+# DeluxeMenus pages opened from the transparent buttons below.
 
 settings:
   server-name: "3SMP"
@@ -13,524 +13,131 @@ messages:
 
 menu:
   enabled: true
+  title: ":offset_-26:&f:help_gui:"
   size: 54
-  title: ":offset_-15:&f:help_gui:"
-  header-slot: -1
+  header-slot: 4
   fill:
-    enabled: false
-    material: AIR
+    enabled: true
+    material: "PAPER"
+    itemsadder: "threesmp:gui_clickzone"
     name: " "
-  itemsadder-font-symbols:
-    help_gui: "\\uA42B"
-    dungeons_commands: "\\uA42C"
-    survival_commands: "\\uA42D"
-    navigation_commands: "\\uA42E"
-    shop_commands: "\\uA42F"
-    social_commands: "\\uA430"
-    claims_commands: "\\uA431"
-    cosmetics_commands: "\\uA432"
-    voting_commands: "\\uA433"
-    misc_commands: "\\uA434"
-    duels_commands: "\\uA435"
+    lore: []
   pages:
     main:
-      title: ":offset_-15:&f:help_gui:"
-      buttons:
-        dungeons:
-          slot: 10
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>Dungeons</gradient>"
-          lore: [ "<gray>Dungeon commands and status.</gray>" ]
-          action: page
-          value: dungeons
-        voting:
-          slot: 12
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>Voting</gradient>"
-          lore: [ "<gray>Vote links and rewards.</gray>" ]
-          action: page
-          value: voting
-        misc:
-          slot: 14
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>Misc</gradient>"
-          lore: [ "<gray>Backpack, gems, ender chest, extras.</gray>" ]
-          action: page
-          value: misc
-        survival:
-          slot: 19
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>Survival</gradient>"
-          lore: [ "<gray>Survival travel commands.</gray>" ]
-          action: page
-          value: survival
-        claims:
-          slot: 21
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>Claims</gradient>"
-          lore: [ "<gray>Claim and trust commands.</gray>" ]
-          action: page
-          value: claims
-        shop:
-          slot: 23
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>Shop</gradient>"
-          lore: [ "<gray>Money, Sapphire, auction, and store commands.</gray>" ]
-          action: page
-          value: shop
-        duels:
-          slot: 28
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>Duels</gradient>"
-          lore: [ "<gray>Duel and party command help.</gray>" ]
-          action: page
-          value: duels
-        cosmetics:
-          slot: 30
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>Cosmetics</gradient>"
-          lore: [ "<gray>Cosmetics and Sapphire unlocks.</gray>" ]
-          action: page
-          value: cosmetics
-        social:
-          slot: 32
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>Social</gradient>"
-          lore: [ "<gray>Message, friend, and ignore commands.</gray>" ]
-          action: page
-          value: social
-        navigation:
-          slot: 40
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>Navigation</gradient>"
-          lore: [ "<gray>Spawn, RTP, market, crates, and back.</gray>" ]
-          action: page
-          value: navigation
-
+      header:
+        material: "PAPER"
+        itemsadder: "threesmp:gui_clickzone"
+        name: " "
+        lore: []
+  buttons:
     dungeons:
-      title: ":offset_-15:&f:dungeons_commands:"
-      buttons:
-        open:
-          slot: 22
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>Dungeons</gradient>"
-          lore: [ "<gray>Opens the dungeon bank/status UI.</gray>" ]
-          action: command
-          value: dungeon
-        back:
-          slot: 49
-          material: ARROW
-          name: "<gray>Back</gray>"
-          action: page
-          value: main
-
-    survival:
-      title: ":offset_-15:&f:survival_commands:"
-      buttons:
-        survival:
-          slot: 10
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/survival</gradient>"
-          action: command
-          value: survival
-        rtp:
-          slot: 19
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/rtp</gradient>"
-          action: command
-          value: rtp
-        home:
-          slot: 28
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/home</gradient>"
-          action: command
-          value: home
-        back_command:
-          slot: 37
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/back</gradient>"
-          action: command
-          value: back
-        back:
-          slot: 49
-          material: ARROW
-          name: "<gray>Back</gray>"
-          action: page
-          value: main
-
-    navigation:
-      title: ":offset_-15:&f:navigation_commands:"
-      buttons:
-        spawn:
-          slot: 10
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/spawn</gradient>"
-          action: command
-          value: spawn
-        rtp:
-          slot: 19
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/rtp</gradient>"
-          action: command
-          value: rtp
-        back_command:
-          slot: 28
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/back</gradient>"
-          action: command
-          value: back
-        market:
-          slot: 37
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/market</gradient>"
-          action: command
-          value: market
-        crates:
-          slot: 46
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/warp crates</gradient>"
-          action: command
-          value: "warp crates"
-        back:
-          slot: 49
-          material: ARROW
-          name: "<gray>Back</gray>"
-          action: page
-          value: main
-
-    shop:
-      title: ":offset_-15:&f:shop_commands:"
-      buttons:
-        balance:
-          slot: 10
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/balance</gradient>"
-          action: command
-          value: balance
-        sapphires:
-          slot: 19
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/sapphires</gradient>"
-          action: command
-          value: sapphires
-        pay:
-          slot: 28
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/pay</gradient>"
-          action: message
-          messages:
-            - "<gray>Use <white>/pay <player> <amount></white> to send money.</gray>"
-        auction:
-          slot: 37
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/ah</gradient>"
-          action: command
-          value: ah
-        shop:
-          slot: 46
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/shop</gradient>"
-          action: command
-          value: shop
-        store:
-          slot: 48
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/store</gradient>"
-          action: command
-          value: store
-        back:
-          slot: 49
-          material: ARROW
-          name: "<gray>Back</gray>"
-          action: page
-          value: main
-
-    social:
-      title: ":offset_-15:&f:social_commands:"
-      buttons:
-        msg:
-          slot: 10
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/msg</gradient>"
-          action: message
-          messages:
-            - "<gray>Use <white>/msg <player> <message></white> to send a private message.</gray>"
-        friends:
-          slot: 19
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/friends</gradient>"
-          action: command
-          value: friends
-        add:
-          slot: 28
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/friend add</gradient>"
-          action: message
-          messages:
-            - "<gray>Use <white>/friend add <player></white> or <white>/friend remove <player></white>.</gray>"
-        ignore:
-          slot: 37
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/ignore</gradient>"
-          action: message
-          messages:
-            - "<gray>Use <white>/ignore <player></white> to hide a player from social messages.</gray>"
-        back:
-          slot: 49
-          material: ARROW
-          name: "<gray>Back</gray>"
-          action: page
-          value: main
-
-    claims:
-      title: ":offset_-15:&f:claims_commands:"
-      buttons:
-        claim:
-          slot: 10
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/claim</gradient>"
-          action: command
-          value: claim
-        trust:
-          slot: 19
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/trust</gradient>"
-          action: message
-          messages:
-            - "<gray>Use <white>/trust <player></white> to add someone to your claim.</gray>"
-        untrust:
-          slot: 28
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/untrust</gradient>"
-          action: message
-          messages:
-            - "<gray>Use <white>/untrust <player></white> to remove someone from your claim.</gray>"
-        list:
-          slot: 37
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/claimlist</gradient>"
-          action: command
-          value: claimlist
-        flags:
-          slot: 46
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/claim flags</gradient>"
-          action: command
-          value: "claim flags"
-        back:
-          slot: 49
-          material: ARROW
-          name: "<gray>Back</gray>"
-          action: page
-          value: main
-
-    cosmetics:
-      title: ":offset_-15:&f:cosmetics_commands:"
-      buttons:
-        cosmetics:
-          slot: 10
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/cosmetics</gradient>"
-          action: command
-          value: cosmetics
-        badges:
-          slot: 19
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>Badges</gradient>"
-          action: command
-          value: "sapphire buy badge"
-        chatcolor:
-          slot: 28
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>Chat Color</gradient>"
-          action: command
-          value: "sapphire buy cosmetics"
-        namecolor:
-          slot: 37
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>Name Color</gradient>"
-          action: command
-          value: "sapphire buy name_color"
-        particles:
-          slot: 46
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>Particles</gradient>"
-          action: command
-          value: "sapphire buy particle"
-        back:
-          slot: 49
-          material: ARROW
-          name: "<gray>Back</gray>"
-          action: page
-          value: main
-
+      slots: [ 0,1,2,3,9,10,11,12 ]
+      material: "PAPER"
+      itemsadder: "threesmp:gui_clickzone"
+      name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Dungeons</bold></gradient>"
+      lore:
+        - "<gray>Dungeon info and current status.</gray>"
+        - "<yellow>Click to open.</yellow>"
+      action: "console-command"
+      value: "dm open dungeons_commands {player}"
     voting:
-      title: ":offset_-15:&f:voting_commands:"
-      buttons:
-        vote:
-          slot: 10
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/vote</gradient>"
-          action: command
-          value: vote
-        top:
-          slot: 19
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/vote top</gradient>"
-          action: command
-          value: "vote top"
-        total:
-          slot: 28
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/vote total</gradient>"
-          action: command
-          value: "vote total"
-        gui:
-          slot: 37
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/vote gui</gradient>"
-          action: command
-          value: "vote gui"
-        party:
-          slot: 46
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/vote party</gradient>"
-          action: command
-          value: "vote party"
-        back:
-          slot: 49
-          material: ARROW
-          name: "<gray>Back</gray>"
-          action: page
-          value: main
-
+      slots: [4,5,6,13,14,15]
+      material: "PAPER"
+      itemsadder: "threesmp:gui_clickzone"
+      name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Voting</bold></gradient>"
+      lore:
+        - "<gray>Vote links, totals, and party votes.</gray>"
+        - "<yellow>Click to open.</yellow>"
+      action: "console-command"
+      value: "dm open voting_commands {player}"
     misc:
-      title: ":offset_-15:&f:misc_commands:"
-      buttons:
-        backpack:
-          slot: 10
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/bp</gradient>"
-          action: command
-          value: bp
-        enderchest:
-          slot: 19
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/ec</gradient>"
-          action: command
-          value: ec
-        gems:
-          slot: 28
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/gems</gradient>"
-          action: command
-          value: gems
-        dungeon:
-          slot: 37
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/dungeon</gradient>"
-          action: command
-          value: dungeon
-        back:
-          slot: 49
-          material: ARROW
-          name: "<gray>Back</gray>"
-          action: page
-          value: main
-
+      slots: [7,8,16,17]
+      material: "PAPER"
+      itemsadder: "threesmp:gui_clickzone"
+      name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Misc</bold></gradient>"
+      lore:
+        - "<gray>Backpack, ender chest, gems, and extras.</gray>"
+        - "<yellow>Click to open.</yellow>"
+      action: "console-command"
+      value: "dm open misc_commands {player}"
+    survival:
+      slots: [19,20]
+      material: "PAPER"
+      itemsadder: "threesmp:gui_clickzone"
+      name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Survival</bold></gradient>"
+      lore:
+        - "<gray>Survival travel commands.</gray>"
+        - "<yellow>Click to open.</yellow>"
+      action: "console-command"
+      value: "dm open survival_commands {player}"
+    claims:
+      slots: [22,23]
+      material: "PAPER"
+      itemsadder: "threesmp:gui_clickzone"
+      name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Claims</bold></gradient>"
+      lore:
+        - "<gray>Claim and trust commands.</gray>"
+        - "<yellow>Click to open.</yellow>"
+      action: "console-command"
+      value: "dm open claims_commands {player}"
+    shop:
+      slot: 25
+      material: "PAPER"
+      itemsadder: "threesmp:gui_clickzone"
+      name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Shop</bold></gradient>"
+      lore:
+        - "<gray>Money, Sapphire, auction, and store commands.</gray>"
+        - "<yellow>Click to open.</yellow>"
+      action: "console-command"
+      value: "dm open shop_commands {player}"
     duels:
-      title: ":offset_-15:&f:duels_commands:"
-      buttons:
-        duel:
-          slot: 10
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/duel</gradient>"
-          action: command
-          value: duel
-        party:
-          slot: 19
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/party</gradient>"
-          action: command
-          value: party
-        match_accept:
-          slot: 28
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/match accept</gradient>"
-          action: command
-          value: "match accept"
-        party_deny:
-          slot: 37
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/party deny</gradient>"
-          action: command
-          value: "party deny"
-        party_leave:
-          slot: 46
-          material: PAPER
-          itemsadder: "threesmp:gui_clickzone"
-          name: "<gradient:#f4cd2a:#eda323:#d28d0d>/party leave</gradient>"
-          action: command
-          value: "party leave"
-        back:
-          slot: 49
-          material: ARROW
-          name: "<gray>Back</gray>"
-          action: page
-          value: main
+      slots: [27,28,29]
+      material: "PAPER"
+      itemsadder: "threesmp:gui_clickzone"
+      name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Duels</bold></gradient>"
+      lore:
+        - "<gray>Duel and party command help.</gray>"
+        - "<yellow>Click to open.</yellow>"
+      action: "console-command"
+      value: "dm open duels_commands {player}"
+    cosmetics:
+      slots: [30,31,32]
+      material: "PAPER"
+      itemsadder: "threesmp:gui_clickzone"
+      name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Cosmetics</bold></gradient>"
+      lore:
+        - "<gray>Cosmetics and Sapphire unlocks.</gray>"
+        - "<yellow>Click to open.</yellow>"
+      action: "console-command"
+      value: "dm open cosmetics_commands {player}"
+    social:
+      slot: 34
+      material: "PAPER"
+      itemsadder: "threesmp:gui_clickzone"
+      name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Social</bold></gradient>"
+      lore:
+        - "<gray>Message, friend, and ignore commands.</gray>"
+        - "<yellow>Click to open.</yellow>"
+      action: "console-command"
+      value: "dm open social_commands {player}"
+    navigation:
+      slots: [47,48,49,50,51]
+      material: "PAPER"
+      itemsadder: "threesmp:gui_clickzone"
+      name: "<gradient:#f4cd2a:#eda323:#d28d0d><bold>Navigation</bold></gradient>"
+      lore:
+        - "<gray>Spawn, RTP, market, crates, and back.</gray>"
+        - "<yellow>Click to open.</yellow>"
+      action: "console-command"
+      value: "dm open navigation_commands {player}"
+    close:
+      slots: [45,53]
+      material: "PAPER"
+      itemsadder: "threesmp:gui_clickzone"
+      name: "<red>Close</red>"
+      lore:
+        - "<gray>Close this menu.</gray>"
+      action: "close"
 
 pages:
   main:

@@ -182,7 +182,7 @@ duels:
       hide-line-numbers: true
       centered: true
       center-width: 30
-      # ItemsAdder/PAPI image placeholder. <img:solo_text> also works if it is mapped in social/friends.yml.
+      # ItemsAdder/PAPI image placeholder. Uses the cached solo_text glyph with icon-sized texture.
       title: "%img_solo_text%"
       lines:
         - ""

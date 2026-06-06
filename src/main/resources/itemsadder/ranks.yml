@@ -59,6 +59,14 @@ font_images:
     scale_ratio: 32
     y_position: 1
   solo_text:
+    path: ranks:font/solo_icon
+    scale_ratio: 16
+    y_position: 8
+  solo_panel:
     path: ranks:font/solo_text
     scale_ratio: 100
     y_position: 1
+  solo_icon:
+    path: ranks:font/solo_icon
+    scale_ratio: 16
+    y_position: 8

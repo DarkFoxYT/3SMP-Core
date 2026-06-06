@@ -269,15 +269,6 @@ sapphire:
       price: 500
       amount: 1
       give-command: ""
-    tag:
-      display-name: "Tag Unlock"
-      material: PAPER
-      page: 4
-      slot: 42
-      currency: sapphires
-      price: 300
-      amount: 1
-      give-command: ""
     particle:
       display-name: "Particle Unlock"
       material: FIREWORK_ROCKET

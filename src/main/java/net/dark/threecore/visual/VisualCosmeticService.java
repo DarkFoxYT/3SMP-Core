@@ -95,6 +95,10 @@ public final class VisualCosmeticService {
         String id = storage.getString(path(player.getUniqueId(), type), "");
         if (id.isBlank()) return null;
         if (id.equalsIgnoreCase("custom") && (type == Type.NAME_COLOR || type == Type.NAME_GRADIENT)) {
+            if (!player.hasPermission("3smpcore.visuals.admin")) {
+                clear(player, type);
+                return null;
+            }
             String value = storage.getString("players." + player.getUniqueId() + "." + type.storageKey() + "-custom", "");
             if (value.isBlank()) return null;
             return new Cosmetic("custom", "Custom " + type.storageKey(), Material.NAME_TAG, value, "");
@@ -112,9 +116,11 @@ public final class VisualCosmeticService {
     }
 
     public boolean owns(Player player, Type type, Cosmetic cosmetic) {
-        return player.hasPermission("3smpcore.visuals.admin")
-            || cosmetic.permission().isBlank()
-            || unlocked(player.getUniqueId(), type).contains(cosmetic.id().toLowerCase(Locale.ROOT));
+        if (player.hasPermission("3smpcore.visuals.admin")) return true;
+        String permission = cosmetic.permission();
+        if (permission == null || permission.isBlank()) return true;
+        return player.hasPermission(permission)
+            || (permission.startsWith("3smpcore.visual.") && player.hasPermission("3smpcore.visual.*"));
     }
 
     public void unlock(Player player, Type type, String id) {

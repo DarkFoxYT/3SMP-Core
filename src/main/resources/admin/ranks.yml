@@ -46,6 +46,13 @@ ranks:
     luckperms-group: "member"
     display-name: "Member"
     weight: 100
+    permissions:
+      - "3smpcore.perks.use"
+      - "3smpcore.back.use"
+      - "3smpcore.tpa.use"
+      - "3smpcore.home.use"
+      - "3smpcore.home.set"
+      - "3smpcore.home.delete"
     visual:
       image: ""
       image-id: ""
@@ -81,7 +88,11 @@ ranks:
       - "essentials.nick"
       - "3smpcore.chat.color.3"
       - "3smpcore.chat.color.mvp"
+      - "3smpcore.chat.hex"
+      - "3smpcore.chat.gradient"
+      - "3smpcore.visual.*"
       - "3smpcore.queue.priority.pro"
+      - "3smpcore.backpack.use"
       - "3smpcore.backpack.limit.1"
       - "3smpcore.perks.use"
       - "3smpcore.sapphires.use"
@@ -118,7 +129,11 @@ ranks:
           - "lp user {player} permission set essentials.smoker true"
           - "lp user {player} permission set essentials.ptime true"
           - "lp user {player} permission set essentials.pweather true"
+          - "lp user {player} permission set 3smpcore.chat.hex true"
+          - "lp user {player} permission set 3smpcore.chat.gradient true"
+          - "lp user {player} permission set 3smpcore.visual.* true"
           - "lp user {player} meta set player-shops 250"
+          - "lp user {player} permission set 3smpcore.backpack.use true"
           - "lp user {player} permission set 3smpcore.backpack.limit.1 true"
   mvp:
     enabled: true
@@ -145,7 +160,11 @@ ranks:
       - "essentials.grindstone"
       - "3smpcore.chat.color.3"
       - "3smpcore.chat.color.mvp"
+      - "3smpcore.chat.hex"
+      - "3smpcore.chat.gradient"
+      - "3smpcore.visual.*"
       - "3smpcore.queue.priority.mvp"
+      - "3smpcore.backpack.use"
       - "3smpcore.backpack.limit.2"
       - "3smpcore.perks.use"
       - "3smpcore.sapphires.use"
@@ -185,7 +204,11 @@ ranks:
           - "lp user {player} permission set essentials.smithingtable true"
           - "lp user {player} permission set essentials.workbench true"
           - "lp user {player} permission set essentials.enderchest true"
+          - "lp user {player} permission set 3smpcore.chat.hex true"
+          - "lp user {player} permission set 3smpcore.chat.gradient true"
+          - "lp user {player} permission set 3smpcore.visual.* true"
           - "lp user {player} meta set player-shops 500"
+          - "lp user {player} permission set 3smpcore.backpack.use true"
           - "lp user {player} permission set 3smpcore.backpack.limit.2 true"
           - "lp user {player} permission set 3smpcore.command.fly true"
   ultra:
@@ -215,7 +238,11 @@ ranks:
       - "3smpcore.chat.color.3"
       - "3smpcore.chat.color.mvp"
       - "3smpcore.chat.color.ultra"
+      - "3smpcore.chat.hex"
+      - "3smpcore.chat.gradient"
+      - "3smpcore.visual.*"
       - "3smpcore.queue.priority.ultra"
+      - "3smpcore.backpack.use"
       - "3smpcore.backpack.limit.3"
       - "3smpcore.perks.use"
       - "3smpcore.sapphires.use"
@@ -256,7 +283,11 @@ ranks:
           - "lp user {player} permission set essentials.workbench true"
           - "lp user {player} permission set essentials.enderchest true"
           - "lp user {player} permission set 3smpcore.command.fly true"
+          - "lp user {player} permission set 3smpcore.chat.hex true"
+          - "lp user {player} permission set 3smpcore.chat.gradient true"
+          - "lp user {player} permission set 3smpcore.visual.* true"
           - "lp user {player} meta set player-shops unlimited"
+          - "lp user {player} permission set 3smpcore.backpack.use true"
           - "lp user {player} permission set 3smpcore.backpack.limit.3 true"
   "3":
     enabled: true
@@ -267,7 +298,11 @@ ranks:
       - "3smpcore.chat.color.3"
       - "3smpcore.chat.color.mvp"
       - "3smpcore.chat.color.ultra"
+      - "3smpcore.chat.hex"
+      - "3smpcore.chat.gradient"
+      - "3smpcore.visual.*"
       - "3smpcore.queue.priority.3"
+      - "3smpcore.backpack.use"
       - "3smpcore.backpack.limit.1"
       - "3smpcore.perks.use"
       - "3smpcore.sapphires.use"
@@ -304,8 +339,70 @@ ranks:
           - "lp user {player} permission set essentials.smoker true"
           - "lp user {player} permission set essentials.ptime true"
           - "lp user {player} permission set essentials.pweather true"
+          - "lp user {player} permission set 3smpcore.chat.hex true"
+          - "lp user {player} permission set 3smpcore.chat.gradient true"
+          - "lp user {player} permission set 3smpcore.visual.* true"
           - "lp user {player} meta set player-shops 200"
+          - "lp user {player} permission set 3smpcore.backpack.use true"
           - "lp user {player} permission set 3smpcore.backpack.limit.1 true"
+  patron:
+    enabled: true
+    luckperms-group: "patron"
+    display-name: "Patron"
+    weight: 15
+    permissions:
+      - "3smpcore.chat.hex"
+      - "3smpcore.chat.gradient"
+      - "3smpcore.visual.*"
+      - "3smpcore.backpack.use"
+      - "3smpcore.backpack.limit.10"
+      - "3smpcore.perks.use"
+      - "3smpcore.sapphires.use"
+      - "3smpcore.gems.use"
+      - "3smpcore.souls.use"
+      - "3smpcore.daily.use"
+    chat:
+      priority: 210
+      name-format: "<gradient:#f4cd2a:#eda323:#d28d0d><player></gradient>"
+      name-color: "gold"
+      tag-format: "<gradient:#f4cd2a:#eda323:#d28d0d><tag></gradient>"
+      tag-color: "gold"
+      message-color: "white"
+    visual:
+      image: "<img:patron>"
+      image-id: "patron"
+      gradient: "patron"
+      gradient-colors: "#f4cd2a:#eda323:#d28d0d"
+      sort-weight: 15
+  h318:
+    enabled: true
+    luckperms-group: "h318"
+    display-name: "H318"
+    weight: 5
+    permissions:
+      - "3smpcore.chat.hex"
+      - "3smpcore.chat.gradient"
+      - "3smpcore.visual.*"
+      - "3smpcore.backpack.use"
+      - "3smpcore.backpack.limit.unlimited"
+      - "3smpcore.perks.use"
+      - "3smpcore.sapphires.use"
+      - "3smpcore.gems.use"
+      - "3smpcore.souls.use"
+      - "3smpcore.daily.use"
+    chat:
+      priority: 230
+      name-format: "<gradient:#60a5fa:#c084fc><player></gradient>"
+      name-color: "aqua"
+      tag-format: "<gradient:#60a5fa:#c084fc><tag></gradient>"
+      tag-color: "aqua"
+      message-color: "white"
+    visual:
+      image: "<img:h318>"
+      image-id: "h318"
+      gradient: "h318"
+      gradient-colors: "#60a5fa:#c084fc"
+      sort-weight: 5
   owner:
     enabled: true
     luckperms-group: "owner"
@@ -317,6 +414,10 @@ ranks:
       - "altdetector.alt"
       - "altdetector.alt.seevanished"
       - "3smpcore.perks.all"
+      - "3smpcore.chat.hex"
+      - "3smpcore.chat.gradient"
+      - "3smpcore.visual.*"
+      - "3smpcore.backpack.use"
       - "3smpcore.backpack.limit.unlimited"
     chat:
       priority: 300
@@ -339,6 +440,10 @@ ranks:
     permissions:
       - "altdetector.notify"
       - "altdetector.alt"
+      - "3smpcore.chat.hex"
+      - "3smpcore.chat.gradient"
+      - "3smpcore.visual.*"
+      - "3smpcore.backpack.use"
       - "3smpcore.backpack.limit.10"
     chat:
       priority: 250
@@ -364,6 +469,10 @@ ranks:
       - "altdetector.alt"
       - "altdetector.alt.seevanished"
       - "3smpcore.perks.all"
+      - "3smpcore.chat.hex"
+      - "3smpcore.chat.gradient"
+      - "3smpcore.visual.*"
+      - "3smpcore.backpack.use"
       - "3smpcore.backpack.limit.10"
     chat:
       priority: 240

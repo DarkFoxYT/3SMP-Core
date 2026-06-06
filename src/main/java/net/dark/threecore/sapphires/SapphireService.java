@@ -279,11 +279,6 @@ public final class SapphireService {
             Text.send(player, "<gray>Choose a locked weapon cosmetic to unlock it with Sapphires.</gray>");
             return true;
         }
-        if (id.equalsIgnoreCase("tag")) {
-            if (perkService != null) perkService.openCategory(player, "tags");
-            Text.send(player, "<gray>Choose a locked tag to unlock it with Sapphires.</gray>");
-            return true;
-        }
         if (id.equalsIgnoreCase("particle")) {
             if (perkService != null) perkService.openCategory(player, "particles");
             Text.send(player, "<gray>Choose a locked particle cosmetic to unlock it with Sapphires.</gray>");
@@ -863,15 +858,6 @@ public final class SapphireService {
                       - "&8Pick a locked weapon cosmetic."
                     left_click_commands:
                       - "[player] sapphire deluxe buy weapon_cosmetic"
-                  tag:
-                    material: PAPER
-                    slot: 37
-                    display_name: "&#f4cd2a&lTag &#ffffff&lUnlock"
-                    lore:
-                      - "&#f4cd2aPrice: &f300 Sapphires"
-                      - "&8Pick a locked chat tag."
-                    left_click_commands:
-                      - "[player] sapphire deluxe buy tag"
                   prophecy_armor:
                     material: NETHERITE_CHESTPLATE
                     slot: 38

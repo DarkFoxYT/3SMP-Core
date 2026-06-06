@@ -775,6 +775,17 @@ public final class DuelService implements Listener {
     public DuelKit kit(String id) { return id == null ? null : kits.get(id.toLowerCase(Locale.ROOT)); }
     public DuelMap map(String id) { return id == null ? null : maps.get(id.toLowerCase(Locale.ROOT)); }
 
+    public boolean canJoinConfiguredPartyDuel(UUID uuid) {
+        Player player = uuid == null ? null : Bukkit.getPlayer(uuid);
+        return player != null
+                && player.isOnline()
+                && canUseInWorld(player)
+                && !matchesByPlayer.containsKey(uuid)
+                && !ACTIVE_DUEL_PLAYERS.contains(uuid)
+                && !preparingDuelPlayers.contains(uuid)
+                && !queueByPlayer.containsKey(uuid);
+    }
+
     public boolean startConfiguredPartyDuel(Player requester, Set<UUID> red, Set<UUID> blue, String kitId, int rounds, String mapId) {
         return startConfiguredPartyDuel(requester, red, blue, kitId, rounds, mapId, false);
     }

@@ -1,6 +1,7 @@
 package net.dark.threecore;
 
 import net.dark.threecore.chat.ChatFormatService;
+import net.dark.threecore.combat.CombatTimerService;
 import net.dark.threecore.commandspy.CommandSpyManager;
 import net.dark.threecore.afk.AfkZoneManager;
 import net.dark.threecore.auction.AuctionHouseService;
@@ -47,6 +48,7 @@ import net.dark.threecore.gems.SeasonalGemRegistry;
 import net.dark.threecore.gems.listener.GemAutoApplyListener;
 import net.dark.threecore.fishing.FishingListener;
 import net.dark.threecore.fishing.FishingRewardManager;
+import net.dark.threecore.fixes.ThreeSMPGeneralFixes;
 import net.dark.threecore.launchpads.LaunchpadService;
 import net.dark.threecore.spawn.SpawnProtectionService;
 import net.dark.threecore.spawn.SpawnService;
@@ -156,12 +158,14 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
     private VeilcutterService veilcutterService;
     private ItemPowerService itemPowerService;
     private CrateService crateService;
+    private CombatTimerService combatTimerService;
 
     @Override
     public void onEnable() {
         this.trapCommandLogSilencer = TrapCommandLogSilencer.install();
         silenceTrapCommandFeedback();
         saveDefaultFiles();
+        ThreeSMPGeneralFixes.install(this);
 
         this.licenseManager = new LicenseManager(this);
         licenseManager.ensureTemplate();
@@ -206,6 +210,7 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         this.thirdLifeService = new ThirdLifeService(this);
         this.veilcutterService = new VeilcutterService(this);
         this.itemPowerService = new ItemPowerService(this);
+        this.combatTimerService = new CombatTimerService(this, configs);
         this.crateService = new CrateService(this, configs);
         this.sellService = new SellService(this, configs, moneyService);
         this.shopService = new ShopService(this, configs, moneyService);
@@ -270,6 +275,7 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         this.visualManager.start();
         this.screenTextManager = new ScreenTextManager(this, configs, moneyService);
         this.screenTextManager.start();
+        this.combatTimerService.start();
         this.crateService.start();
         this.rankService.start();
         this.commandManager = new CoreCommandManager(this, configs, rankService, perkService, sapphireService, gemService, chatFormatService, spawnService, launchpadService, commandSpyManager, warpManager, moneyService, clearLagManager, duelService, dungeonService, afkZoneManager, dailyRewardManager, soulManager, marketPlotManager, hologramManager);
@@ -421,6 +427,7 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         getServer().getPluginManager().registerEvents(spawnService, this);
         getServer().getPluginManager().registerEvents(spawnZoneManager, this);
         getServer().getPluginManager().registerEvents(survivalService, this);
+        getServer().getPluginManager().registerEvents(combatTimerService, this);
         getServer().getPluginManager().registerEvents(thirdLifeService, this);
         getServer().getPluginManager().registerEvents(veilcutterService, this);
         getServer().getPluginManager().registerEvents(itemPowerService, this);
@@ -482,6 +489,7 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         if (hologramManager != null) hologramManager.removeAll();
         if (visualManager != null) visualManager.shutdown();
         if (screenTextManager != null) screenTextManager.shutdown();
+        if (combatTimerService != null) combatTimerService.shutdown();
         if (crateService != null) crateService.shutdown();
         if (duelService != null) duelService.shutdown();
         if (partyService != null) partyService.shutdown();
@@ -518,6 +526,7 @@ public final class ThreeSMPCorePlugin extends JavaPlugin {
         if (marketPlotManager != null) marketPlotManager.reload();
         if (visualManager != null) visualManager.reload();
         if (screenTextManager != null) screenTextManager.reload();
+        if (combatTimerService != null) combatTimerService.reload();
         if (crateService != null) crateService.refresh();
     }
 

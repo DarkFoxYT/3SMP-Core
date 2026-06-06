@@ -60,12 +60,6 @@ items:
     display_name: "&#ef4444&lWeapon &#f4cd2a&lCosmetic"
     lore: ["&#f4cd2aPrice: &f500 Sapphires", "&8Pick a weapon cosmetic."]
     left_click_commands: ["[player] sapphire deluxe buy weapon_cosmetic"]
-  tag:
-    material: PAPER
-    slot: 42
-    display_name: "&#f4cd2a&lTag &#ffffff&lUnlock"
-    lore: ["&#f4cd2aPrice: &f300 Sapphires", "&8Pick a locked chat tag."]
-    left_click_commands: ["[player] sapphire deluxe buy tag"]
   particle:
     material: FIREWORK_ROCKET
     slot: 44

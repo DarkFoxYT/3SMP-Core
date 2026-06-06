@@ -54,7 +54,7 @@ public final class ChatFormatService implements Listener {
         var data = perkService.data(player.getUniqueId());
         RankChatStyle style = resolveRankStyle(player);
         Component prefix = visualManager == null ? resolvePrefix(player) : visualManager.renderedPrefix(player);
-        Component tag = styledTag(player, data.activeTag(), style);
+        Component tag = Component.empty();
         Component name = visualManager == null ? styledPlayerName(player, style) : visualManager.renderedPlayerName(player);
         String messageColor = resolveMessageColor(player, data.activeMessageColor(), style);
         event.renderer((source, sourceDisplayName, chatMessage, viewer) -> joinChatParts(prefix, name, tag, chatMessage(player, chatMessage, messageColor)));
@@ -97,8 +97,7 @@ public final class ChatFormatService implements Listener {
     }
 
     public String tabTag(Player player) {
-        var data = perkService.data(player.getUniqueId());
-        return serializeForPlaceholder(styledTag(player, data.activeTag(), resolveRankStyle(player)));
+        return "";
     }
 
     public String tabDisplay(Player player) {
@@ -180,15 +179,46 @@ public final class ChatFormatService implements Listener {
     private boolean canUseSelectedColor(Player player, String colorId) {
         ConfigurationSection sec = configs.get("cosmetics/colors.yml").getConfigurationSection("colors." + colorId.toLowerCase(Locale.ROOT));
         if (sec == null) return false;
-        return colorId.equalsIgnoreCase("default")
-                || player.hasPermission("3smpcore.perks.admin")
-                || perkService.hasUnlocked(player.getUniqueId(), colorId);
+        if (colorId.equalsIgnoreCase("default")) return true;
+        if (player.hasPermission("3smpcore.perks.admin") || player.hasPermission("3smpcore.perks.all") || player.hasPermission("3smpcore.admin") || player.isOp()) return true;
+        if (!perkService.hasUnlocked(player.getUniqueId(), colorId)) return false;
+        String permission = sec.getString("permission", "");
+        String requiredRank = sec.getString("required-rank", "");
+        boolean hasGate = !permission.isBlank() || !requiredRank.isBlank();
+        if (!hasGate) return false;
+        return (!permission.isBlank() && player.hasPermission(permission))
+                || (!requiredRank.isBlank() && matchesRank(player, requiredRank));
     }
 
     private boolean matchesRank(Player player, String requiredRank) {
         if (requiredRank == null || requiredRank.isBlank()) return true;
         String primary = luckPermsPrimaryGroup(player.getUniqueId());
-        return primary != null && primary.equalsIgnoreCase(requiredRank);
+        if (primary == null) return false;
+        if (primary.equalsIgnoreCase(requiredRank)) return true;
+        int currentWeight = rankGateWeight(primary);
+        int requiredWeight = rankGateWeight(requiredRank);
+        return currentWeight > 0 && requiredWeight > 0 && currentWeight <= requiredWeight;
+    }
+
+    private int rankGateWeight(String rank) {
+        if (rank == null) return -1;
+        return switch (rank.toLowerCase(Locale.ROOT)) {
+            case "owner" -> 1;
+            case "dev" -> 2;
+            case "admin" -> 3;
+            case "sr-admin", "sradmin" -> 4;
+            case "h318", "mod" -> 5;
+            case "sr-mod", "srmod" -> 6;
+            case "jr-mod", "jrmod" -> 7;
+            case "builder" -> 8;
+            case "ultra" -> 10;
+            case "patron" -> 15;
+            case "mvp" -> 20;
+            case "pro" -> 35;
+            case "3", "3smp" -> 40;
+            case "member", "default" -> 100;
+            default -> -1;
+        };
     }
 
     private Component display(Player player, String file, String root, String id) {
@@ -311,13 +341,7 @@ public final class ChatFormatService implements Listener {
     }
 
     private Component styledTag(Player player, String activeTag, RankChatStyle style) {
-        Component base = display(player, "cosmetics/tags.yml", "tags", activeTag);
-        if (base.equals(Component.empty())) return base;
-        if (style.tagFormat() != null && !style.tagFormat().isBlank()) {
-            String plain = PlainTextComponentSerializer.plainText().serialize(base);
-            return deserializeDecoration(style.tagFormat().replace("<tag>", escapeMini(plain)));
-        }
-        return colorComponent(base, style.tagColorId());
+        return Component.empty();
     }
 
     private Component colorComponent(Component component, String colorId) {

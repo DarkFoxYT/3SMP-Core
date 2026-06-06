@@ -89,9 +89,10 @@ public final class HelpService implements Listener {
                 if (section == null) continue;
                 String permission = section.getString("permission", "");
                 if (permission != null && !permission.isBlank() && !player.hasPermission(permission)) continue;
-                int slot = section.getInt("slot", -1);
-                if (slot < 0 || slot >= inv.getSize()) continue;
-                inv.setItem(slot, item(section, Material.BOOK, player));
+                List<Integer> slots = buttonSlots(section, inv.getSize());
+                if (slots.isEmpty()) continue;
+                ItemStack button = item(section, Material.BOOK, player);
+                for (int slot : slots) inv.setItem(slot, button);
             }
         }
         player.openInventory(inv);
@@ -108,7 +109,7 @@ public final class HelpService implements Listener {
         if (buttons == null) return;
         for (String id : buttons.getKeys(false)) {
             ConfigurationSection section = buttons.getConfigurationSection(id);
-            if (section == null || section.getInt("slot", -1) != slot) continue;
+            if (section == null || !buttonSlots(section, event.getView().getTopInventory().getSize()).contains(slot)) continue;
             String permission = section.getString("permission", "");
             if (permission != null && !permission.isBlank() && !player.hasPermission(permission)) {
                 Text.send(player, configs.get("core/help.yml").getString("messages.no-permission", "<red>You cannot view that help page.</red>"));
@@ -145,6 +146,35 @@ public final class HelpService implements Listener {
     private ConfigurationSection buttonsFor(String pageId) {
         ConfigurationSection pageButtons = configs.get("core/help.yml").getConfigurationSection("menu.pages." + pageId + ".buttons");
         return pageButtons != null ? pageButtons : configs.get("core/help.yml").getConfigurationSection("menu.buttons");
+    }
+
+    private List<Integer> buttonSlots(ConfigurationSection section, int size) {
+        Set<Integer> slots = new LinkedHashSet<>();
+        if (section.isSet("slot")) addSlot(slots, section.getInt("slot", -1), size);
+
+        List<?> configuredSlots = section.getList("slots");
+        if (configuredSlots != null) {
+            for (Object raw : configuredSlots) {
+                if (raw instanceof Number number) {
+                    addSlot(slots, number.intValue(), size);
+                    continue;
+                }
+                if (raw instanceof String text) {
+                    for (String part : text.split("[,\\s]+")) {
+                        if (part.isBlank()) continue;
+                        try {
+                            addSlot(slots, Integer.parseInt(part), size);
+                        } catch (NumberFormatException ignored) {
+                        }
+                    }
+                }
+            }
+        }
+        return new ArrayList<>(slots);
+    }
+
+    private void addSlot(Set<Integer> slots, int slot, int size) {
+        if (slot >= 0 && slot < size) slots.add(slot);
     }
 
     private String replaceGuiSymbols(String input) {

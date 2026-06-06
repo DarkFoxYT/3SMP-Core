@@ -29,6 +29,16 @@ spawn:
 messages:
   teleported: "<green>Sent to the survival world.</green>"
 
+combat-tag:
+  enabled: true
+  duration-seconds: 15
+  actionbar: "<red>In combat</red> <dark_gray>|</dark_gray> <white>{seconds}s</white>"
+  ended-actionbar: "<gray>You are no longer in combat.</gray>"
+  show-ended-actionbar: true
+  ignore-duels: true
+  ignore-zonepvp: false
+  worlds: []
+
 command-lock:
   enabled: false
   deny-message: "<red>That command is disabled in survival.</red>"

@@ -572,8 +572,11 @@ public final class PartyService implements Listener {
         Inventory inv = Bukkit.createInventory(new CoreMenuHolder(CoreMenuType.PARTY_MAIN, "party-duel"), 45, "Party Duel Setup");
         for (int i=0;i<inv.getSize();i++) inv.setItem(i, createPlain(Material.BLUE_STAINED_GLASS_PANE, " "));
         PartyDuelSetup setup = setup(player);
-        inv.setItem(10, createPlain(Material.RED_WOOL, "<red>Red Team</red><gray>: </gray><white>" + teamNames(setup.red()) + "</white>", List.of(
-                setup.ffa()[0] ? "<gray>FFA uses this list as players, not a team.</gray>" : "<gray>Click to choose red team players.</gray>"
+        Set<UUID> ffaPlayers = setup.ffa()[0] ? availablePartyDuelMembers(player.getUniqueId()) : Set.of();
+        inv.setItem(10, createPlain(Material.RED_WOOL, setup.ffa()[0]
+                ? "<gradient:#f4cd2a:#eda323:#d28d0d>FFA Players</gradient><gray>: </gray><white>" + teamNames(ffaPlayers) + "</white>"
+                : "<red>Red Team</red><gray>: </gray><white>" + teamNames(setup.red()) + "</white>", List.of(
+                setup.ffa()[0] ? "<gray>Uses all active online party members automatically.</gray>" : "<gray>Click to choose red team players.</gray>"
         )));
         inv.setItem(13, createPlain(setup.ffa()[0] ? Material.NETHER_STAR : Material.GRAY_DYE,
                 setup.ffa()[0] ? "<gradient:#f4cd2a:#eda323:#d28d0d>FFA: ON</gradient>" : "<gray>FFA: OFF</gray>",
@@ -581,8 +584,10 @@ public final class PartyService implements Listener {
                         "<gray>Party duels only.</gray>",
                         "<gray>Click to toggle free-for-all for the selected players.</gray>"
                 )));
-        inv.setItem(16, createPlain(Material.BLUE_WOOL, "<blue>Blue Team</blue><gray>: </gray><white>" + teamNames(setup.blue()) + "</white>", List.of(
-                setup.ffa()[0] ? "<gray>FFA also uses this list as players.</gray>" : "<gray>Click to choose blue team players.</gray>"
+        inv.setItem(16, createPlain(Material.BLUE_WOOL, setup.ffa()[0]
+                ? "<gray>Inactive players are skipped</gray>"
+                : "<blue>Blue Team</blue><gray>: </gray><white>" + teamNames(setup.blue()) + "</white>", List.of(
+                setup.ffa()[0] ? "<gray>Offline, queued, dueling, or unavailable party members are ignored.</gray>" : "<gray>Click to choose blue team players.</gray>"
         )));
         inv.setItem(20, createPlain(selectedKitMaterial(setup), "<gradient:#60a5fa:#c084fc>Kit</gradient><gray>: </gray><white>" + selectedKitName(setup) + "</white>", List.of(
                 "<gray>Click to change the duel kit.</gray>",
@@ -609,9 +614,21 @@ public final class PartyService implements Listener {
         }
         if (!requireLeader(player, "configure party duels")) return;
         switch (slot) {
-            case 10 -> openPartyDuelMemberPicker(player, "red");
+            case 10 -> {
+                if (setup(player).ffa()[0]) {
+                    Text.send(player, "<gray>FFA uses all active online party members automatically.</gray>");
+                    return;
+                }
+                openPartyDuelMemberPicker(player, "red");
+            }
             case 13 -> togglePartyDuelFfa(player);
-            case 16 -> openPartyDuelMemberPicker(player, "blue");
+            case 16 -> {
+                if (setup(player).ffa()[0]) {
+                    Text.send(player, "<gray>Inactive party members are skipped when FFA starts.</gray>");
+                    return;
+                }
+                openPartyDuelMemberPicker(player, "blue");
+            }
             case 20 -> openPartyDuelKitPicker(player);
             case 22 -> openRoundsSign(player);
             case 24 -> openPartyDuelMapPicker(player);
@@ -706,7 +723,20 @@ public final class PartyService implements Listener {
         if (!requireLeader(player, "start party duels")) return;
         PartyDuelSetup setup = setup(player);
         if (duelService == null) { Text.send(player, "<red>Duel service is not ready.</red>"); return; }
-        pruneUnavailableDuelSelections(setup, onlinePartyMembers(player.getUniqueId()));
+        Set<UUID> online = onlinePartyMembers(player.getUniqueId());
+        if (setup.ffa()[0]) {
+            Set<UUID> available = availablePartyDuelMembers(player.getUniqueId());
+            if (available.size() < 2) {
+                Text.send(player, "<red>Party FFA needs at least two active online party members.</red>");
+                return;
+            }
+            notifySkippedPartyDuelMembers(player, available);
+            setup.red().clear();
+            setup.red().addAll(available);
+            setup.blue().clear();
+        } else {
+            pruneUnavailableDuelSelections(setup, online);
+        }
         if (duelService.startConfiguredPartyDuel(player, setup.red(), setup.blue(), setup.kitId()[0], setup.rounds()[0], setup.mapId()[0], setup.ffa()[0])) {
             Text.send(player, "<green>Party duel starting.</green>");
             player.closeInventory();
@@ -826,6 +856,26 @@ public final class PartyService implements Listener {
     private void pruneUnavailableDuelSelections(PartyDuelSetup setup, Set<UUID> allowed) {
         setup.red().removeIf(uuid -> !allowed.contains(uuid));
         setup.blue().removeIf(uuid -> !allowed.contains(uuid));
+    }
+
+    private Set<UUID> availablePartyDuelMembers(UUID member) {
+        Set<UUID> available = new LinkedHashSet<>();
+        for (UUID uuid : partyMembers(member)) {
+            if (duelService != null && duelService.canJoinConfiguredPartyDuel(uuid)) {
+                available.add(uuid);
+            }
+        }
+        return available;
+    }
+
+    private void notifySkippedPartyDuelMembers(Player player, Set<UUID> included) {
+        List<String> skipped = new ArrayList<>();
+        for (UUID uuid : partyMembers(player.getUniqueId())) {
+            if (!included.contains(uuid)) skipped.add(playerName(uuid));
+        }
+        if (!skipped.isEmpty()) {
+            Text.send(player, "<gray>Skipped inactive party members:</gray> <white>" + String.join(", ", skipped) + "</white>");
+        }
     }
 
     private int parseSignInteger(SignChangeEvent event, int max) {

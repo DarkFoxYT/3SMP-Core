@@ -76,6 +76,8 @@ public final class ItemPowerService implements Listener {
     private static final String SAPPHIRE_NS = "threesmp:" + SAPPHIRE_ID;
     private static final String ESCHATON_NS = "threesmp:" + ESCHATON_ID;
     private static final Key FORSAKEN_ELYTRA_ASSET = Key.key("threesmp", "forsaken_elytra");
+    private static final Key ESCHATON_ITEM_MODEL = Key.key("threesmp", "eschaton");
+    private static final int ESCHATON_CUSTOM_MODEL_DATA = 10000;
     private static final int MAX_VEIN_BLOCKS = 96;
     private static final long SPECIAL_DROP_COOLDOWN_MILLIS = 10L * 60L * 1000L;
     private static final long LAZURITE_COOLDOWN_MILLIS = 30_000L;
@@ -626,7 +628,16 @@ public final class ItemPowerService implements Listener {
     }
 
     private boolean isEschaton(ItemStack item) {
-        return isCustomItem(item, eschatonKey, ESCHATON_NS, "eschaton", "");
+        if (item == null || item.getType() == Material.AIR || !item.hasItemMeta()) return false;
+        ItemMeta meta = item.getItemMeta();
+        if (meta.getPersistentDataContainer().has(eschatonKey, PersistentDataType.BYTE)) {
+            ensureEschatonModel(item);
+            return true;
+        }
+        String id = itemsAdderId(item);
+        boolean matches = ESCHATON_NS.equalsIgnoreCase(id) || ESCHATON_ID.equalsIgnoreCase(id);
+        if (matches) ensureEschatonModel(item);
+        return matches;
     }
 
     private void ensureForsakenElytraTexture(ItemStack item) {
@@ -661,7 +672,7 @@ public final class ItemPowerService implements Listener {
             case SAPPHIRE_QUIVER_ID -> mark(applySapphireQuiverEnchantments(itemsAdderItem(SAPPHIRE_QUIVER_NS, fallbackSapphireQuiver())), sapphireQuiverKey);
             case SAPPHIRE_BULWARK_ID -> mark(applySapphireBulwarkEnchantments(itemsAdderItem(SAPPHIRE_BULWARK_NS, fallbackSapphireBulwark())), sapphireBulwarkKey);
             case SAPPHIRE_ID -> mark(itemsAdderItem(SAPPHIRE_NS, fallbackSapphire()), sapphireKey);
-            case ESCHATON_ID -> mark(applyEschatonEnchantments(itemsAdderItem(ESCHATON_NS, fallbackEschaton())), eschatonKey);
+            case ESCHATON_ID -> mark(applyEschatonEnchantments(ensureEschatonModel(itemsAdderItem(ESCHATON_NS, fallbackEschaton()))), eschatonKey);
             default -> null;
         };
     }
@@ -738,6 +749,7 @@ public final class ItemPowerService implements Listener {
         addEnchant(item, "sharpness", 5);
         addEnchant(item, "unbreaking", 3);
         addEnchant(item, "mending", 1);
+        ensureEschatonModel(item);
         return item;
     }
 
@@ -832,15 +844,26 @@ public final class ItemPowerService implements Listener {
         ));
         meta.addItemFlags(ItemFlag.HIDE_ATTRIBUTES);
         item.setItemMeta(meta);
-        return item;
+        return ensureEschatonModel(item);
     }
 
     private Material preferredSpearMaterial() {
+        Material netheriteSpear = Material.matchMaterial("NETHERITE_SPEAR");
+        if (netheriteSpear != null) return netheriteSpear;
         Material spear = Material.matchMaterial("SPEAR");
         if (spear != null) return spear;
         Material moddedSpear = Material.matchMaterial("MINECRAFT_SPEAR");
         if (moddedSpear != null) return moddedSpear;
         return Material.TRIDENT;
+    }
+
+    private ItemStack ensureEschatonModel(ItemStack item) {
+        if (item == null || item.getType() == Material.AIR || !item.hasItemMeta()) return item;
+        ItemMeta meta = item.getItemMeta();
+        meta.setCustomModelData(ESCHATON_CUSTOM_MODEL_DATA);
+        item.setItemMeta(meta);
+        item.setData(DataComponentTypes.ITEM_MODEL, ESCHATON_ITEM_MODEL);
+        return item;
     }
 
     private void trailSapphireArrow(Projectile projectile) {

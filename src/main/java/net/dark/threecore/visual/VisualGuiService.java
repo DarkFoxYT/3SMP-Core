@@ -156,6 +156,11 @@ public final class VisualGuiService implements Listener {
     private boolean purchaseLockedVisual(Player player, VisualCosmeticService.Type type, VisualCosmeticService.Cosmetic cosmetic, int page) {
         String shopItem = sapphireShopItem(type);
         if (shopItem == null) return false;
+        if (!player.hasPermission("3smpcore.visuals.admin") && !cosmetic.permission().isBlank()
+                && !player.hasPermission(cosmetic.permission()) && !player.hasPermission("3smpcore.visual.*")) {
+            Text.send(player, "<red>Name colors and gradients are donor and staff cosmetics.</red>");
+            return true;
+        }
         long price = configs.get("economy/sapphires.yml").getLong("sapphire.shop-items." + shopItem + ".price", 0L);
         if (price <= 0L) {
             Text.send(player, "<yellow>That visual unlock is coming soon.</yellow>");

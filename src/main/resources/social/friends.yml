@@ -51,6 +51,7 @@ friends:
           patron: "%img_patron%"
           3smp: "%img_3smp%"
           solo_text: "%img_solo_text%"
+          solo_icon: "%img_solo_icon%"
     world-display-names:
       world: "Survival"
       world_nether: "Nether"
@@ -330,6 +331,131 @@ visual-cosmetics:
       icon: "GRAY_DYE"
       color: "#94a3b8"
       permission: "3smpcore.visual.color.graphite"
+    celestial_blue:
+      display-name: "Celestial Blue"
+      icon: "LIGHT_BLUE_DYE"
+      color: "#60a5fa"
+      permission: "3smpcore.visual.color.celestial_blue"
+    prismarine:
+      display-name: "Prismarine"
+      icon: "PRISMARINE_CRYSTALS"
+      color: "#5eead4"
+      permission: "3smpcore.visual.color.prismarine"
+    opal:
+      display-name: "Opal"
+      icon: "QUARTZ"
+      color: "#f0fdfa"
+      permission: "3smpcore.visual.color.opal"
+    moonstone:
+      display-name: "Moonstone"
+      icon: "LIGHT_GRAY_DYE"
+      color: "#cbd5e1"
+      permission: "3smpcore.visual.color.moonstone"
+    ember_gold:
+      display-name: "Ember Gold"
+      icon: "BLAZE_POWDER"
+      color: "#f59e0b"
+      permission: "3smpcore.visual.color.ember_gold"
+    sunfire:
+      display-name: "Sunfire"
+      icon: "ORANGE_DYE"
+      color: "#fb923c"
+      permission: "3smpcore.visual.color.sunfire"
+    cherry_blossom:
+      display-name: "Cherry Blossom"
+      icon: "PINK_DYE"
+      color: "#f9a8d4"
+      permission: "3smpcore.visual.color.cherry_blossom"
+    orchid:
+      display-name: "Orchid"
+      icon: "MAGENTA_DYE"
+      color: "#d946ef"
+      permission: "3smpcore.visual.color.orchid"
+    amethyst:
+      display-name: "Amethyst"
+      icon: "AMETHYST_SHARD"
+      color: "#8b5cf6"
+      permission: "3smpcore.visual.color.amethyst"
+    deep_violet:
+      display-name: "Deep Violet"
+      icon: "PURPLE_DYE"
+      color: "#7c3aed"
+      permission: "3smpcore.visual.color.deep_violet"
+    rose_gold:
+      display-name: "Rose Gold"
+      icon: "COPPER_INGOT"
+      color: "#fda4af"
+      permission: "3smpcore.visual.color.rose_gold"
+    mint:
+      display-name: "Mint"
+      icon: "LIME_DYE"
+      color: "#86efac"
+      permission: "3smpcore.visual.color.mint"
+    jade:
+      display-name: "Jade"
+      icon: "EMERALD"
+      color: "#34d399"
+      permission: "3smpcore.visual.color.jade"
+    neon_lime:
+      display-name: "Neon Lime"
+      icon: "LIME_DYE"
+      color: "#a3e635"
+      permission: "3smpcore.visual.color.neon_lime"
+    glacial:
+      display-name: "Glacial"
+      icon: "PACKED_ICE"
+      color: "#bae6fd"
+      permission: "3smpcore.visual.color.glacial"
+    arctic:
+      display-name: "Arctic"
+      icon: "ICE"
+      color: "#7dd3fc"
+      permission: "3smpcore.visual.color.arctic"
+    obsidian:
+      display-name: "Obsidian"
+      icon: "OBSIDIAN"
+      color: "#1e1b4b"
+      permission: "3smpcore.visual.color.obsidian"
+    silver:
+      display-name: "Silver"
+      icon: "IRON_INGOT"
+      color: "#e5e7eb"
+      permission: "3smpcore.visual.color.silver"
+    copper:
+      display-name: "Copper"
+      icon: "COPPER_INGOT"
+      color: "#c2410c"
+      permission: "3smpcore.visual.color.copper"
+    coral:
+      display-name: "Coral"
+      icon: "PINK_DYE"
+      color: "#fb7185"
+      permission: "3smpcore.visual.color.coral"
+    crimson:
+      display-name: "Crimson"
+      icon: "RED_DYE"
+      color: "#dc2626"
+      permission: "3smpcore.visual.color.crimson"
+    cobalt:
+      display-name: "Cobalt"
+      icon: "LAPIS_LAZULI"
+      color: "#2563eb"
+      permission: "3smpcore.visual.color.cobalt"
+    lavender:
+      display-name: "Lavender"
+      icon: "PURPLE_DYE"
+      color: "#c4b5fd"
+      permission: "3smpcore.visual.color.lavender"
+    pearl:
+      display-name: "Pearl"
+      icon: "END_CRYSTAL"
+      color: "#fff7ed"
+      permission: "3smpcore.visual.color.pearl"
+    void_purple:
+      display-name: "Void Purple"
+      icon: "ENDER_PEARL"
+      color: "#6d28d9"
+      permission: "3smpcore.visual.color.void_purple"
   name-gradients:
     royal_gold:
       display-name: "Royal Gold"
@@ -391,6 +517,131 @@ visual-cosmetics:
       icon: "REDSTONE"
       gradient: "#f4cd2a:#eda323:#d28d0d"
       permission: "3smpcore.visual.gradient.crimson_gold"
+    solar_flare:
+      display-name: "Solar Flare"
+      icon: "BLAZE_POWDER"
+      gradient: "#f97316:#facc15:#ffffff"
+      permission: "3smpcore.visual.gradient.solar_flare"
+    nebula:
+      display-name: "Nebula"
+      icon: "ENDER_EYE"
+      gradient: "#7c3aed:#ec4899:#22d3ee"
+      permission: "3smpcore.visual.gradient.nebula"
+    midnight_sky:
+      display-name: "Midnight Sky"
+      icon: "ECHO_SHARD"
+      gradient: "#0f172a:#2563eb:#a5b4fc"
+      permission: "3smpcore.visual.gradient.midnight_sky"
+    aurora_borealis:
+      display-name: "Aurora Borealis"
+      icon: "PRISMARINE_CRYSTALS"
+      gradient: "#22c55e:#2dd4bf:#818cf8"
+      permission: "3smpcore.visual.gradient.aurora_borealis"
+    rose_quartz:
+      display-name: "Rose Quartz"
+      icon: "PINK_DYE"
+      gradient: "#fb7185:#f9a8d4:#fef2f2"
+      permission: "3smpcore.visual.gradient.rose_quartz"
+    oceanic:
+      display-name: "Oceanic"
+      icon: "HEART_OF_THE_SEA"
+      gradient: "#0ea5e9:#22d3ee:#99f6e4"
+      permission: "3smpcore.visual.gradient.oceanic"
+    dragonfruit:
+      display-name: "Dragonfruit"
+      icon: "MAGENTA_DYE"
+      gradient: "#be185d:#ec4899:#facc15"
+      permission: "3smpcore.visual.gradient.dragonfruit"
+    jade_garden:
+      display-name: "Jade Garden"
+      icon: "EMERALD"
+      gradient: "#064e3b:#22c55e:#bbf7d0"
+      permission: "3smpcore.visual.gradient.jade_garden"
+    starlight:
+      display-name: "Starlight"
+      icon: "NETHER_STAR"
+      gradient: "#e0f2fe:#ffffff:#fef3c7"
+      permission: "3smpcore.visual.gradient.starlight"
+    void_gold:
+      display-name: "Void Gold"
+      icon: "GOLD_INGOT"
+      gradient: "#111827:#7c3aed:#f4cd2a"
+      permission: "3smpcore.visual.gradient.void_gold"
+    candy_pop:
+      display-name: "Candy Pop"
+      icon: "PINK_DYE"
+      gradient: "#f9a8d4:#a78bfa:#67e8f9"
+      permission: "3smpcore.visual.gradient.candy_pop"
+    eclipse:
+      display-name: "Eclipse"
+      icon: "BLACK_DYE"
+      gradient: "#020617:#475569:#f8fafc"
+      permission: "3smpcore.visual.gradient.eclipse"
+    flameheart:
+      display-name: "Flameheart"
+      icon: "FIRE_CHARGE"
+      gradient: "#991b1b:#ef4444:#f97316"
+      permission: "3smpcore.visual.gradient.flameheart"
+    glacier:
+      display-name: "Glacier"
+      icon: "PACKED_ICE"
+      gradient: "#e0f2fe:#7dd3fc:#2563eb"
+      permission: "3smpcore.visual.gradient.glacier"
+    royal_twilight:
+      display-name: "Royal Twilight"
+      icon: "AMETHYST_SHARD"
+      gradient: "#312e81:#7c3aed:#f4cd2a"
+      permission: "3smpcore.visual.gradient.royal_twilight"
+    prism:
+      display-name: "Prism"
+      icon: "AMETHYST_SHARD"
+      gradient: "#ef4444:#facc15:#22c55e:#38bdf8:#a78bfa"
+      permission: "3smpcore.visual.gradient.prism"
+    mango_lagoon:
+      display-name: "Mango Lagoon"
+      icon: "ORANGE_DYE"
+      gradient: "#fb923c:#facc15:#14b8a6"
+      permission: "3smpcore.visual.gradient.mango_lagoon"
+    grape_soda:
+      display-name: "Grape Soda"
+      icon: "PURPLE_DYE"
+      gradient: "#581c87:#a855f7:#f0abfc"
+      permission: "3smpcore.visual.gradient.grape_soda"
+    emerald_dream:
+      display-name: "Emerald Dream"
+      icon: "EMERALD"
+      gradient: "#052e16:#16a34a:#a7f3d0"
+      permission: "3smpcore.visual.gradient.emerald_dream"
+    cherry_ice:
+      display-name: "Cherry Ice"
+      icon: "PINK_DYE"
+      gradient: "#e11d48:#f9a8d4:#bae6fd"
+      permission: "3smpcore.visual.gradient.cherry_ice"
+    cosmic_mint:
+      display-name: "Cosmic Mint"
+      icon: "LIME_DYE"
+      gradient: "#5eead4:#a7f3d0:#c4b5fd"
+      permission: "3smpcore.visual.gradient.cosmic_mint"
+    sapphire_sunset:
+      display-name: "Sapphire Sunset"
+      icon: "DIAMOND"
+      gradient: "#1d4ed8:#38bdf8:#fb923c"
+      permission: "3smpcore.visual.gradient.sapphire_sunset"
+    obsidian_flame:
+      display-name: "Obsidian Flame"
+      icon: "OBSIDIAN"
+      gradient: "#020617:#7f1d1d:#f97316"
+      permission: "3smpcore.visual.gradient.obsidian_flame"
+    pearl_wave:
+      display-name: "Pearl Wave"
+      icon: "END_CRYSTAL"
+      gradient: "#fff7ed:#bae6fd:#c4b5fd"
+      permission: "3smpcore.visual.gradient.pearl_wave"
+    amethyst_crown:
+      display-name: "Amethyst Crown"
+      icon: "AMETHYST_SHARD"
+      gradient: "#4c1d95:#a78bfa:#f4cd2a"
+      permission: "3smpcore.visual.gradient.amethyst_crown"
   shadows:
     royal:
       display-name: "Royal Shadow"
